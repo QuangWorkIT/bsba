@@ -20,8 +20,8 @@ class Navigation extends StatelessWidget {
       child: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: onDestinationSelected,
-        backgroundColor: const Color(0xFFE9EEF6),
-        indicatorColor: const Color(0xFFD3E3FD),
+        backgroundColor: const Color(0xE0E2EBFF),
+        indicatorColor: const Color(0xFFB6D0FF),
         elevation: 0,
         destinations: const [
           NavigationDestination(
