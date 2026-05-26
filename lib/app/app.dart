@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/app/home_screen.dart';
 
 class BoardGameBookingApp extends StatelessWidget {
   const BoardGameBookingApp({super.key});
@@ -9,7 +10,7 @@ class BoardGameBookingApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'BoardNest',
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFF7EFE5),
+        scaffoldBackgroundColor: const Color(0xF9F9FFFF),
 
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1275e2),
@@ -20,7 +21,7 @@ class BoardGameBookingApp extends StatelessWidget {
         ),
 
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFF7EFE5),
+          backgroundColor: Color(0xF9F9FFFF),
           elevation: 0,
           centerTitle: true,
           titleTextStyle: TextStyle(
@@ -54,6 +55,7 @@ class BoardGameBookingApp extends StatelessWidget {
           ),
         ),
       ),
+      home: HomeScreen(),
     );
   }
 }
