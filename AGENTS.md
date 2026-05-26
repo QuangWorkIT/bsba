@@ -6,7 +6,7 @@ Instructions for AI coding agents (Claude Code, Cursor, Copilot, Codex, etc.) wo
 
 BoardNest — a Flutter mobile app for booking board-game spaces. Course project for FPTU PRM393. The Dart package name is `project` (see [pubspec.yaml](pubspec.yaml)), so imports use `package:project/...`.
 
-The codebase is in an early scaffolding stage: `MaterialApp` is themed but has no `home`/routes wired yet, so `flutter run` currently shows a blank screen. Feature code structure has not been established — when you add the first feature, pick a convention deliberately (e.g. `lib/features/<name>/`) rather than dumping files into `lib/` root.
+The codebase is in an early scaffolding stage: `MaterialApp` is themed and has `HomeScreen` wired as `home`. Feature code structure has not been established — when you add the first feature, pick a convention deliberately (e.g. `lib/features/<name>/`) rather than dumping files into `lib/` root.
 
 ## Environment
 
@@ -45,10 +45,10 @@ Run `flutter analyze` and `flutter test` before declaring a task done. Do not si
 
 ### Brand palette (defined once in `lib/app/app.dart`)
 
-- Scaffold background: `#F7EFE5` (warm cream)
+- Scaffold background: `#F9F9FFFF` (light off-white)
 - Primary: `#1275e2` · Secondary: `#5f78a3` · Tertiary: `#C55B00`
-- Surface (cards): `#FFF9F3`
-- Card radius: 22px · ElevatedButton radius: 18px
+- Surface (cards): `#F9F9FFFF`
+- Card radius: 12px · ElevatedButton radius: 12px
 
 If you need a new semantic color, extend `ColorScheme` or add an extension on `ThemeData` — do not inline new hex literals in feature code.
 
