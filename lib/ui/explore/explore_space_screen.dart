@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
 import '../shared/navigation.dart';
 import 'space_card.dart';
 import 'explore_space_filter.dart';
@@ -32,8 +31,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: ListenableBuilder(
           listenable: _vm,
@@ -54,11 +56,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     Padding(
                       padding: const EdgeInsets.only(right: 16),
                       child: GestureDetector(
-                        onTap: () { /* TODO: profile */ },
+                        onTap: () {
+                          /* TODO: profile */
+                        },
                         child: CircleAvatar(
                           radius: 18,
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          backgroundImage: const NetworkImage('https://i.pravatar.cc/150?img=12'),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primaryContainer,
+                          backgroundImage: const NetworkImage(
+                            'https://i.pravatar.cc/150?img=12',
+                          ),
                         ),
                       ),
                     ),
@@ -68,8 +76,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 // ── Search ─────────────────────────────────────────────────
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding:
-                    const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: _SearchBar(
                       controller: _searchController,
                       onChanged: _vm.onSearchChanged,
@@ -90,11 +97,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
                 // ── Content ────────────────────────────────────────────────
                 if (_vm.isLoading)
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     child: Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
+                      child: CircularProgressIndicator(color: colors.primary),
                     ),
                   )
                 else if (_vm.error != null)
@@ -105,25 +110,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     ),
                   )
                 else if (_vm.spaces.isEmpty)
-                    const SliverFillRemaining(
-                      child: _EmptyState(),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.only(top: 8, bottom: 24),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                            final space = _vm.spaces[index];
-                            return SpaceCard(
-                              space: space,
-                              onBookTap: () => _onBookTap(space.id),
-                            );
-                          },
-                          childCount: _vm.spaces.length,
-                        ),
-                      ),
+                  const SliverFillRemaining(child: _EmptyState())
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 24),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final space = _vm.spaces[index];
+                        return SpaceCard(
+                          space: space,
+                          onBookTap: () => _onBookTap(space.id),
+                        );
+                      }, childCount: _vm.spaces.length),
                     ),
+                  ),
               ],
             );
           },
@@ -139,12 +139,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   void _onBookTap(String spaceId) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     // TODO: Navigate to booking screen with spaceId.
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Booking space $spaceId…'),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.primary,
+        backgroundColor: colors.primary,
       ),
     );
   }
@@ -160,25 +163,34 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return TextField(
       controller: controller,
       onChanged: onChanged,
       decoration: InputDecoration(
         hintText: 'Search spaces, games, or vibes...',
-        prefixIcon: const Icon(Icons.search_rounded,
-            color: AppColors.textHint, size: 22),
+        prefixIcon: Icon(
+          Icons.search_rounded,
+          color: colors.onSurface.withOpacity(0.4),
+          size: 22,
+        ),
         suffixIcon: controller.text.isNotEmpty
             ? IconButton(
-          icon: const Icon(Icons.close_rounded,
-              color: AppColors.textHint, size: 20),
-          onPressed: () {
-            controller.clear();
-            onChanged('');
-          },
-        )
+                icon: Icon(
+                  Icons.close_rounded,
+                  color: colors.onSurface.withOpacity(0.4),
+                  size: 20,
+                ),
+                onPressed: () {
+                  controller.clear();
+                  onChanged('');
+                },
+              )
             : null,
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: colors.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -194,8 +206,7 @@ class _FilterChips extends StatelessWidget {
   final ExploreFilter activeFilter;
   final ValueChanged<ExploreFilter> onSelected;
 
-  const _FilterChips(
-      {required this.activeFilter, required this.onSelected});
+  const _FilterChips({required this.activeFilter, required this.onSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -223,10 +234,11 @@ class _FilterChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _FilterChip(
-      {required this.filter,
-        required this.selected,
-        required this.onTap});
+  const _FilterChip({
+    required this.filter,
+    required this.selected,
+    required this.onTap,
+  });
 
   IconData get _icon {
     switch (filter) {
@@ -241,31 +253,29 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding:
-        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected
-              ? AppColors.chipSelected
-              : AppColors.chipUnselected,
+          color: selected ? colors.primary : colors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected
-                ? AppColors.chipSelected
-                : AppColors.chipBorder,
+            color: selected ? colors.primary : colors.outline,
             width: 1,
           ),
           boxShadow: selected
               ? [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.25),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ]
+                  BoxShadow(
+                    color: colors.primary.withOpacity(0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
               : null,
         ),
         child: Row(
@@ -274,7 +284,7 @@ class _FilterChip extends StatelessWidget {
             Icon(
               _icon,
               size: 15,
-              color: selected ? Colors.white : AppColors.textSecondary,
+              color: selected ? Colors.white : colors.secondary,
             ),
             const SizedBox(width: 5),
             Text(
@@ -282,9 +292,7 @@ class _FilterChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w600,
-                color: selected
-                    ? Colors.white
-                    : AppColors.textSecondary,
+                color: selected ? Colors.white : colors.secondary,
               ),
             ),
           ],
@@ -301,17 +309,23 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off_rounded,
-              size: 56, color: AppColors.textHint),
-          SizedBox(height: 12),
+          Icon(
+            Icons.search_off_rounded,
+            size: 56,
+            color: colors.primary.withOpacity(0.4),
+          ),
+          const SizedBox(height: 12),
           Text(
             'No spaces found',
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: colors.secondary,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -320,7 +334,9 @@ class _EmptyState extends StatelessWidget {
           Text(
             'Try different keywords or filters.',
             style: TextStyle(
-                color: AppColors.textHint, fontSize: 13.5),
+              color: colors.onSurface.withOpacity(0.4),
+              fontSize: 13.5,
+            ),
           ),
         ],
       ),
@@ -336,19 +352,25 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.wifi_off_rounded,
-                size: 56, color: AppColors.textHint),
+            Icon(
+              Icons.wifi_off_rounded,
+              size: 56,
+              color: colors.onSurface.withOpacity(0.4),
+            ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Something went wrong',
               style: TextStyle(
-                color: AppColors.textPrimary,
+                color: colors.onSurface,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -357,8 +379,7 @@ class _ErrorState extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13.5),
+              style: TextStyle(color: colors.secondary, fontSize: 13.5),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(

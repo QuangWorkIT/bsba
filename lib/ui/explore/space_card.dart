@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
 import '../../data/models/board_space.dart';
 
 class SpaceCard extends StatelessWidget {
   final BoardSpace space;
   final VoidCallback? onBookTap;
 
-  const SpaceCard({
-    super.key,
-    required this.space,
-    this.onBookTap,
-  });
+  const SpaceCard({super.key, required this.space, this.onBookTap});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -43,14 +41,14 @@ class SpaceCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   space.description,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: colors.secondary,
                     fontSize: 13.5,
                     height: 1.45,
                   ),
                 ),
                 const SizedBox(height: 14),
-                const Divider(color: AppColors.divider, height: 1),
+                Divider(color: colors.outlineVariant, height: 1),
                 const SizedBox(height: 12),
                 _AvailableSlots(slots: space.availableSlots),
                 const SizedBox(height: 14),
@@ -75,6 +73,9 @@ class _SpaceImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       child: Stack(
@@ -86,18 +87,24 @@ class _SpaceImage extends StatelessWidget {
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => Container(
               height: 200,
-              color: AppColors.background,
-              child: const Icon(Icons.image_not_supported_outlined,
-                  size: 48, color: AppColors.textHint),
+              color: colors.surface,
+              child: Icon(
+                Icons.image_not_supported_outlined,
+                size: 48,
+                color: colors.onSurface.withOpacity(0.4),
+              ),
             ),
             loadingBuilder: (_, child, progress) {
               if (progress == null) return child;
               return Container(
                 height: 200,
-                color: AppColors.background,
-                child: const Center(
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.primary)),
+                color: colors.surface,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colors.primary,
+                  ),
+                ),
               );
             },
           ),
@@ -119,6 +126,9 @@ class _RatingBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
@@ -126,23 +136,23 @@ class _RatingBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.12),
-              blurRadius: 6,
-              offset: const Offset(0, 2)),
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.star_rounded,
-              color: AppColors.star, size: 15),
+          Icon(Icons.star_rounded, color: colors.tertiary, size: 15),
           const SizedBox(width: 3),
           Text(
             rating.toStringAsFixed(1),
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 13,
-              color: AppColors.textPrimary,
+              color: colors.onSurface,
             ),
           ),
         ],
@@ -157,16 +167,19 @@ class _TitleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Text(
             space.name,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: colors.onSurface,
               letterSpacing: -0.2,
             ),
           ),
@@ -174,9 +187,9 @@ class _TitleRow extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           '${space.distanceMi.toStringAsFixed(1)} mi',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: AppColors.textSecondary,
+            color: colors.secondary,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -191,25 +204,26 @@ class _AvailableSlots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'AVAILABLE TODAY',
           style: TextStyle(
             fontSize: 10.5,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
-            color: AppColors.textSecondary,
+            color: colors.secondary,
           ),
         ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 6,
-          children: slots
-              .map((slot) => _SlotChip(label: slot))
-              .toList(),
+          children: slots.map((slot) => _SlotChip(label: slot)).toList(),
         ),
       ],
     );
@@ -222,19 +236,22 @@ class _SlotChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.chipBorder, width: 1),
+        border: Border.all(color: colors.outline, width: 1),
       ),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
+          color: colors.onSurface,
         ),
       ),
     );
