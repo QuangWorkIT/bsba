@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/ui/explore/explore_space_screen.dart';
 
 class BoardGameBookingApp extends StatelessWidget {
   const BoardGameBookingApp({super.key});
@@ -54,6 +55,7 @@ class BoardGameBookingApp extends StatelessWidget {
           ),
         ),
       ),
+      home: const ExploreScreen()
     );
   }
 }
