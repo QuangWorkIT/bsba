@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:project/app/home_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:project/ui/auth/login_screen.dart';
+import 'package:project/viewmodels/login_viewmodel.dart';
 
 class BoardGameBookingApp extends StatelessWidget {
   const BoardGameBookingApp({super.key});
@@ -55,7 +57,10 @@ class BoardGameBookingApp extends StatelessWidget {
           ),
         ),
       ),
-      home: HomeScreen(),
+      home: ChangeNotifierProvider(
+        create: (_) => LoginViewModel(),
+        child: const LoginScreen(),
+      ),
     );
   }
 }
