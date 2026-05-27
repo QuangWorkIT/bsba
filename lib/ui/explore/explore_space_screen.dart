@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../components/space_card.dart';
+import 'space_card.dart';
 import 'explore_space_filter.dart';
 import 'explore_space_viewmodel.dart';
 
 /// Explore screen – lists nearby board game spaces.
-///
-/// Uses [ListenableBuilder] + [ExploreViewModel] (plain ChangeNotifier) so
-/// no extra state-management packages are required.
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
 
