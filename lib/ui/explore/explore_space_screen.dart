@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../shared/navigation.dart';
 import 'space_card.dart';
 import 'explore_space_filter.dart';
 import 'explore_space_viewmodel.dart';
@@ -40,7 +41,29 @@ class _ExploreScreenState extends State<ExploreScreen> {
             return CustomScrollView(
               slivers: [
                 // ── App bar ────────────────────────────────────────────────
-                _ExploreAppBar(),
+                SliverAppBar(
+                  pinned: true,
+                  scrolledUnderElevation: 1,
+                  shadowColor: Colors.black12,
+                  leading: IconButton(
+                    icon: const Icon(Icons.menu_rounded),
+                    onPressed: () {},
+                  ),
+                  title: const Text('BoardNest'),
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: GestureDetector(
+                        onTap: () { /* TODO: profile */ },
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                          backgroundImage: const NetworkImage('https://i.pravatar.cc/150?img=12'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
 
                 // ── Search ─────────────────────────────────────────────────
                 SliverToBoxAdapter(
@@ -106,7 +129,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
           },
         ),
       ),
-      bottomNavigationBar: const _BottomNav(),
+      bottomNavigationBar: Navigation(
+        selectedIndex: 0, // Explore tab
+        onDestinationSelected: (index) {
+          // TODO: handle tab switching (router/navigator)
+        },
+      ),
     );
   }
 
@@ -118,56 +146,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.primary,
       ),
-    );
-  }
-}
-
-// ── App bar ────────────────────────────────────────────────────────────────────
-
-class _ExploreAppBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SliverAppBar(
-      pinned: true,
-      backgroundColor: AppColors.surface,
-      elevation: 0,
-      scrolledUnderElevation: 1,
-      shadowColor: Colors.black12,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 12),
-        child: IconButton(
-          icon: const Icon(Icons.menu_rounded,
-              color: AppColors.textPrimary, size: 26),
-          onPressed: () {},
-          tooltip: 'Menu',
-        ),
-      ),
-      title: const Text(
-        'Tabletop Haven',
-        style: TextStyle(
-          color: AppColors.primary,
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.3,
-        ),
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: GestureDetector(
-            onTap: () {
-              // TODO: Navigate to profile.
-            },
-            child: const CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.primaryLight,
-              backgroundImage: NetworkImage(
-                'https://i.pravatar.cc/150?img=12',
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -312,79 +290,6 @@ class _FilterChip extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-// ── Bottom navigation ──────────────────────────────────────────────────────────
-
-class _BottomNav extends StatelessWidget {
-  const _BottomNav();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.divider)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
-              _NavItem(
-                  icon: Icons.search_rounded,
-                  label: 'Explore',
-                  active: true),
-              _NavItem(
-                  icon: Icons.map_outlined, label: 'Map'),
-              _NavItem(
-                  icon: Icons.shopping_cart_outlined,
-                  label: 'Cart'),
-              _NavItem(
-                  icon: Icons.chat_bubble_outline_rounded,
-                  label: 'Inbox'),
-              _NavItem(
-                  icon: Icons.person_outline_rounded,
-                  label: 'Profile'),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
-
-  const _NavItem(
-      {required this.icon, required this.label, this.active = false});
-
-  @override
-  Widget build(BuildContext context) {
-    final color =
-    active ? AppColors.navActive : AppColors.navInactive;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 3),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10.5,
-            color: color,
-            fontWeight:
-            active ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ],
     );
   }
 }
