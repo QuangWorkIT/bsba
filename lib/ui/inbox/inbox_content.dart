@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project/ui/inbox/chat_item.dart';
+import 'package:project/ui/inbox/chat_screen.dart';
 
 class InboxContent extends StatelessWidget {
   const InboxContent({super.key});
@@ -66,6 +67,14 @@ class InboxContent extends StatelessWidget {
                     time: chat['time'] as String,
                     unreadCount: chat['unread'] as int,
                     icon: chat['icon'] as IconData?,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              ChatScreen(name: chat['name'] as String),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

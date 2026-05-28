@@ -8,6 +8,7 @@ class ChatItem extends StatelessWidget {
     required this.time,
     this.unreadCount = 0,
     this.icon,
+    this.onTap,
   });
 
   final String name;
@@ -15,18 +16,21 @@ class ChatItem extends StatelessWidget {
   final String time;
   final int unreadCount;
   final IconData? icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isUnread = unreadCount > 0;
 
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFEBEDF7))),
-      ),
-      child: Row(
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: Color(0xFFEBEDF7))),
+        ),
+        child: Row(
         children: [
           _Avatar(name: name, icon: icon),
           const SizedBox(width: 16),
@@ -107,6 +111,7 @@ class ChatItem extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }
