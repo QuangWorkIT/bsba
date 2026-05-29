@@ -19,16 +19,13 @@ class ExploreScreen extends StatelessWidget {
               color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 14,
               offset: const Offset(0, 6),
-            )
+            ),
           ],
         ),
         child: Center(
           child: Text(
             "Hello Dart",
-            style: TextStyle(
-              color: theme.colorScheme.primary,
-              fontSize: 20,
-            ),
+            style: TextStyle(color: theme.colorScheme.primary, fontSize: 20),
           ),
         ),
       ),

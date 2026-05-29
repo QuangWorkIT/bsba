@@ -29,7 +29,7 @@ class NotificationContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Padding(
       padding: EdgeInsets.all(24),
       child: Column(
@@ -45,8 +45,12 @@ class NotificationContent extends StatelessWidget {
               ),
               Text(
                 'Mark all as read',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
-              )
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),

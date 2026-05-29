@@ -16,7 +16,6 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final theme = Theme.of(context);
 
     return Card(
@@ -40,7 +39,7 @@ class NotificationCard extends StatelessWidget {
             ),
 
             const SizedBox(width: 16),
-            
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,12 +48,19 @@ class NotificationCard extends StatelessWidget {
                     children: [
                       Text(
                         title ?? 'No Title',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Spacer(),
                       Text(
                         time ?? '',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey[600]),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                        ),
                       ),
                     ],
                   ),
@@ -64,8 +70,8 @@ class NotificationCard extends StatelessWidget {
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                 ],
-              )
-            )
+              ),
+            ),
           ],
         ),
       ),

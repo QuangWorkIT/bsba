@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-class BoardNestAppBar extends StatelessWidget
-    implements PreferredSizeWidget {
+class BoardNestAppBar extends StatelessWidget implements PreferredSizeWidget {
   const BoardNestAppBar({super.key});
 
   @override
@@ -12,10 +11,7 @@ class BoardNestAppBar extends StatelessWidget
       backgroundColor: appBarTheme.backgroundColor,
       elevation: appBarTheme.elevation,
       centerTitle: appBarTheme.centerTitle,
-      title: Text(
-        'BoardNest',
-        style: appBarTheme.titleTextStyle,
-      ),
+      title: Text('BoardNest', style: appBarTheme.titleTextStyle),
     );
   }
 

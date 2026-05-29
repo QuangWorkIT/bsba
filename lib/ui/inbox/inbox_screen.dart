@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project/ui/shared/inbox_tabbar.dart';
 import 'package:project/ui/inbox/notification_content.dart';
+
 class InboxScreen extends StatelessWidget {
   const InboxScreen({super.key});
 
