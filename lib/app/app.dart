@@ -56,7 +56,7 @@ class BoardGameBookingApp extends StatelessWidget {
           ),
         ),
       ),
-      home: ExploreScreen(),
+      home: HomeScreen(),
     );
   }
 }
