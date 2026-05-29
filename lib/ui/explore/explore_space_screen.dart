@@ -173,14 +173,14 @@ class _SearchBar extends StatelessWidget {
         hintText: 'Search spaces, games, or vibes...',
         prefixIcon: Icon(
           Icons.search_rounded,
-          color: colors.onSurface.withOpacity(0.4),
+          color: colors.onSurface.withValues(alpha: 0.4),
           size: 22,
         ),
         suffixIcon: controller.text.isNotEmpty
             ? IconButton(
                 icon: Icon(
                   Icons.close_rounded,
-                  color: colors.onSurface.withOpacity(0.4),
+                  color: colors.onSurface.withValues(alpha: 0.4),
                   size: 20,
                 ),
                 onPressed: () {
@@ -271,7 +271,7 @@ class _FilterChip extends StatelessWidget {
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: colors.primary.withOpacity(0.25),
+                    color: colors.primary.withValues(alpha: 0.25),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -319,7 +319,7 @@ class _EmptyState extends StatelessWidget {
           Icon(
             Icons.search_off_rounded,
             size: 56,
-            color: colors.primary.withOpacity(0.4),
+            color: colors.primary.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 12),
           Text(
@@ -334,7 +334,7 @@ class _EmptyState extends StatelessWidget {
           Text(
             'Try different keywords or filters.',
             style: TextStyle(
-              color: colors.onSurface.withOpacity(0.4),
+              color: colors.onSurface.withValues(alpha: 0.4),
               fontSize: 13.5,
             ),
           ),
@@ -364,7 +364,7 @@ class _ErrorState extends StatelessWidget {
             Icon(
               Icons.wifi_off_rounded,
               size: 56,
-              color: colors.onSurface.withOpacity(0.4),
+              color: colors.onSurface.withValues(alpha: 0.4),
             ),
             const SizedBox(height: 12),
             Text(

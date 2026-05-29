@@ -6,7 +6,7 @@ Instructions for AI coding agents (Claude Code, Cursor, Copilot, Codex, etc.) wo
 
 BoardNest — a Flutter mobile app for booking board-game spaces. Course project for FPTU PRM393. The Dart package name is `project` (see [pubspec.yaml](pubspec.yaml)), so imports use `package:project/...`.
 
-The codebase is in an early scaffolding stage: `MaterialApp` is themed and has `HomeScreen` wired as `home`. Feature code structure has not been established — when you add the first feature, pick a convention deliberately (e.g. `lib/features/<name>/`) rather than dumping files into `lib/` root.
+The codebase follows a structured **MVVM (Model-View-ViewModel)** architecture pattern, separating data services, models, and repositories from the UI presentation layer.
 
 ## Environment
 
@@ -39,11 +39,77 @@ Run `flutter analyze` and `flutter test` before declaring a task done. Do not si
 
 ## Architecture
 
-- [lib/main.dart](lib/main.dart) — entry point. Only calls `runApp(const BoardGameBookingApp())`.
-- [lib/app/app.dart](lib/app/app.dart) — root `BoardGameBookingApp` widget. Owns the entire `ThemeData` (color scheme, AppBar, Card, ElevatedButton styling). New screens and widgets must pull from `Theme.of(context).colorScheme` rather than re-hardcoding hex values.
-- [lib/app/](lib/app/) — intended home for app-shell concerns (theme, routing, top-level widget). Keep cross-cutting infrastructure here.
+The application's directory structure is organized as follows:
 
-### Brand palette (defined once in `lib/app/app.dart`)
+```text
+lib/
+│
+├── main.dart
+│
+├── app/
+│   ├── app.dart
+│   ├── router.dart
+│   └── dependencies.dart
+│
+├── core/
+│   ├── theme/
+│   │   ├── app_colors.dart
+│   │   └── app_theme.dart
+│   │
+│   ├── utils/
+│   └── constants/
+│
+├── data/
+│   ├── services/
+│   │   ├── api_client.dart
+│   │   ├── auth_service.dart
+│   │   ├── booking_service.dart
+│   │   └── boardgame_service.dart
+│   │
+│   ├── repositories/
+│   │   ├── auth_repository.dart
+│   │   ├── booking_repository.dart
+│   │   └── boardgame_repository.dart
+│   │
+│   └── models/
+│       ├── user.dart
+│       ├── booking.dart
+│       └── boardgame.dart
+│
+└── ui/
+    ├── auth/
+    │   ├── login_screen.dart
+    │   └── login_viewmodel.dart
+    │
+    ├── home/
+    │   ├── home_screen.dart
+    │   └── home_viewmodel.dart
+    │
+    ├── booking/
+    │   ├── booking_screen.dart
+    │   └── booking_viewmodel.dart
+    │
+    ├── admin/
+    ├── staff/
+    └── shared/
+```
+
+### Component Guidelines
+
+- **`lib/app/`**: Holds app-shell concerns, entry points, top-level widget wrapper, route definitions (`router.dart`), and global dependency injection configuration (`dependencies.dart`).
+  - [lib/main.dart](lib/main.dart) — Entry point. Only calls `runApp(const BoardGameBookingApp())`.
+  - [lib/app/app.dart](lib/app/app.dart) — Root `BoardGameBookingApp` widget. Owns the primary theme and global configurations.
+- **`lib/core/`**: Houses app-wide theme tokens (`app_colors.dart`, `app_theme.dart`), constants, and utilities shared across the app.
+- **`lib/data/`**: Manages all data layer concerns:
+  - **`models/`**: Domain entity models representing the core data structures (e.g., `user.dart`, `booking.dart`, `boardgame.dart`).
+  - **`services/`**: Low-level database client, REST API client, local persistence services, and third-party API clients.
+  - **`repositories/`**: Aggregates models and services to expose a unified data API to the UI layer.
+- **`lib/ui/`**: Houses all screens, presentation widgets, and view models organized by feature subdirectory (e.g. `auth/`, `home/`, `booking/`):
+  - **Views (`*_screen.dart`)**: Render UI components. Keep these as declarative and stateless as possible, delegating layout concerns to widgets.
+  - **ViewModels (`*_viewmodel.dart`)**: Own screen-specific state, trigger service or repository calls, and emit reactive state updates.
+  - **`shared/`**: Reusable generic UI components (e.g., shared buttons, custom AppBars, navigation menus) that are utilized across multiple feature screens.
+
+### Brand palette (defined once in `lib/app/app.dart` or `lib/core/theme/app_colors.dart`)
 
 - Scaffold background: `#F9F9FFFF` (light off-white)
 - Primary: `#1275e2` · Secondary: `#5f78a3` · Tertiary: `#C55B00`
@@ -63,7 +129,7 @@ If you need a new semantic color, extend `ColorScheme` or add an extension on `T
 ## Testing
 
 - Tests live in [test/](test/) mirroring `lib/` paths.
-- [test/widget_test.dart](test/widget_test.dart) is the **unmodified Flutter template test** — it asserts a counter and `Icons.add` that do not exist in `BoardGameBookingApp`. It will fail today. Replace it with a real test of the first screen you add; do not try to satisfy the counter assertions.
+- [test/widget_test.dart](test/widget_test.dart) is the navigation smoke test that verifies transitions between the Explore and Map tabs.
 
 ## Git workflow
 

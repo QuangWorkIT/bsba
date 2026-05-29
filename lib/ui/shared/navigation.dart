@@ -24,14 +24,8 @@ class Navigation extends StatelessWidget {
         indicatorColor: const Color(0xFFB6D0FF),
         elevation: 0,
         destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.search),
-            label: 'Explore',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            label: 'Map',
-          ),
+          NavigationDestination(icon: Icon(Icons.search), label: 'Explore'),
+          NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Map'),
           NavigationDestination(
             icon: Icon(Icons.shopping_cart_outlined),
             label: 'Cart',
