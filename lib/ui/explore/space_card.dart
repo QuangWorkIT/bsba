@@ -19,7 +19,7 @@ class SpaceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.07),
+            color: Colors.black.withValues(alpha: 0.07),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -85,13 +85,13 @@ class _SpaceImage extends StatelessWidget {
             height: 200,
             width: double.infinity,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
+            errorBuilder: (_, _, _) => Container(
               height: 200,
               color: colors.surface,
               child: Icon(
                 Icons.image_not_supported_outlined,
                 size: 48,
-                color: colors.onSurface.withOpacity(0.4),
+                color: colors.onSurface.withValues(alpha: 0.4),
               ),
             ),
             loadingBuilder: (_, child, progress) {
@@ -136,7 +136,7 @@ class _RatingBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
+            color: Colors.black.withValues(alpha: 0.12),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
