@@ -47,10 +47,7 @@ class BoardGameBookingApp extends StatelessWidget {
             backgroundColor: const Color(0xFF1275e2),
             foregroundColor: Colors.white,
             elevation: 0,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 28,
-              vertical: 16,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),

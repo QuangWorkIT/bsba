@@ -1,26 +1,26 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project/app/app.dart';
+import 'package:project/ui/map/widgets/map_canvas.dart';
 
 void main() {
-  testWidgets('Login screen smoke test', (WidgetTester tester) async {
+  testWidgets('BoardNest App navigation smoke test', (
+    WidgetTester tester,
+  ) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const BoardGameBookingApp());
 
-    // Verify that our application logo/title 'Tabletop Haven' is present.
-    expect(find.text('Tabletop Haven'), findsOneWidget);
+    // Verify that Explore tab is shown by default and contains "Hello Dart".
+    expect(find.text('Hello Dart'), findsOneWidget);
+    expect(find.byType(MapCanvas), findsNothing);
 
-    // Verify that the 'Welcome back' greeting is present.
-    expect(find.text('Welcome back'), findsOneWidget);
+    // Tap the 'Map' navigation destination.
+    await tester.tap(find.byIcon(Icons.map_outlined));
+    await tester.pumpAndSettle();
 
-    // Verify that the email and password fields / labels are present.
-    expect(find.text('Email or Phone'), findsOneWidget);
-    expect(find.text('Password'), findsOneWidget);
-
-    // Verify that the Log In button is present.
-    expect(find.text('Log In'), findsOneWidget);
-
-    // Verify that the social sign-in options are present.
-    expect(find.text('Google'), findsOneWidget);
-    expect(find.text('Apple'), findsOneWidget);
+    // Verify that the MapScreen is now active and MapCanvas is built.
+    expect(find.byType(MapCanvas), findsOneWidget);
+    expect(find.text('Downtown Hub'), findsNWidgets(2));
+    expect(find.text('Hello Dart'), findsNothing);
   });
 }
