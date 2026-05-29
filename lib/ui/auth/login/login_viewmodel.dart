@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/login_credentials.dart';
+import 'package:project/data/models/login_credentials.dart';
 
 class LoginViewModel extends ChangeNotifier {
   String _email = '';

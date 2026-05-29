@@ -1,30 +1,26 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:project/app/app.dart';
 
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('Login screen smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const BoardGameBookingApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that our application logo/title 'Tabletop Haven' is present.
+    expect(find.text('Tabletop Haven'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Verify that the 'Welcome back' greeting is present.
+    expect(find.text('Welcome back'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that the email and password fields / labels are present.
+    expect(find.text('Email or Phone'), findsOneWidget);
+    expect(find.text('Password'), findsOneWidget);
+
+    // Verify that the Log In button is present.
+    expect(find.text('Log In'), findsOneWidget);
+
+    // Verify that the social sign-in options are present.
+    expect(find.text('Google'), findsOneWidget);
+    expect(find.text('Apple'), findsOneWidget);
   });
 }

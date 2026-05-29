@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:project/ui/auth/login_screen.dart';
-import 'package:project/viewmodels/login_viewmodel.dart';
+import 'package:project/ui/auth/login/login.dart';
+import 'package:project/ui/auth/login/login_viewmodel.dart';
 
 class BoardGameBookingApp extends StatelessWidget {
   const BoardGameBookingApp({super.key});

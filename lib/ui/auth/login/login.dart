@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../viewmodels/login_viewmodel.dart';
+import 'login_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
               boxShadow: isDesktop
                   ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
+                        color: Colors.black.withValues(alpha: 0.15),
                         blurRadius: 30,
                         offset: const Offset(0, 10),
                       ),
@@ -273,74 +273,81 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Remember me & Forgot password Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: Checkbox(
-                                  value: _viewModel.rememberMe,
-                                  activeColor: const Color(0xFF0056C6),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
+                      // Remember me & Forgot password Wrap
+                      SizedBox(
+                        width: double.infinity,
+                        child: Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 16,
+                          runSpacing: 8,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Checkbox(
+                                    value: _viewModel.rememberMe,
+                                    activeColor: const Color(0xFF0056C6),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    side: const BorderSide(
+                                      color: Color(0xFFD1D5DB),
+                                      width: 1.5,
+                                    ),
+                                    onChanged: _viewModel.isLoading
+                                        ? null
+                                        : (bool? newValue) {
+                                            _viewModel.toggleRememberMe();
+                                          },
                                   ),
-                                  side: const BorderSide(
-                                    color: Color(0xFFD1D5DB),
-                                    width: 1.5,
-                                  ),
-                                  onChanged: _viewModel.isLoading
+                                ),
+                                const SizedBox(width: 8),
+                                GestureDetector(
+                                  onTap: _viewModel.isLoading
                                       ? null
-                                      : (bool? newValue) {
-                                          _viewModel.toggleRememberMe();
-                                        },
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: _viewModel.isLoading
-                                    ? null
-                                    : _viewModel.toggleRememberMe,
-                                child: const Text(
-                                  'Remember me',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Color(0xFF4B5563),
-                                    fontWeight: FontWeight.w500,
+                                      : _viewModel.toggleRememberMe,
+                                  child: const Text(
+                                    'Remember me',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF4B5563),
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          TextButton(
-                            onPressed: _viewModel.isLoading
-                                ? null
-                                : () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Forgot password functionality coming soon!'),
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                  },
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ],
                             ),
-                            child: const Text(
-                              'Forgot password?',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF0056C6),
-                                fontWeight: FontWeight.w600,
+                            TextButton(
+                              onPressed: _viewModel.isLoading
+                                  ? null
+                                  : () {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Forgot password functionality coming soon!'),
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
+                                    },
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: const Text(
+                                'Forgot password?',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF0056C6),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 24),
 
@@ -502,8 +509,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 32),
 
                       // Footer: Don't have an account? Sign up
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           const Text(
                             "Don't have an account? ",
@@ -526,10 +534,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: const Text(
                               'Sign up',
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF0056C6),
-                              ),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF0056C6)),
                             ),
                           ),
                         ],
