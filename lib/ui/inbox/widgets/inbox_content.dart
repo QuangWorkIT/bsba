@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:project/ui/inbox/chat_item.dart';
-import 'package:project/ui/inbox/chat_screen.dart';
+import 'package:project/ui/inbox/widgets/chat_item.dart';
+import 'package:project/ui/inbox/widgets/chat_screen.dart';
 
 class InboxContent extends StatelessWidget {
   const InboxContent({super.key});
