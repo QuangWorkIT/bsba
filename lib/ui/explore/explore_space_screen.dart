@@ -3,6 +3,7 @@ import '../shared/navigation.dart';
 import 'space_card.dart';
 import 'explore_space_filter.dart';
 import 'explore_space_viewmodel.dart';
+import 'space_detail_screen.dart';
 
 /// Explore screen – lists nearby board game spaces.
 class ExploreScreen extends StatefulWidget {
@@ -139,16 +140,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   void _onBookTap(String spaceId) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
-    // TODO: Navigate to booking screen with spaceId.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Booking space $spaceId…'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: colors.primary,
-      ),
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => SpaceDetailScreen(spaceId: spaceId)),
     );
   }
 }
