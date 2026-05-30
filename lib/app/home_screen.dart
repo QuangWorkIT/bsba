@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:project/ui/cart/cart_app_bar.dart';
 import 'package:project/ui/shared/appbar.dart';
 import 'package:project/ui/shared/navigation.dart';
-import 'package:project/ui/home/explore_screen.dart';
+import 'package:project/ui/explore/explore_space_screen.dart';
 import 'package:project/ui/map/map_screen.dart';
 import 'package:project/ui/cart/cart_screen.dart';
 import 'package:project/ui/inbox/inbox_screen.dart';
@@ -28,11 +29,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BoardNestAppBar(),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
+      appBar: _selectedIndex == 2
+          ? CartAppBar(onBack: () => setState(() => _selectedIndex = 0))
+          : const BoardNestAppBar(),
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: Navigation(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {

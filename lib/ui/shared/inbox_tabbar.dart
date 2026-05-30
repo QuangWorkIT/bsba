@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class InboxTabBar extends StatelessWidget {
   const InboxTabBar({super.key});
 
@@ -8,13 +7,9 @@ class InboxTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return TabBar(
       tabs: [
-        Tab(
-          text: 'Inbox'),
-        Tab(
-          text: 'Notifications'),
+        Tab(text: 'Inbox'),
+        Tab(text: 'Notifications'),
       ],
     );
   }
-
-
 }

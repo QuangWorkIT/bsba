@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:project/app/home_screen.dart';
+
+import 'package:provider/provider.dart';
+import 'package:project/ui/auth/login/login.dart';
+import 'package:project/ui/auth/login/login_viewmodel.dart';
+
+
 
 class BoardGameBookingApp extends StatelessWidget {
   const BoardGameBookingApp({super.key});
@@ -45,17 +50,17 @@ class BoardGameBookingApp extends StatelessWidget {
             backgroundColor: const Color(0xFF1275e2),
             foregroundColor: Colors.white,
             elevation: 0,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 28,
-              vertical: 16,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
           ),
         ),
       ),
-      home: HomeScreen(),
+      home: ChangeNotifierProvider(
+        create: (_) => LoginViewModel(),
+        child: const LoginScreen(),
+      ),
     );
   }
 }
