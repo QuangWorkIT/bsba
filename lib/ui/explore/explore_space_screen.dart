@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../shared/navigation.dart';
 import 'space_card.dart';
 import 'explore_space_filter.dart';
 import 'explore_space_viewmodel.dart';
@@ -32,110 +31,67 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+    final colors = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: ListenableBuilder(
-          listenable: _vm,
-          builder: (context, _) {
-            return CustomScrollView(
-              slivers: [
-                // ── App bar ────────────────────────────────────────────────
-                SliverAppBar(
-                  pinned: true,
-                  scrolledUnderElevation: 1,
-                  shadowColor: Colors.black12,
-                  leading: IconButton(
-                    icon: const Icon(Icons.menu_rounded),
-                    onPressed: () {},
-                  ),
-                  title: const Text('BoardNest'),
-                  actions: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: GestureDetector(
-                        onTap: () {
-                          /* TODO: profile */
-                        },
-                        child: CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primaryContainer,
-                          backgroundImage: const NetworkImage(
-                            'https://i.pravatar.cc/150?img=12',
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+    return ListenableBuilder(
+      listenable: _vm,
+      builder: (context, _) {
+        return CustomScrollView(
+          slivers: [
+            // ── Search ───────────────────────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: _SearchBar(
+                  controller: _searchController,
+                  onChanged: _vm.onSearchChanged,
                 ),
+              ),
+            ),
 
-                // ── Search ─────────────────────────────────────────────────
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: _SearchBar(
-                      controller: _searchController,
-                      onChanged: _vm.onSearchChanged,
-                    ),
-                  ),
+            // ── Filter chips ─────────────────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: _FilterChips(
+                  activeFilter: _vm.activeFilter,
+                  onSelected: _vm.onFilterChanged,
                 ),
+              ),
+            ),
 
-                // ── Filter chips ───────────────────────────────────────────
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                    child: _FilterChips(
-                      activeFilter: _vm.activeFilter,
-                      onSelected: _vm.onFilterChanged,
-                    ),
-                  ),
+            // ── Content ──────────────────────────────────────────────────
+            if (_vm.isLoading)
+              SliverFillRemaining(
+                child: Center(
+                  child: CircularProgressIndicator(color: colors.primary),
                 ),
-
-                // ── Content ────────────────────────────────────────────────
-                if (_vm.isLoading)
-                  SliverFillRemaining(
-                    child: Center(
-                      child: CircularProgressIndicator(color: colors.primary),
-                    ),
-                  )
-                else if (_vm.error != null)
-                  SliverFillRemaining(
-                    child: _ErrorState(
-                      message: _vm.error!,
-                      onRetry: _vm.loadSpaces,
-                    ),
-                  )
-                else if (_vm.spaces.isEmpty)
-                  const SliverFillRemaining(child: _EmptyState())
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 24),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final space = _vm.spaces[index];
-                        return SpaceCard(
-                          space: space,
-                          onBookTap: () => _onBookTap(space.id),
-                        );
-                      }, childCount: _vm.spaces.length),
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ),
-      bottomNavigationBar: Navigation(
-        selectedIndex: 0, // Explore tab
-        onDestinationSelected: (index) {
-          // TODO: handle tab switching (router/navigator)
-        },
-      ),
+              )
+            else if (_vm.error != null)
+              SliverFillRemaining(
+                child: _ErrorState(
+                  message: _vm.error!,
+                  onRetry: _vm.loadSpaces,
+                ),
+              )
+            else if (_vm.spaces.isEmpty)
+              const SliverFillRemaining(child: _EmptyState())
+            else
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 8, bottom: 24),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final space = _vm.spaces[index];
+                    return SpaceCard(
+                      space: space,
+                      onBookTap: () => _onBookTap(space.id),
+                    );
+                  }, childCount: _vm.spaces.length),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
