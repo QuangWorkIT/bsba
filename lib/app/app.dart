@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project/app/home_screen.dart';
+import 'package:project/ui/explore/explore_space_screen.dart';
 
 class BoardGameBookingApp extends StatelessWidget {
   const BoardGameBookingApp({super.key});
