@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/app/home_screen.dart';
 import 'package:project/data/models/login_credentials.dart';
 
 class LoginViewModel extends ChangeNotifier {
@@ -57,7 +58,7 @@ class LoginViewModel extends ChangeNotifier {
 
   // Core business action: Normal Login
   Future<bool> login(BuildContext context) async {
-    if (_email.trim().isEmpty || _password.isEmpty || _password.length < 6) {
+    if (_email.trim().isEmpty || _password.isEmpty) {
       return false;
     }
 
@@ -74,6 +75,16 @@ class LoginViewModel extends ChangeNotifier {
     await Future.delayed(const Duration(seconds: 1));
     
     setLoading(false);
+
+    // Demo bypass: "test" / "test" navigates straight into the app
+    if (_email.trim() == 'test' && _password == 'test') {
+      if (context.mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
+      return true;
+    }
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
