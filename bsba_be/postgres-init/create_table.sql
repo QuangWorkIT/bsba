@@ -333,3 +333,71 @@ CREATE TABLE payments (
                               FOREIGN KEY (booking_id)
                                   REFERENCES bookings(id)
 );
+
+
+CREATE TABLE booking_carts (
+                               id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+                               user_id UUID NOT NULL UNIQUE,
+                               store_id UUID NOT NULL,
+                               slot_id UUID,
+
+                               participant_count INTEGER NOT NULL DEFAULT 1,
+
+                               note TEXT,
+
+                               created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                               updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+                               CONSTRAINT fk_cart_user
+                                   FOREIGN KEY (user_id)
+                                       REFERENCES users(id)
+                                       ON DELETE CASCADE,
+
+                               CONSTRAINT fk_cart_store
+                                   FOREIGN KEY (store_id)
+                                       REFERENCES stores(id),
+
+                               CONSTRAINT fk_cart_slot
+                                   FOREIGN KEY (slot_id)
+                                       REFERENCES store_time_slots(id)
+);
+
+CREATE TABLE booking_cart_games (
+                                    id BIGSERIAL PRIMARY KEY,
+
+                                    cart_id UUID NOT NULL,
+                                    board_game_id UUID NOT NULL,
+
+                                    quantity INTEGER NOT NULL DEFAULT 1,
+
+                                    CONSTRAINT uq_cart_game
+                                        UNIQUE(cart_id, board_game_id),
+
+                                    CONSTRAINT fk_cart_game_cart
+                                        FOREIGN KEY (cart_id)
+                                            REFERENCES booking_carts(id)
+                                            ON DELETE CASCADE,
+
+                                    CONSTRAINT fk_cart_game_boardgame
+                                        FOREIGN KEY (board_game_id)
+                                            REFERENCES board_games(id)
+);
+
+CREATE TABLE booking_games (
+                               id BIGSERIAL PRIMARY KEY,
+
+                               booking_id UUID NOT NULL,
+                               board_game_id UUID NOT NULL,
+
+                               quantity INTEGER NOT NULL DEFAULT 1,
+
+                               CONSTRAINT fk_booking_game_booking
+                                   FOREIGN KEY (booking_id)
+                                       REFERENCES bookings(id)
+                                       ON DELETE CASCADE,
+
+                               CONSTRAINT fk_booking_game_boardgame
+                                   FOREIGN KEY (board_game_id)
+                                       REFERENCES board_games(id)
+);
