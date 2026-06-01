@@ -1,48 +1,178 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
+# =============================================================
+#  ROOT .gitignore — BSBA Project
+#  Covers: Spring Boot (Maven) backend + Flutter/Dart frontend
+# =============================================================
+
+
+# ─────────────────────────────────────────
+#  OS & system files
+# ─────────────────────────────────────────
 .DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
 
-.mcp.json
 
-.env
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
+# ─────────────────────────────────────────
+#  IDE & editor files
+# ─────────────────────────────────────────
+
+### IntelliJ IDEA / Android Studio ###
 .idea/
+*.iws
+*.ipr
+*.iml
+.factorypath
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+### Eclipse / STS ###
+.apt_generated
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-/coverage/
+### VS Code ###
+.vscode/
 
-# Symbolication related
-app.*.symbols
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
 
-# Obfuscation related
-app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# ─────────────────────────────────────────
+#  Backend — Spring Boot / Maven (bsba_be)
+# ─────────────────────────────────────────
+
+# Maven build output
+bsba_be/target/
+bsba_be/!**/src/main/**/target/
+bsba_be/!**/src/test/**/target/
+
+# Maven wrapper binary (auto-downloaded at build time)
+bsba_be/.mvn/wrapper/maven-wrapper.jar
+
+# Compiled classes & packaged artifacts
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# Log files
+*.log
+logs/
+
+# Local environment / secrets
+bsba_be/src/main/resources/application-local.properties
+bsba_be/src/main/resources/application-local.yml
+bsba_be/src/main/resources/application-secret.properties
+bsba_be/src/main/resources/application-secret.yml
+bsba_be/.env
+bsba_be/.env.*
+
+# Spring Boot DevTools restart trigger
+.reloadtrigger
+
+
+# ─────────────────────────────────────────
+#  Frontend — Flutter / Dart (bsba_fe)
+# ─────────────────────────────────────────
+
+# Dart tool cache
+bsba_fe/.dart_tool/
+bsba_fe/.pub-cache/
+bsba_fe/.pub/
+bsba_fe/.flutter-plugins
+bsba_fe/.flutter-plugins-dependencies
+
+# Flutter build output
+bsba_fe/build/
+bsba_fe/.build/
+bsba_fe/.buildlog/
+
+# Generated API docs
+bsba_fe/**/doc/api/
+
+# Coverage reports
+bsba_fe/coverage/
+
+# Symbolication & obfuscation artifacts
+bsba_fe/app.*.symbols
+bsba_fe/app.*.map.json
+
+# Flutter iOS build IDs
+bsba_fe/**/ios/Flutter/.last_build_id
+
+# Android build artifacts
+bsba_fe/android/app/debug/
+bsba_fe/android/app/profile/
+bsba_fe/android/app/release/
+bsba_fe/android/.gradle/
+bsba_fe/android/local.properties
+bsba_fe/android/captures/
+bsba_fe/android/**/*.keystore
+bsba_fe/android/**/*.jks
+
+# iOS CocoaPods
+bsba_fe/ios/Pods/
+bsba_fe/ios/.symlinks/
+bsba_fe/ios/Flutter/Flutter.framework/
+bsba_fe/ios/Flutter/Flutter.podspec
+bsba_fe/ios/Flutter/Generated.xcconfig
+bsba_fe/ios/Flutter/ephemeral/
+bsba_fe/ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS
+bsba_fe/macos/Flutter/ephemeral/
+
+# Linux
+bsba_fe/linux/flutter/ephemeral/
+
+# Windows
+bsba_fe/windows/flutter/ephemeral/
+
+# Web
+bsba_fe/web/
+
+# Dart migration files
+bsba_fe/migrate_working_dir/
+
+# Local environment / secrets
+bsba_fe/.env
+bsba_fe/.env.*
+bsba_fe/.mcp.json
+
+
+# ─────────────────────────────────────────
+#  Docker
+# ─────────────────────────────────────────
+# Keep Docker-compose.yml and Dockerfile in VCS.
+# Ignore any local override files.
+docker-compose.override.yml
+docker-compose.local.yml
+.env
+.env.*
+
+
+# ─────────────────────────────────────────
+#  Temporary / misc
+# ─────────────────────────────────────────
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.orig
+*.bak
+*.orig
+*.rej
