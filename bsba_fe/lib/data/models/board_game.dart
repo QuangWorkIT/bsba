@@ -7,6 +7,8 @@ class BoardGame {
   final int maxPlayers;
   final String difficulty; // e.g. "Medium", "Hard"
   final double rentalPrice; // per hour / per session
+  final String? playDuration; // e.g. "120+ Min", "60–90 Min"
+  final String? description;
 
   const BoardGame({
     required this.id,
@@ -17,6 +19,8 @@ class BoardGame {
     required this.maxPlayers,
     required this.difficulty,
     required this.rentalPrice,
+    this.playDuration,
+    this.description,
   });
 
   String get playerRange => '$minPlayers–$maxPlayers players';
@@ -30,6 +34,8 @@ class BoardGame {
     int? maxPlayers,
     String? difficulty,
     double? rentalPrice,
+    String? playDuration,
+    String? description,
   }) {
     return BoardGame(
       id: id ?? this.id,
@@ -40,6 +46,8 @@ class BoardGame {
       maxPlayers: maxPlayers ?? this.maxPlayers,
       difficulty: difficulty ?? this.difficulty,
       rentalPrice: rentalPrice ?? this.rentalPrice,
+      playDuration: playDuration ?? this.playDuration,
+      description: description ?? this.description,
     );
   }
 
