@@ -1,76 +1,126 @@
 import 'package:flutter/material.dart';
+import 'package:project/ui/inbox/notification_viewmodel.dart';
 import 'package:project/ui/inbox/widgets/notification_card.dart';
 
-class NotificationContent extends StatelessWidget {
-  const NotificationContent({super.key});
+class NotificationContent extends StatefulWidget {
+  const NotificationContent({super.key, required this.userId});
 
-  final notifications = const [
-    {
-      'title': 'Notification 1',
-      'subtitle': 'This is the first notification.',
-      'time': "2h ago",
-      "icon": Icons.notifications,
-    },
-    {
-      'title': 'Notification 2',
-      'subtitle': 'This is the second notification.',
-      'time': "1h ago",
-      "icon": Icons.notifications,
-    },
+  final String userId;
 
-    {
-      'title': 'Notification 3',
-      'subtitle': 'This is the third notification.',
-      'time': "30m ago",
-      "icon": Icons.warning_amber,
-    },
-  ];
+  @override
+  State<NotificationContent> createState() => _NotificationContentState();
+}
+
+class _NotificationContentState extends State<NotificationContent> {
+  final NotificationViewModel _viewModel = NotificationViewModel();
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel.loadNotifications(widget.userId);
+  }
+
+  @override
+  void didUpdateWidget(covariant NotificationContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userId != widget.userId) {
+      _viewModel.loadNotifications(widget.userId);
+    }
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  String _formatTime(DateTime createdAt) {
+    final diff = DateTime.now().difference(createdAt);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, _) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'Notifications',
                 style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
-              Text(
-                'Mark all as read',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
+              const SizedBox(height: 16),
+              Expanded(child: _buildBody()),
             ],
           ),
-          const SizedBox(height: 16),
+        );
+      },
+    );
+  }
 
-          Expanded(
-            child: ListView.builder(
-              itemCount: notifications.length,
-              itemBuilder: (context, index) {
-                final notification = notifications[index];
+  Widget _buildBody() {
+    if (_viewModel.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-                return NotificationCard(
-                  title: notification['title'] as String?,
-                  subtitle: notification['subtitle'] as String?,
-                  time: notification['time'] as String?,
-                  icon: notification['icon'] as IconData?,
-                );
-              },
+    if (_viewModel.errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
+            const SizedBox(height: 12),
+            Text(_viewModel.errorMessage!, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => _viewModel.loadNotifications(widget.userId),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
             ),
-          ),
-        ],
+          ],
+        ),
+      );
+    }
+
+    if (_viewModel.notifications.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.notifications_off_outlined,
+              size: 48,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 12),
+            Text('No notifications yet.', style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => _viewModel.loadNotifications(widget.userId),
+      child: ListView.builder(
+        itemCount: _viewModel.notifications.length,
+        itemBuilder: (context, index) {
+          final notification = _viewModel.notifications[index];
+
+          return NotificationCard(
+            title: notification.title,
+            subtitle: notification.body,
+            time: _formatTime(notification.createdAt),
+            icon: notification.type == 'SYSTEM'
+                ? Icons.warning_amber
+                : Icons.notifications,
+          );
+        },
       ),
     );
   }

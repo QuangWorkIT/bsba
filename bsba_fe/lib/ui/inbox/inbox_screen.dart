@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:project/ui/shared/inbox_tabbar.dart';
 import 'package:project/ui/inbox/widgets/notification_content.dart';
 import 'package:project/ui/inbox/widgets/inbox_content.dart';
+
 class InboxScreen extends StatelessWidget {
   const InboxScreen({super.key});
 
@@ -17,7 +18,9 @@ class InboxScreen extends StatelessWidget {
             child: TabBarView(
               children: [
                 InboxContent(),
-                NotificationContent(),
+                NotificationContent(
+                  userId: "fcc547c8-c843-4d46-9dc0-61630b9d8f5f",
+                ),
               ],
             ),
           ),
