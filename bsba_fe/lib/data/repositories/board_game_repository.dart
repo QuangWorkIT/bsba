@@ -14,4 +14,9 @@ class BoardGameRepository {
   Future<BoardGame> fetchGameById(String id) async {
     return await _service.getBoardGameById(id);
   }
+
+  Future<void> addToCart(String gameId) async {
+    // For now, quantity is hardcoded to 1, and storeId is handled by backend or picked from context
+    await _service.addToCart(gameId);
+  }
 }

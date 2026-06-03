@@ -20,4 +20,16 @@ class BoardGameService {
     final response = await _apiClient.get('/board-games/$id');
     return BoardGame.fromJson(response['data']);
   }
+
+  Future<void> addToCart(
+    String gameId, {
+    int quantity = 1,
+    String? storeId,
+  }) async {
+    await _apiClient.post('/carts/items', {
+      'boardGameId': gameId,
+      'quantity': quantity,
+      if (storeId != null) 'storeId': storeId,
+    });
+  }
 }
