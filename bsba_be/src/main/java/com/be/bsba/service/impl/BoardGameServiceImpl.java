@@ -46,6 +46,8 @@ public class BoardGameServiceImpl implements BoardGameService {
                 .ageRequirement(request.getAgeRequirement())
                 .difficultyLevel(request.getDifficultyLevel())
                 .imageUrl(request.getImageUrl())
+                .category(request.getCategory())
+                .rentalPrice(request.getRentalPrice())
                 .build();
         
         BoardGame savedGame = boardGameRepository.save(boardGame);
@@ -66,6 +68,8 @@ public class BoardGameServiceImpl implements BoardGameService {
         boardGame.setAgeRequirement(request.getAgeRequirement());
         boardGame.setDifficultyLevel(request.getDifficultyLevel());
         boardGame.setImageUrl(request.getImageUrl());
+        boardGame.setCategory(request.getCategory());
+        boardGame.setRentalPrice(request.getRentalPrice());
 
         BoardGame updatedGame = boardGameRepository.save(boardGame);
         return mapToResponse(updatedGame);
@@ -91,6 +95,8 @@ public class BoardGameServiceImpl implements BoardGameService {
                 .ageRequirement(boardGame.getAgeRequirement())
                 .difficultyLevel(boardGame.getDifficultyLevel())
                 .imageUrl(boardGame.getImageUrl())
+                .category(boardGame.getCategory())
+                .rentalPrice(boardGame.getRentalPrice())
                 .createdAt(boardGame.getCreatedAt())
                 .build();
     }

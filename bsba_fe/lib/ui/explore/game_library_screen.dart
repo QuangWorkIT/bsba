@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project/data/models/board_game.dart';
+import 'package:project/data/services/api_client.dart';
+import 'package:project/data/services/boardgame_service.dart';
 
 /// Game Library screen – browse and rent board games.
 ///
@@ -13,111 +15,41 @@ class GameLibraryScreen extends StatefulWidget {
 }
 
 class _GameLibraryScreenState extends State<GameLibraryScreen> {
+  final BoardGameService _gameService = BoardGameService(ApiClient());
+
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _activeFilter = 'All Games';
 
-  // ── Mock catalogue ──────────────────────────────────────────────────────
-  static const _allGames = [
-    BoardGame(
-      id: '1',
-      title: 'Gloomhaven',
-      category: 'RPG',
-      imageUrl:
-          'https://cf.geekdo-images.com/sZYp_3BTDGjh2unaZfZmuA__opengraph/img/Qev04kJL6lsNMet2VIH4YOAnj5k=/0x0:1571x825/fit-in/1200x630/filters:strip_icc()/pic2437871.jpg',
-      minPlayers: 1,
-      maxPlayers: 4,
-      difficulty: 'Hard',
-      rentalPrice: 5.00,
-      playDuration: '120+ Min',
-    ),
-    BoardGame(
-      id: '2',
-      title: 'Terraforming Mars',
-      category: 'Strategy',
-      imageUrl:
-          'https://cf.geekdo-images.com/wg9oOLcsKvDesSUdZQ4rxw__opengraph/img/BTsLyIX_p9rN3VpZ87VfXJnijXY=/0x0:3352x1760/fit-in/1200x630/filters:strip_icc()/pic3536616.jpg',
-      minPlayers: 1,
-      maxPlayers: 5,
-      difficulty: 'Medium',
-      rentalPrice: 4.50,
-      playDuration: '90–120 Min',
-    ),
-    BoardGame(
-      id: '3',
-      title: 'Catan',
-      category: 'Family',
-      imageUrl:
-          'https://cf.geekdo-images.com/W3Bsga_uLP9kO91gZ7H8yw__opengraph/img/o4p6f88SGE899BTNMzTvERVWZ-M=/0x0:2000x1050/fit-in/1200x630/filters:strip_icc()/pic2419375.jpg',
-      minPlayers: 3,
-      maxPlayers: 4,
-      difficulty: 'Easy',
-      rentalPrice: 3.50,
-      playDuration: '60–90 Min',
-    ),
-    BoardGame(
-      id: '4',
-      title: 'Wingspan',
-      category: 'Strategy',
-      imageUrl:
-          'https://cf.geekdo-images.com/yLZJCVLlIx4c7eJEWUNJ7w__opengraph/img/yC5_M9ORES3CaEiN1gIkMiOBnUc=/0x0:2000x1050/fit-in/1200x630/filters:strip_icc()/pic4458123.jpg',
-      minPlayers: 1,
-      maxPlayers: 5,
-      difficulty: 'Medium',
-      rentalPrice: 4.00,
-      playDuration: '40–70 Min',
-      description:
-          'Build your wildlife preserve and attract the most beautiful birds to your habitat.',
-    ),
-    BoardGame(
-      id: '5',
-      title: 'Ticket to Ride',
-      category: 'Family',
-      imageUrl:
-          'https://cf.geekdo-images.com/ZWJg0dCdrWHKEEQ5aKYMDA__opengraph/img/EnTYBVg-0-kTqBzPXQlPXc-jrPE=/0x0:2599x1365/fit-in/1200x630/filters:strip_icc()/pic38668.jpg',
-      minPlayers: 2,
-      maxPlayers: 5,
-      difficulty: 'Easy',
-      rentalPrice: 3.00,
-      playDuration: '30–60 Min',
-    ),
-    BoardGame(
-      id: '6',
-      title: 'Pandemic',
-      category: 'Strategy',
-      imageUrl:
-          'https://cf.geekdo-images.com/S3ybV1LAp-8SnHIXSXDTcQ__opengraph/img/nwKD4SKYJ10t-MWnNl1kMqLkjY8=/0x0:1479x777/fit-in/1200x630/filters:strip_icc()/pic1534148.jpg',
-      minPlayers: 2,
-      maxPlayers: 4,
-      difficulty: 'Medium',
-      rentalPrice: 3.50,
-      playDuration: '45–60 Min',
-    ),
-    BoardGame(
-      id: '7',
-      title: 'Dungeons & Dragons',
-      category: 'RPG',
-      imageUrl:
-          'https://cf.geekdo-images.com/vAFRVW4eCWfrf04Mxw2PZA__opengraph/img/pMRdfKQ9_Y3M1-6PVkD_K1AZ5pU=/0x0:1586x833/fit-in/1200x630/filters:strip_icc()/pic7766987.jpg',
-      minPlayers: 2,
-      maxPlayers: 6,
-      difficulty: 'Hard',
-      rentalPrice: 6.00,
-      playDuration: '120+ Min',
-    ),
-    BoardGame(
-      id: '8',
-      title: 'Codenames',
-      category: 'Party',
-      imageUrl:
-          'https://cf.geekdo-images.com/F_KDEu0GjdClml8N7c8Imw__opengraph/img/r9cMzBWWmViAaJvr2m9RGOLIYR0=/0x0:1463x768/fit-in/1200x630/filters:strip_icc()/pic2582929.jpg',
-      minPlayers: 2,
-      maxPlayers: 8,
-      difficulty: 'Easy',
-      rentalPrice: 2.50,
-      playDuration: '15–30 Min',
-    ),
-  ];
+  List<BoardGame> _allGames = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchGames();
+  }
+
+  Future<void> _fetchGames() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final games = await _gameService.getAllBoardGames();
+      setState(() {
+        _allGames = games;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage =
+            'Failed to load games. Make sure the backend is running.';
+        _isLoading = false;
+      });
+    }
+  }
 
   static const _filters = ['All Games', 'Strategy', 'Party', 'Family', 'RPG'];
 
@@ -140,7 +72,7 @@ class _GameLibraryScreenState extends State<GameLibraryScreen> {
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
       games = games.where((g) {
-        return g.title.toLowerCase().contains(q) ||
+        return g.name.toLowerCase().contains(q) ||
             g.category.toLowerCase().contains(q) ||
             (g.description?.toLowerCase().contains(q) ?? false);
       }).toList();
@@ -215,19 +147,31 @@ class _GameLibraryScreenState extends State<GameLibraryScreen> {
 
           // Game list
           Expanded(
-            child: games.isEmpty
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage != null
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchGames,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  )
+                : games.isEmpty
                 ? _EmptyResults(query: _searchQuery, filter: _activeFilter)
                 : ListView.builder(
                     padding: const EdgeInsets.only(top: 8, bottom: 24),
                     itemCount: games.length,
                     itemBuilder: (context, index) {
                       final game = games[index];
-                      // Mark the 4th game as "Trending" badge for demo,
-                      // matching the screenshot's Wingspan card.
-                      final badgeLabel =
-                          (index == 3 && _activeFilter == 'All Games')
-                          ? 'Trending'
-                          : game.category;
+                      final badgeLabel = game.category;
                       return _GameLibraryCard(
                         game: game,
                         badgeLabel: badgeLabel,
@@ -246,7 +190,7 @@ class _GameLibraryScreenState extends State<GameLibraryScreen> {
   void _onAddToCart(BuildContext context, BoardGame game) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${game.title} added to cart'),
+        content: Text('${game.name} added to cart'),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
@@ -502,7 +446,7 @@ class _GameLibraryCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  game.title,
+                  game.name,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -568,22 +512,20 @@ class _GameLibraryCard extends StatelessWidget {
                   color: colors.onSurface.withValues(alpha: 0.55),
                 ),
               ),
-              if (game.playDuration != null) ...[
-                const SizedBox(width: 12),
-                Icon(
-                  Icons.access_time_rounded,
-                  size: 15,
+              const SizedBox(width: 12),
+              Icon(
+                Icons.access_time_rounded,
+                size: 15,
+                color: colors.onSurface.withValues(alpha: 0.55),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                game.playDuration,
+                style: TextStyle(
+                  fontSize: 12.5,
                   color: colors.onSurface.withValues(alpha: 0.55),
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  game.playDuration!,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    color: colors.onSurface.withValues(alpha: 0.55),
-                  ),
-                ),
-              ],
+              ),
             ],
           ),
           const SizedBox(height: 10),

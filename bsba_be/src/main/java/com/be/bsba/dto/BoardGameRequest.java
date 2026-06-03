@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -32,4 +34,8 @@ public class BoardGameRequest {
     private Integer difficultyLevel;
 
     private String imageUrl;
+
+    private String category;
+
+    private BigDecimal rentalPrice;
 }
