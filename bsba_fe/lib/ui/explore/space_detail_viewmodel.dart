@@ -1,8 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../../data/models/board_game.dart';
 import '../../data/models/board_space_detail.dart';
+import '../../data/repositories/board_game_repository.dart';
 
 class SpaceDetailViewModel extends ChangeNotifier {
+  final BoardGameRepository _repository;
+
+  SpaceDetailViewModel(this._repository);
+
   // ── State ──────────────────────────────────────────────────────────────────
 
   BoardSpaceDetail? _space;

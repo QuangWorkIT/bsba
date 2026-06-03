@@ -1,8 +1,8 @@
 package com.be.bsba.controller;
 
-import com.be.bsba.dto.ApiResponse;
-import com.be.bsba.dto.BoardGameRequest;
-import com.be.bsba.dto.BoardGameResponse;
+import com.be.bsba.dto.request.BoardGameRequest;
+import com.be.bsba.dto.response.ApiResponse;
+import com.be.bsba.dto.response.BoardGameResponse;
 import com.be.bsba.service.BoardGameService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

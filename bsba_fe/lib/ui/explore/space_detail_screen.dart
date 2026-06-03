@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../data/models/board_game.dart';
 import '../../data/models/board_space_detail.dart';
+import '../../data/repositories/board_game_repository.dart';
+import '../../data/services/api_client.dart';
+import '../../data/services/boardgame_service.dart';
 import 'game_card.dart';
 import 'game_library_screen.dart';
 import 'space_detail_viewmodel.dart';
@@ -24,7 +27,9 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _vm = SpaceDetailViewModel();
+    _vm = SpaceDetailViewModel(
+      BoardGameRepository(BoardGameService(ApiClient())),
+    );
     _vm.loadSpace(widget.spaceId);
   }
 

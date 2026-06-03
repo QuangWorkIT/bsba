@@ -1,4 +1,4 @@
-package com.be.bsba.dto;
+package com.be.bsba.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

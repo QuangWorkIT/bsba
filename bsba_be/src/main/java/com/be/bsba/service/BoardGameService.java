@@ -1,7 +1,7 @@
 package com.be.bsba.service;
 
-import com.be.bsba.dto.BoardGameRequest;
-import com.be.bsba.dto.BoardGameResponse;
+import com.be.bsba.dto.request.BoardGameRequest;
+import com.be.bsba.dto.response.BoardGameResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

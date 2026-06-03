@@ -1,7 +1,7 @@
-package com.be.bsba.service.impl;
+package com.be.bsba.serviceImpl;
 
-import com.be.bsba.dto.BoardGameRequest;
-import com.be.bsba.dto.BoardGameResponse;
+import com.be.bsba.dto.request.BoardGameRequest;
+import com.be.bsba.dto.response.BoardGameResponse;
 import com.be.bsba.entity.BoardGame;
 import com.be.bsba.repository.BoardGameRepository;
 import com.be.bsba.service.BoardGameService;
