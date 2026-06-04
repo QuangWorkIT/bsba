@@ -57,6 +57,17 @@ class ChatService {
     return Message.fromJson(response['data'] as Map<String, dynamic>);
   }
 
+  /// GET /api/v1/conversations/unread-count?userId=..&role=..
+  /// Returns the number of conversations that have unread messages.
+  Future<int> getUnreadCount({
+    required String userId,
+    String role = 'CUSTOMER',
+  }) async {
+    final response = await _apiClient
+        .get('/conversations/unread-count?userId=$userId&role=$role');
+    return (response['data'] as num?)?.toInt() ?? 0;
+  }
+
   /// PATCH /api/v1/conversations/{id}/read?userId=..&role=..
   Future<void> markRead({
     required String conversationId,

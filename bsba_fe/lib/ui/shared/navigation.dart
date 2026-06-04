@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class Navigation extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int>? onDestinationSelected;
+  final int inboxBadgeCount;
 
   const Navigation({
     super.key,
     this.selectedIndex = 0,
     this.onDestinationSelected,
+    this.inboxBadgeCount = 0,
   });
 
   @override
@@ -23,18 +25,23 @@ class Navigation extends StatelessWidget {
         backgroundColor: const Color(0xE0E2EBFF),
         indicatorColor: const Color(0xFFB6D0FF),
         elevation: 0,
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.search), label: 'Explore'),
-          NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Map'),
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(icon: Icon(Icons.search), label: 'Explore'),
+          const NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Map'),
+          const NavigationDestination(
             icon: Icon(Icons.shopping_cart_outlined),
             label: 'Cart',
           ),
           NavigationDestination(
-            icon: Icon(Icons.chat_outlined),
+            icon: inboxBadgeCount > 0
+                ? Badge(
+                    label: Text('$inboxBadgeCount'),
+                    child: const Icon(Icons.chat_outlined),
+                  )
+                : const Icon(Icons.chat_outlined),
             label: 'Inbox',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.person_outline),
             label: 'Profile',
           ),

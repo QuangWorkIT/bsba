@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 
 /// Right-aligned chat bubble for messages sent by the current user.
 class ChatUserMessage extends StatelessWidget {
-  const ChatUserMessage({super.key, required this.text, this.readReceipt});
+  const ChatUserMessage({
+    super.key,
+    required this.text,
+    this.time,
+    this.readReceipt,
+  });
 
   final String text;
+  final String? time;
   final String? readReceipt;
 
   @override
@@ -39,6 +45,20 @@ class ChatUserMessage extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
+              if (time != null && time!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Opacity(
+                  opacity: 0.8,
+                  child: Text(
+                    time!,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFFE3ECFF),
+                    ),
+                  ),
+                ),
+              ],
               if (readReceipt != null) ...[
                 const SizedBox(height: 4),
                 Opacity(

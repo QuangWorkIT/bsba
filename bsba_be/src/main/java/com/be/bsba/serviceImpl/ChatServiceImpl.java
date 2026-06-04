@@ -72,6 +72,22 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public long getUnreadCount(UUID userId, UserRole role) {
+        if (role == UserRole.ADMIN) {
+            return messageRepository.countUnreadConversationsAll(SenderType.CUSTOMER);
+        }
+        if (role == UserRole.STAFF) {
+            List<UUID> storeIds = storeStaffRepository.findStoreIdsByStaffId(userId);
+            if (storeIds.isEmpty()) {
+                return 0;
+            }
+            return messageRepository.countUnreadConversationsForStores(storeIds, SenderType.CUSTOMER);
+        }
+        return messageRepository.countUnreadConversationsForCustomer(userId, SenderType.STAFF);
+    }
+
+    @Override
     @Transactional
     public ConversationResponse startConversation(UUID userId, StartConversationRequest request) {
         User user = userRepository.findById(userId)

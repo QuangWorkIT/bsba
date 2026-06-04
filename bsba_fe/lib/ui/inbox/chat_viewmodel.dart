@@ -43,6 +43,15 @@ class ChatViewModel extends ChangeNotifier {
     return m.senderType == mySenderType;
   }
 
+  /// Id of the most recent message I sent that has been read by the other side.
+  /// Only this one shows a "Đã xem" receipt, so the thread isn't cluttered.
+  String? get lastReadMineId {
+    for (final m in _messages.reversed) {
+      if (isMine(m) && m.isRead) return m.id;
+    }
+    return null;
+  }
+
   // ── Lifecycle ──────────────────────────────────────────────────────────────
   Future<void> start() async {
     await loadMessages();

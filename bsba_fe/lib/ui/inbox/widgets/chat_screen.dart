@@ -122,7 +122,11 @@ class _MessageList extends StatelessWidget {
       itemBuilder: (context, index) {
         final Message m = reversed[index];
         if (vm.isMine(m)) {
-          return ChatUserMessage(text: m.content);
+          return ChatUserMessage(
+            text: m.content,
+            time: m.timeLabel,
+            readReceipt: m.id == vm.lastReadMineId ? 'Đã xem' : null,
+          );
         }
         return ChatStaffMessage(time: m.timeLabel, message: m.content);
       },

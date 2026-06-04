@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.UUID;
 
 @Repository
@@ -31,4 +32,24 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
             "AND m.senderType = :senderType " +
             "AND m.isRead = false")
     int markRead(@Param("conversationId") UUID conversationId, @Param("senderType") SenderType senderType);
+
+    // Unread badge — customer: number of their threads that have unread staff messages.
+    @Query("SELECT COUNT(DISTINCT m.conversation.id) FROM Message m " +
+            "WHERE m.conversation.user.id = :userId " +
+            "AND m.senderType = :senderType " +
+            "AND m.isRead = false")
+    long countUnreadConversationsForCustomer(@Param("userId") UUID userId, @Param("senderType") SenderType senderType);
+
+    // Unread badge — staff: number of threads in the given stores with unread customer messages.
+    @Query("SELECT COUNT(DISTINCT m.conversation.id) FROM Message m " +
+            "WHERE m.conversation.store.id IN :storeIds " +
+            "AND m.senderType = :senderType " +
+            "AND m.isRead = false")
+    long countUnreadConversationsForStores(@Param("storeIds") Collection<UUID> storeIds, @Param("senderType") SenderType senderType);
+
+    // Unread badge — admin: number of threads across every store with unread customer messages.
+    @Query("SELECT COUNT(DISTINCT m.conversation.id) FROM Message m " +
+            "WHERE m.senderType = :senderType " +
+            "AND m.isRead = false")
+    long countUnreadConversationsAll(@Param("senderType") SenderType senderType);
 }

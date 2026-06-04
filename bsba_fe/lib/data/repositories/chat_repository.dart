@@ -51,4 +51,11 @@ class ChatRepository {
       role: role,
     );
   }
+
+  Future<int> fetchUnreadCount({
+    required String userId,
+    String role = 'CUSTOMER',
+  }) {
+    return _service.getUnreadCount(userId: userId, role: role);
+  }
 }

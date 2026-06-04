@@ -33,6 +33,14 @@ public class ConversationController {
         return ApiResponse.success(conversations, "Conversations retrieved successfully");
     }
 
+    @GetMapping("/unread-count")
+    public ApiResponse<Long> getUnreadCount(
+            @RequestParam UUID userId,
+            @RequestParam(defaultValue = "CUSTOMER") UserRole role) {
+        long count = chatService.getUnreadCount(userId, role);
+        return ApiResponse.success(count, "Unread count retrieved successfully");
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<ConversationResponse> startConversation(
