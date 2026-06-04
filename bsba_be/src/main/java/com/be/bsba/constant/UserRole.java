@@ -1,6 +1,7 @@
 package com.be.bsba.constant;
 
-public enum SenderType {
+public enum UserRole {
+    ADMIN,
     CUSTOMER,
-    STAFF
+    STAFF,
 }

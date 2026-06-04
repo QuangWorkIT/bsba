@@ -77,6 +77,32 @@ CREATE TABLE stores (
 );
 
 -- ==========================================
+-- STORE STAFF (which staff answer chats for which store)
+-- ==========================================
+
+CREATE TABLE store_staff (
+                             id BIGSERIAL PRIMARY KEY,
+
+                             store_id UUID NOT NULL,
+                             user_id UUID NOT NULL,
+
+                             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+                             CONSTRAINT uk_store_staff
+                                 UNIQUE (store_id, user_id),
+
+                             CONSTRAINT fk_store_staff_store
+                                 FOREIGN KEY (store_id)
+                                     REFERENCES stores(id)
+                                     ON DELETE CASCADE,
+
+                             CONSTRAINT fk_store_staff_user
+                                 FOREIGN KEY (user_id)
+                                     REFERENCES users(id)
+                                     ON DELETE CASCADE
+);
+
+-- ==========================================
 -- STORE IMAGES
 -- ==========================================
 

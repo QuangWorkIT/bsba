@@ -12,7 +12,7 @@
 INSERT INTO roles (id, name) VALUES
     (1, 'ADMIN'),
     (2, 'USER'),
-    (3, 'STORE_OWNER')
+    (3, 'STAFF')
 ON CONFLICT (id) DO NOTHING;
 
 SELECT setval(pg_get_serial_sequence('roles', 'id'), (SELECT MAX(id) FROM roles));
