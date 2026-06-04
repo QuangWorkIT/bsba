@@ -1,8 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../../data/models/board_game.dart';
 import '../../data/models/board_space_detail.dart';
+import '../../data/repositories/board_game_repository.dart';
 
 class SpaceDetailViewModel extends ChangeNotifier {
+  final BoardGameRepository _repository;
+
+  SpaceDetailViewModel(this._repository);
+
   // ── State ──────────────────────────────────────────────────────────────────
 
   BoardSpaceDetail? _space;
@@ -79,35 +84,35 @@ class SpaceDetailViewModel extends ChangeNotifier {
     libraryHighlights: const [
       BoardGame(
         id: 'g1',
-        title: 'Twilight Imperium',
+        name: 'Twilight Imperium',
         category: 'Grand Strategy',
         imageUrl:
             'https://images.unsplash.com/photo-1640461470346-c8b56497850a?w=400&q=80',
         minPlayers: 3,
         maxPlayers: 8,
-        difficulty: 'Hard',
+        difficultyLevel: 5,
         rentalPrice: 5,
       ),
       BoardGame(
         id: 'g2',
-        title: 'Scythe',
+        name: 'Scythe',
         category: 'Engine Building',
         imageUrl:
             'https://images.unsplash.com/photo-1559131397-f94da358f7ca?w=400&q=80',
         minPlayers: 1,
         maxPlayers: 5,
-        difficulty: 'Medium',
+        difficultyLevel: 3,
         rentalPrice: 3,
       ),
       BoardGame(
         id: 'g3',
-        title: 'Terraforming Mars',
+        name: 'Terraforming Mars',
         category: 'Strategy',
         imageUrl:
             'https://images.unsplash.com/photo-1446776858070-70c3d5ed6758?w=400&q=80',
         minPlayers: 1,
         maxPlayers: 5,
-        difficulty: 'Medium',
+        difficultyLevel: 3,
         rentalPrice: 3,
       ),
     ],
