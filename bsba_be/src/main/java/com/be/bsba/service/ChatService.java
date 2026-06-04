@@ -15,4 +15,5 @@ public interface ChatService {
     ConversationResponse startConversation(UUID userId, StartConversationRequest request);
     Page<MessageResponse> getMessages(UUID conversationId, Pageable pageable);
     MessageResponse sendMessage(UUID conversationId, UUID userId, UserRole role, SendMessageRequest request);
+    void markConversationRead(UUID conversationId, UUID userId, UserRole role);
 }

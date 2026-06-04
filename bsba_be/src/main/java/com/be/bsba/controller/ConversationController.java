@@ -61,4 +61,13 @@ public class ConversationController {
         MessageResponse message = chatService.sendMessage(id, userId, role, request);
         return ApiResponse.success(message, "Message sent successfully");
     }
+
+    @PatchMapping("/{id}/read")
+    public ApiResponse<Void> markConversationRead(
+            @PathVariable UUID id,
+            @RequestParam UUID userId,
+            @RequestParam(defaultValue = "CUSTOMER") UserRole role) {
+        chatService.markConversationRead(id, userId, role);
+        return ApiResponse.success(null, "Conversation marked as read");
+    }
 }

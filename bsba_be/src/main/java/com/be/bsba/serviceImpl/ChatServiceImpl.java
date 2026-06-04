@@ -107,6 +107,26 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional
+    public void markConversationRead(UUID conversationId, UUID userId, UserRole role) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Conversation not found with id: " + conversationId));
+
+        // A staff member may only act on conversations of a store they're assigned to.
+        if (role == UserRole.STAFF) {
+            UUID storeId = conversation.getStore() != null ? conversation.getStore().getId() : null;
+            if (storeId == null || !storeStaffRepository.existsByStoreIdAndStaffId(storeId, userId)) {
+                throw new BadRequestException("Staff is not assigned to this conversation's store");
+            }
+        }
+
+        // Mark the other party's messages as read: a customer reads staff messages, staff read customer messages.
+        SenderType target = role == UserRole.CUSTOMER ? SenderType.STAFF : SenderType.CUSTOMER;
+        messageRepository.markRead(conversationId, target);
+    }
+
+    @Override
+    @Transactional
     public MessageResponse sendMessage(UUID conversationId, UUID userId, UserRole role, SendMessageRequest request) {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new ResourceNotFoundException(
