@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project/ui/inbox/notification_viewmodel.dart';
+import 'package:project/ui/inbox/widgets/notification_viewmodel.dart';
 import 'package:project/ui/inbox/widgets/notification_card.dart';
 
 class NotificationContent extends StatefulWidget {

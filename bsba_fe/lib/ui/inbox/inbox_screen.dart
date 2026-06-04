@@ -19,7 +19,7 @@ class InboxScreen extends StatelessWidget {
               children: [
                 InboxContent(),
                 NotificationContent(
-                  userId: "fcc547c8-c843-4d46-9dc0-61630b9d8f5f",
+                  userId: "5eba0910-f0d5-4afd-baa5-ab328b71dec8",
                 ),
               ],
             ),

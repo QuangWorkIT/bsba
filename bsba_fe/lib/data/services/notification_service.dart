@@ -1,20 +1,11 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:project/data/models/notification.dart';
+import 'package:project/data/services/api_client.dart';
 
 class NotificationService {
-  final client = http.Client();
+  final ApiClient _apiClient = ApiClient();
 
   Future<List<NotificationModel>> getNotifications(String userId) async {
-    final response = await client.get(
-      Uri.parse("http://10.0.2.2:8080/api/notifications/$userId"),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to load notifications: ${response.statusCode}');
-    }
-
-    final Map<String, dynamic> jsonMap = jsonDecode(response.body);
+    final jsonMap = await _apiClient.get('/notifications/$userId');
 
     final List<dynamic> data = jsonMap['data'];
 
