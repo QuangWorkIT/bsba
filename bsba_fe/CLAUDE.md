@@ -45,7 +45,6 @@ The course grades *how* the UI is built, not just that screens render. Follow th
 - **Performance** — long lists use `ListView.builder`/`GridView.builder`, never `Column(children: list.map(...))`. Prefer `const` widgets. Never call APIs from `build()`.
 - **Consistency** — pull colors/text styles from `Theme.of(context).colorScheme` (see brand palette above); don't inline new hex literals in feature code.
 - **Navigation** — use `Navigator`/named routes; pass typed objects/ids between screens; verify the back stack.
-- **Testing** — keep at least one unit test (e.g. a totals calculation) and one widget test (e.g. a screen renders its key elements) passing.
 
 ## Known gotchas
 
