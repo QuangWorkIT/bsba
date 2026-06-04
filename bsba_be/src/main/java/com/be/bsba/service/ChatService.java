@@ -13,5 +13,6 @@ import java.util.UUID;
 public interface ChatService {
     Page<ConversationResponse> getConversations(UUID userId, UserRole role, Pageable pageable);
     ConversationResponse startConversation(UUID userId, StartConversationRequest request);
+    Page<MessageResponse> getMessages(UUID conversationId, Pageable pageable);
     MessageResponse sendMessage(UUID conversationId, UUID userId, UserRole role, SendMessageRequest request);
 }

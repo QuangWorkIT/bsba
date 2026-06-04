@@ -94,6 +94,18 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<MessageResponse> getMessages(UUID conversationId, Pageable pageable) {
+        if (!conversationRepository.existsById(conversationId)) {
+            throw new ResourceNotFoundException(
+                    "Conversation not found with id: " + conversationId);
+        }
+
+        return messageRepository.findByConversationIdOrderByCreatedAtDesc(conversationId, pageable)
+                .map(this::mapToResponse);
+    }
+
+    @Override
     @Transactional
     public MessageResponse sendMessage(UUID conversationId, UUID userId, UserRole role, SendMessageRequest request) {
         Conversation conversation = conversationRepository.findById(conversationId)
