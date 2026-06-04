@@ -28,7 +28,24 @@ Dart SDK: `^3.12.0` (see [pubspec.yaml](pubspec.yaml)).
   - surface (cards): `#FFF9F3`
   - Cards use 22px rounded corners; ElevatedButtons use 18px.
   When adding new screens/widgets, pull colors from `Theme.of(context).colorScheme` rather than hardcoding these hex values again.
-- `lib/app/` is the intended home for app-level shell code (theme, routing, top-level widget). Feature code does not yet have an established folder convention — when introducing the first feature, set the pattern deliberately rather than scattering files into `lib/` root.
+- `lib/app/` is the home for app-level shell code (theme, routing, top-level widget).
+- `lib/data/` holds the data layer, split into `models/`, `services/`, and `repositories/`.
+- `lib/ui/` holds feature UI, one folder per feature (`auth/`, `cart/`, `checkout/`, `explore/`, `inbox/`, `map/`, `profile/`). Extracted presentation pieces live in a `widgets/` subfolder of the feature; screen state lives in `*_viewmodel.dart`; cross-feature widgets live in `lib/ui/shared/`. Don't scatter files into `lib/` root.
+
+## UI code structure requirements (PRM393 rubric)
+
+The course grades *how* the UI is built, not just that screens render. Follow these when adding or editing feature UI:
+
+- **Widget decomposition** — never put a whole screen in one `build()`. Split into small, named, reusable widgets: one public widget per file under `lib/ui/<feature>/widgets/`, with tightly-coupled sub-widgets kept as private classes in the same file. [lib/ui/inbox/widgets/chat/](lib/ui/inbox/widgets/chat/) is the reference pattern.
+- **State management** — use a viewmodel/Provider per screen; don't drive cross-screen state with scattered `setState`. UI reads data from models/repositories, never hardcoded.
+- **Data-driven UI states** — any screen backed by an API/repository handles all four states: loading, loaded, error, empty. Don't assume data is always present.
+- **Validation** — validate form inputs (login, checkout, chat); block empty/invalid submits and show the error inline.
+- **Error handling** — wrap async/API calls and surface failures instead of white screens; guard against null before rendering.
+- **Responsive layout** — wrap scrollable forms in `SafeArea` + `SingleChildScrollView`; use `Expanded`/`Flexible`/`MediaQuery`/`LayoutBuilder` to avoid `RenderFlex overflowed`; ellipsize long text.
+- **Performance** — long lists use `ListView.builder`/`GridView.builder`, never `Column(children: list.map(...))`. Prefer `const` widgets. Never call APIs from `build()`.
+- **Consistency** — pull colors/text styles from `Theme.of(context).colorScheme` (see brand palette above); don't inline new hex literals in feature code.
+- **Navigation** — use `Navigator`/named routes; pass typed objects/ids between screens; verify the back stack.
+- **Testing** — keep at least one unit test (e.g. a totals calculation) and one widget test (e.g. a screen renders its key elements) passing.
 
 ## Known gotchas
 
