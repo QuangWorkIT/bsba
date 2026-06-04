@@ -151,9 +151,6 @@ bsba_fe/migrate_working_dir/
 bsba_fe/.env
 bsba_fe/.env.*
 bsba_fe/.mcp.json
-# Local MCP config (contains Figma API token) — keep out of git
-.mcp.json
-.mcp.json.bak
 
 
 # ─────────────────────────────────────────
