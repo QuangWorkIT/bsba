@@ -122,10 +122,11 @@ class _InboxBody extends StatelessWidget {
           return ChatItem(
             name: c.displayName,
             message: c.preview,
+            draft: vm.draftFor(c.id),
             time: c.timeLabel,
             unreadCount: c.unreadCount,
-            onTap: () {
-              Navigator.of(context).push(
+            onTap: () async {
+              await Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => ChatScreen(
                     conversationId: c.id,
@@ -134,6 +135,8 @@ class _InboxBody extends StatelessWidget {
                   ),
                 ),
               );
+              // The draft may have changed (typed more, or sent) while away.
+              await vm.refreshDrafts();
             },
           );
         },

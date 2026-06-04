@@ -1,12 +1,26 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 /// Bottom message composer: attach button, text field and send button.
 class ChatInputArea extends StatefulWidget {
-  const ChatInputArea({super.key, this.onSend, this.enabled = true});
+  const ChatInputArea({
+    super.key,
+    this.onSend,
+    this.enabled = true,
+    this.loadDraft,
+    this.onDraftChanged,
+  });
 
   /// Called with the trimmed, non-empty message when the user sends.
   final ValueChanged<String>? onSend;
   final bool enabled;
+
+  /// Restores a previously saved draft when the composer first appears.
+  final Future<String?> Function()? loadDraft;
+
+  /// Persists the current draft (called with '' to clear it).
+  final ValueChanged<String>? onDraftChanged;
 
   @override
   State<ChatInputArea> createState() => _ChatInputAreaState();
@@ -14,9 +28,40 @@ class ChatInputArea extends StatefulWidget {
 
 class _ChatInputAreaState extends State<ChatInputArea> {
   final TextEditingController _controller = TextEditingController();
+  Timer? _saveDebounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreDraft();
+    _controller.addListener(_scheduleSave);
+  }
+
+  Future<void> _restoreDraft() async {
+    final draft = await widget.loadDraft?.call();
+    // Don't clobber anything typed while the draft was loading.
+    if (!mounted || draft == null || draft.isEmpty || _controller.text.isNotEmpty) {
+      return;
+    }
+    _controller.text = draft;
+    _controller.selection =
+        TextSelection.collapsed(offset: draft.length);
+  }
+
+  void _scheduleSave() {
+    _saveDebounce?.cancel();
+    _saveDebounce = Timer(
+      const Duration(milliseconds: 400),
+      () => widget.onDraftChanged?.call(_controller.text),
+    );
+  }
 
   @override
   void dispose() {
+    _saveDebounce?.cancel();
+    // Flush the latest draft immediately so backing out never loses it.
+    widget.onDraftChanged?.call(_controller.text);
+    _controller.removeListener(_scheduleSave);
     _controller.dispose();
     super.dispose();
   }
@@ -25,7 +70,9 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     final text = _controller.text.trim();
     if (text.isEmpty || !widget.enabled) return;
     widget.onSend?.call(text);
+    _saveDebounce?.cancel();
     _controller.clear();
+    widget.onDraftChanged?.call(''); // sent → discard the saved draft
   }
 
   @override

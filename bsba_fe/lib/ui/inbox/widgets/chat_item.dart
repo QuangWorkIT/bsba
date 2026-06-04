@@ -6,6 +6,7 @@ class ChatItem extends StatelessWidget {
     required this.name,
     required this.message,
     required this.time,
+    this.draft,
     this.unreadCount = 0,
     this.icon,
     this.onTap,
@@ -14,6 +15,10 @@ class ChatItem extends StatelessWidget {
   final String name;
   final String message;
   final String time;
+
+  /// Unsent draft for this thread; when set, it replaces [message] in the
+  /// preview with a "Chưa gửi" marker.
+  final String? draft;
   final int unreadCount;
   final IconData? icon;
   final VoidCallback? onTap;
@@ -22,6 +27,7 @@ class ChatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isUnread = unreadCount > 0;
+    final hasDraft = draft != null && draft!.trim().isNotEmpty;
 
     return InkWell(
       onTap: onTap,
@@ -71,19 +77,41 @@ class ChatItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(
-                        message,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight:
-                              isUnread ? FontWeight.w500 : FontWeight.w400,
-                          color: isUnread
-                              ? const Color(0xFF181C22)
-                              : const Color(0xFF414753),
-                        ),
-                      ),
+                      child: hasDraft
+                          ? Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Chưa gửi: ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.colorScheme.tertiary,
+                                    ),
+                                  ),
+                                  TextSpan(text: draft!.trim()),
+                                ],
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                color: Color(0xFF414753),
+                              ),
+                            )
+                          : Text(
+                              message,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight:
+                                    isUnread ? FontWeight.w500 : FontWeight.w400,
+                                color: isUnread
+                                    ? const Color(0xFF181C22)
+                                    : const Color(0xFF414753),
+                              ),
+                            ),
                     ),
                     if (isUnread) ...[
                       const SizedBox(width: 8),

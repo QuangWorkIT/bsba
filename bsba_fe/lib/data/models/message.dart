@@ -21,6 +21,19 @@ class Message {
 
   bool get isFromCustomer => senderType == 'CUSTOMER';
 
+  /// Copy of this message with a fallback [createdAt] (used to keep the
+  /// optimistic sent-time when the server response omits it).
+  Message withCreatedAt(DateTime? value) => Message(
+        id: id,
+        conversationId: conversationId,
+        senderId: senderId,
+        senderType: senderType,
+        content: content,
+        type: type,
+        isRead: isRead,
+        createdAt: value,
+      );
+
   /// Short clock label like "2:14 PM".
   String get timeLabel {
     final dt = createdAt;

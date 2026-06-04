@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/models/conversation.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/services/chat_socket_service.dart';
+import '../../data/services/draft_store.dart';
 
 /// TODO: replace with the authenticated user's id once login is wired up.
 /// Use a UUID that exists in the `users` table (seed one for the demo).
@@ -15,6 +16,7 @@ const String kDemoRole = 'STAFF';
 class InboxViewModel extends ChangeNotifier {
   final ChatRepository _repository;
   final ChatSocketService _socket;
+  final DraftStore _draftStore;
   final String userId;
   final String role;
 
@@ -23,7 +25,8 @@ class InboxViewModel extends ChangeNotifier {
     this._socket, {
     this.userId = kDemoUserId,
     this.role = kDemoRole,
-  }) {
+    DraftStore? draftStore,
+  }) : _draftStore = draftStore ?? DraftStore() {
     _socket.subscribeJson(
       '/topic/users/$userId/conversations',
       (json) => _applyRealtimeUpdate(Conversation.fromJson(json)),
@@ -32,9 +35,13 @@ class InboxViewModel extends ChangeNotifier {
 
   // ── State ──────────────────────────────────────────────────────────────────
   List<Conversation> _conversations = [];
+  Map<String, String> _drafts = {};
   bool _isLoading = false;
   String? _error;
   String _searchQuery = '';
+
+  /// Unsent draft for a conversation, if one is still saved (else null).
+  String? draftFor(String conversationId) => _drafts[conversationId];
 
   // ── Getters ────────────────────────────────────────────────────────────────
   bool get isLoading => _isLoading;
@@ -71,6 +78,7 @@ class InboxViewModel extends ChangeNotifier {
         userId: userId,
         role: role,
       );
+      await _refreshDrafts();
     } catch (e) {
       _error =
           'Failed to load conversations. Make sure the backend is running.';
@@ -79,6 +87,23 @@ class InboxViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Re-read the saved drafts for the current conversations. Call this when the
+  /// inbox regains focus (e.g. after returning from a chat) so a draft typed
+  /// there shows up — or disappears once sent.
+  Future<void> refreshDrafts() async {
+    await _refreshDrafts();
+    notifyListeners();
+  }
+
+  Future<void> _refreshDrafts() async {
+    final next = <String, String>{};
+    for (final c in _conversations) {
+      final draft = await _draftStore.read(c.id);
+      if (draft != null && draft.isNotEmpty) next[c.id] = draft;
+    }
+    _drafts = next;
   }
 
   void onSearchChanged(String query) {

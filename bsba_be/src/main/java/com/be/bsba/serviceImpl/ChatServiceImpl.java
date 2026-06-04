@@ -185,7 +185,10 @@ public class ChatServiceImpl implements ChatService {
                 .isRead(false)
                 .build();
 
-        Message savedMessage = messageRepository.save(message);
+        // Flush so Hibernate runs the INSERT now and populates the
+        // @CreationTimestamp; otherwise createdAt stays null until commit and
+        // the POST response / socket broadcast would ship a message with no time.
+        Message savedMessage = messageRepository.saveAndFlush(message);
 
         // Keep the denormalized inbox-preview fields in sync.
         conversation.setLastMessagePreview(savedMessage.getContent());

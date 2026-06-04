@@ -60,7 +60,12 @@ class _ChatView extends StatelessWidget {
       body: Column(
         children: [
           Expanded(child: _MessageList(vm: vm)),
-          ChatInputArea(enabled: !vm.isSending, onSend: vm.sendMessage),
+          ChatInputArea(
+            enabled: !vm.isSending,
+            onSend: vm.sendMessage,
+            loadDraft: vm.loadDraft,
+            onDraftChanged: vm.saveDraft,
+          ),
         ],
       ),
     );

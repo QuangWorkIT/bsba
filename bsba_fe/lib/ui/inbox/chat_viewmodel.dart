@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import '../../data/models/message.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/services/chat_socket_service.dart';
+import '../../data/services/draft_store.dart';
 import 'inbox_viewmodel.dart' show kDemoRole;
 
 class ChatViewModel extends ChangeNotifier {
   final ChatRepository _repository;
   final ChatSocketService _socket;
+  final DraftStore _draftStore;
   final String conversationId;
   final String userId;
   final String role;
@@ -18,7 +20,8 @@ class ChatViewModel extends ChangeNotifier {
     required this.conversationId,
     required this.userId,
     this.role = kDemoRole,
-  }) {
+    DraftStore? draftStore,
+  }) : _draftStore = draftStore ?? DraftStore() {
     _socket.subscribeJson(
       '/topic/conversations/$conversationId/messages',
       (json) => _onIncoming(Message.fromJson(json)),
@@ -42,6 +45,13 @@ class ChatViewModel extends ChangeNotifier {
     final mySenderType = role == 'CUSTOMER' ? 'CUSTOMER' : 'STAFF';
     return m.senderType == mySenderType;
   }
+
+  // ── Drafts ───────────────────────────────────────────────────────────────
+  /// Restore the unsent draft for this conversation, if any is still fresh.
+  Future<String?> loadDraft() => _draftStore.read(conversationId);
+
+  /// Persist the current draft (passing empty text clears it).
+  void saveDraft(String text) => _draftStore.save(conversationId, text);
 
   /// Id of the most recent message I sent that has been read by the other side.
   /// Only this one shows a "Đã xem" receipt, so the thread isn't cluttered.
@@ -84,6 +94,19 @@ class ChatViewModel extends ChangeNotifier {
     if (text.isEmpty || _isSending) return;
 
     _isSending = true;
+
+    // Optimistic message so the bubble and its sent-time show up instantly,
+    // before the server round-trip completes.
+    final tempId = 'temp-${DateTime.now().microsecondsSinceEpoch}';
+    final optimistic = Message(
+      id: tempId,
+      conversationId: conversationId,
+      senderId: userId,
+      senderType: role == 'CUSTOMER' ? 'CUSTOMER' : 'STAFF',
+      content: text,
+      createdAt: DateTime.now(),
+    );
+    _messages.add(optimistic);
     notifyListeners();
 
     try {
@@ -93,9 +116,27 @@ class ChatViewModel extends ChangeNotifier {
         content: text,
         role: role,
       );
-      // The socket will also echo this; _onIncoming dedupes by id.
-      _onIncoming(sent);
+      // Reconcile the placeholder with the server's message (real id + time).
+      // Fall back to the optimistic timestamp if the server omits createdAt.
+      final reconciled = sent.createdAt == null
+          ? sent.withCreatedAt(optimistic.createdAt)
+          : sent;
+      final idx = _messages.indexWhere((m) => m.id == tempId);
+      if (idx != -1) {
+        // The socket echo may have already delivered the real message.
+        if (_messages.any((m) => m.id == sent.id)) {
+          _messages.removeAt(idx);
+        } else {
+          _messages[idx] = reconciled;
+        }
+      } else {
+        _onIncoming(reconciled);
+      }
+      // Message is on its way — drop any saved draft for this thread.
+      _draftStore.clear(conversationId);
     } catch (e) {
+      // Drop the placeholder so a failed send doesn't linger in the thread.
+      _messages.removeWhere((m) => m.id == tempId);
       _error = 'Failed to send message.';
       debugPrint('Error sending message: $e');
     } finally {
