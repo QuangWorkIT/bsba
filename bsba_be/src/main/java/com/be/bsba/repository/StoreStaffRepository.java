@@ -15,5 +15,8 @@ public interface StoreStaffRepository extends JpaRepository<StoreStaff, Long> {
     @Query("SELECT ss.store.id FROM StoreStaff ss WHERE ss.staff.id = :staffId")
     List<UUID> findStoreIdsByStaffId(@Param("staffId") UUID staffId);
 
+    @Query("SELECT ss.staff.id FROM StoreStaff ss WHERE ss.store.id = :storeId")
+    List<UUID> findStaffIdsByStoreId(@Param("storeId") UUID storeId);
+
     boolean existsByStoreIdAndStaffId(UUID storeId, UUID staffId);
 }

@@ -1,64 +1,131 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'chat/chat_date_divider.dart';
-import 'chat/chat_header.dart';
-import 'chat/chat_input_area.dart';
-import 'chat/chat_staff_message.dart';
-import 'chat/chat_staff_message_with_card.dart';
-import 'chat/chat_typing_indicator.dart';
-import 'chat/chat_user_message.dart';
+import 'package:project/data/models/message.dart';
+import 'package:project/data/repositories/chat_repository.dart';
+import 'package:project/data/services/api_client.dart';
+import 'package:project/data/services/chat_service.dart';
+import 'package:project/data/services/chat_socket_service.dart';
+import 'package:project/ui/inbox/chat_viewmodel.dart';
+import 'package:project/ui/inbox/inbox_viewmodel.dart' show kDemoRole;
+import 'package:project/ui/inbox/widgets/chat/chat_header.dart';
+import 'package:project/ui/inbox/widgets/chat/chat_input_area.dart';
+import 'package:project/ui/inbox/widgets/chat/chat_staff_message.dart';
+import 'package:project/ui/inbox/widgets/chat/chat_user_message.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({
     super.key,
-    this.name = 'Sarah M.',
-    this.subtitle = 'Game Master • Online',
+    required this.conversationId,
+    required this.name,
+    required this.userId,
+    this.role = kDemoRole,
+    this.subtitle = 'Online',
   });
+
+  final String conversationId;
+  final String name;
+  final String userId;
+  final String role;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => ChatViewModel(
+        ChatRepository(ChatService(ApiClient())),
+        ChatSocketService(),
+        conversationId: conversationId,
+        userId: userId,
+        role: role,
+      )..start(),
+      child: _ChatView(name: name, subtitle: subtitle),
+    );
+  }
+}
+
+class _ChatView extends StatelessWidget {
+  const _ChatView({required this.name, required this.subtitle});
 
   final String name;
   final String subtitle;
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<ChatViewModel>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF1F3FC),
       appBar: ChatHeader(name: name, subtitle: subtitle),
       body: Column(
         children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(24),
-              children: const [
-                ChatDateDivider(text: 'Today, 2:14 PM'),
-                SizedBox(height: 24),
-                ChatStaffMessage(
-                  time: 'Sarah • 2:14 PM',
-                  message:
-                      'Hi there! I see you have a reservation for a table of 4 at 7:00 PM tonight. Would you like me to pre-load any specific board games at your table so they are ready when you arrive?',
-                ),
-                SizedBox(height: 24),
-                ChatUserMessage(
-                  text: "Yes, please! We definitely want to play 'Settlers of Catan'.",
-                ),
-                SizedBox(height: 24),
-                ChatStaffMessageWithCard(
-                  time: 'Sarah • 2:18 PM',
-                  message:
-                      "Great choice. I've placed the base game at Table 4 for you. We also have the 'Seafarers' expansion available right now. Shall I add that to your reservation for an extra \$5?",
-                ),
-                SizedBox(height: 24),
-                ChatUserMessage(
-                  text: "Actually, let's just stick to the base game for now. Thanks!",
-                  readReceipt: 'Read • 2:20 PM',
-                ),
-                SizedBox(height: 24),
-                ChatTypingIndicator(),
-              ],
-            ),
-          ),
-          const ChatInputArea(),
+          Expanded(child: _MessageList(vm: vm)),
+          ChatInputArea(enabled: !vm.isSending, onSend: vm.sendMessage),
         ],
       ),
+    );
+  }
+}
+
+class _MessageList extends StatelessWidget {
+  const _MessageList({required this.vm});
+
+  final ChatViewModel vm;
+
+  @override
+  Widget build(BuildContext context) {
+    if (vm.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (vm.error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                vm.error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: vm.loadMessages,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (vm.isEmpty) {
+      return const Center(
+        child: Text(
+          'No messages yet. Say hello!',
+          style: TextStyle(color: Color(0xFF717785), fontSize: 14),
+        ),
+      );
+    }
+
+    // Feed newest-first into a reversed list so it sticks to the bottom and
+    // new messages appear without manual scrolling.
+    final reversed = vm.messages.reversed.toList();
+
+    return ListView.separated(
+      reverse: true,
+      padding: const EdgeInsets.all(24),
+      itemCount: reversed.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 24),
+      itemBuilder: (context, index) {
+        final Message m = reversed[index];
+        if (vm.isMine(m)) {
+          return ChatUserMessage(text: m.content);
+        }
+        return ChatStaffMessage(time: m.timeLabel, message: m.content);
+      },
     );
   }
 }

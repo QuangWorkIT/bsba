@@ -22,6 +22,7 @@ import com.be.bsba.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,7 @@ public class ChatServiceImpl implements ChatService {
     private final UserRepository userRepository;
     private final StoreRepository storeRepository;
     private final StoreStaffRepository storeStaffRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     @Transactional(readOnly = true)
@@ -122,7 +124,16 @@ public class ChatServiceImpl implements ChatService {
 
         // Mark the other party's messages as read: a customer reads staff messages, staff read customer messages.
         SenderType target = role == UserRole.CUSTOMER ? SenderType.STAFF : SenderType.CUSTOMER;
-        messageRepository.markRead(conversationId, target);
+        int updated = messageRepository.markRead(conversationId, target);
+
+        // Nothing was unread -> no inbox change to push.
+        if (updated == 0) {
+            return;
+        }
+
+        // The bulk update cleared the persistence context; re-load to map lazy fields safely.
+        Conversation refreshed = conversationRepository.findById(conversationId).orElse(conversation);
+        broadcastConversationRow(refreshed);
     }
 
     @Override
@@ -165,7 +176,43 @@ public class ChatServiceImpl implements ChatService {
         conversation.setLastMessageAt(savedMessage.getCreatedAt());
         conversationRepository.save(conversation);
 
+        broadcastNewMessage(conversation, savedMessage);
+
         return mapToResponse(savedMessage);
+    }
+
+    // Push the new message + inbox-row updates to everyone involved over STOMP.
+    private void broadcastNewMessage(Conversation conversation, Message message) {
+        // Anyone with this chat open receives the new message.
+        messagingTemplate.convertAndSend(
+                "/topic/conversations/" + conversation.getId() + "/messages",
+                mapToResponse(message));
+
+        broadcastConversationRow(conversation);
+    }
+
+    // Push the (perspective-correct) inbox row to the customer and every store staff,
+    // so unread counts / previews update live on each side's inbox.
+    private void broadcastConversationRow(Conversation conversation) {
+        User customer = conversation.getUser();
+        Store store = conversation.getStore();
+
+        // The customer's inbox row (their unread perspective).
+        if (customer != null) {
+            messagingTemplate.convertAndSend(
+                    "/topic/users/" + customer.getId() + "/conversations",
+                    mapToConversationResponse(conversation, false));
+        }
+
+        // Every staff member of the store gets the row in their (staff) perspective.
+        if (store != null) {
+            ConversationResponse staffView = mapToConversationResponse(conversation, true);
+            for (UUID staffId : storeStaffRepository.findStaffIdsByStoreId(store.getId())) {
+                messagingTemplate.convertAndSend(
+                        "/topic/users/" + staffId + "/conversations",
+                        staffView);
+            }
+        }
     }
 
     private ConversationResponse mapToConversationResponse(Conversation conversation, boolean isStaff) {

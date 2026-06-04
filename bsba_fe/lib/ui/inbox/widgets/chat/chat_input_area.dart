@@ -1,8 +1,32 @@
 import 'package:flutter/material.dart';
 
 /// Bottom message composer: attach button, text field and send button.
-class ChatInputArea extends StatelessWidget {
-  const ChatInputArea({super.key});
+class ChatInputArea extends StatefulWidget {
+  const ChatInputArea({super.key, this.onSend, this.enabled = true});
+
+  /// Called with the trimmed, non-empty message when the user sends.
+  final ValueChanged<String>? onSend;
+  final bool enabled;
+
+  @override
+  State<ChatInputArea> createState() => _ChatInputAreaState();
+}
+
+class _ChatInputAreaState extends State<ChatInputArea> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleSend() {
+    final text = _controller.text.trim();
+    if (text.isEmpty || !widget.enabled) return;
+    widget.onSend?.call(text);
+    _controller.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +58,11 @@ class ChatInputArea extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: TextField(
+                    controller: _controller,
                     minLines: 1,
                     maxLines: 4,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _handleSend(),
                     decoration: const InputDecoration(
                       isCollapsed: true,
                       border: InputBorder.none,
@@ -53,7 +80,7 @@ class ChatInputArea extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8),
-                  onTap: () {},
+                  onTap: _handleSend,
                   child: const Padding(
                     padding: EdgeInsets.all(10),
                     child: Icon(Icons.send, size: 18, color: Colors.white),
