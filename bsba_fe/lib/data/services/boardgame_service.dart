@@ -21,9 +21,15 @@ class BoardGameService {
     return BoardGame.fromJson(response['data']);
   }
 
-  Future<Map<String, dynamic>> getSpaceDetail(String id) async {
-    // Calling the API endpoint defined in StoreController
-    final response = await _apiClient.get('/stores/$id');
-    return response['data'];
+  Future<void> addToCart(
+    String gameId, {
+    int quantity = 1,
+    String? storeId,
+  }) async {
+    await _apiClient.post('/carts/items', {
+      'boardGameId': gameId,
+      'quantity': quantity,
+      if (storeId != null) 'storeId': storeId,
+    });
   }
 }

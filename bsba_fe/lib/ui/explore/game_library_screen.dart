@@ -132,10 +132,22 @@ class _GameLibraryViewState extends State<_GameLibraryView> {
     );
   }
 
-  void _onAddToCart(BuildContext context, BoardGame game) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('${game.name} added to cart')));
+  void _onAddToCart(BuildContext context, BoardGame game) async {
+    final vm = context.read<GameLibraryViewModel>();
+    final success = await vm.addToCart(game);
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? '${game.name} added to cart'
+                : 'Failed to add ${game.name} to cart',
+          ),
+          backgroundColor: success ? null : Colors.red,
+        ),
+      );
+    }
   }
 }
 

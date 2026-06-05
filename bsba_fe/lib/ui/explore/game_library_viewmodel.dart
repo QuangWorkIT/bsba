@@ -70,4 +70,15 @@ class GameLibraryViewModel extends ChangeNotifier {
     _activeFilter = filter;
     notifyListeners();
   }
+
+  Future<bool> addToCart(BoardGame game) async {
+    // We could add a separate _isAddingToCart state if we wanted specific per-item loading
+    try {
+      await _repository.addToCart(game.id);
+      return true;
+    } catch (e) {
+      debugPrint('Error adding to cart: $e');
+      return false;
+    }
+  }
 }
