@@ -4,18 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(
-        name = "booking_cart_games",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uq_cart_game",
-                        columnNames = {
-                                "cart_id",
-                                "board_game_id"
-                        }
-                )
-        }
-)
+@Table(name = "booking_cart_games")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -28,19 +17,14 @@ public class BookingCartGame {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "cart_id",
-            nullable = false
-    )
+    @JoinColumn(name = "cart_id", nullable = false)
     private BookingCart cart;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "board_game_id",
-            nullable = false
-    )
+    @JoinColumn(name = "board_game_id", nullable = false)
     private BoardGame boardGame;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer quantity = 1;
 }
