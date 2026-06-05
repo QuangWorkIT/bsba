@@ -1,12 +1,9 @@
 package com.be.bsba.serviceImpl;
 
 import com.be.bsba.constant.SpaceSort;
-import com.be.bsba.constant.TimeSlotStatus;
 import com.be.bsba.dto.response.SpaceCardResponse;
 import com.be.bsba.dto.response.SpaceSlotResponse;
 import com.be.bsba.entity.Store;
-import com.be.bsba.entity.StoreBoardGame;
-import com.be.bsba.entity.StoreTimeSlot;
 import com.be.bsba.repository.StoreBoardGameRepository;
 import com.be.bsba.repository.StoreRepository;
 import com.be.bsba.repository.StoreTimeSlotRepository;
@@ -19,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +28,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SpaceServiceImpl implements SpaceService {
 
-    private static final DateTimeFormatter HH_MM = DateTimeFormatter.ofPattern("HH:mm");
     private static final int MAX_FEATURED_GAMES = 3;
     private static final double EARTH_RADIUS_MILES = 3958.8;
 
@@ -82,16 +78,22 @@ public class SpaceServiceImpl implements SpaceService {
                         sbg -> sbg.getStore().getId(),
                         Collectors.mapping(sbg -> sbg.getBoardGame().getName(), Collectors.toList())));
 
-        Map<UUID, List<StoreTimeSlot>> slotsByStore = storeTimeSlotRepository
-                .findByStoreIdInAndSlotDateAndStatusOrderByStartTimeAsc(
-                        storeIds, LocalDate.now(), TimeSlotStatus.AVAILABLE).stream()
-                .collect(Collectors.groupingBy(slot -> slot.getStore().getId()));
+        // Native projection rows: [slotId(text), storeId(text), startLabel "HH:mm"].
+        Map<String, List<SpaceSlotResponse>> slotsByStore = new HashMap<>();
+        for (Object[] row : storeTimeSlotRepository.findAvailableSlots(storeIds, LocalDate.now())) {
+            String storeId = (String) row[1];
+            slotsByStore.computeIfAbsent(storeId, k -> new ArrayList<>())
+                    .add(SpaceSlotResponse.builder()
+                            .slotId(UUID.fromString((String) row[0]))
+                            .startTime((String) row[2])
+                            .build());
+        }
 
         // 6) Map to response (preserving the sorted order).
         List<SpaceCardResponse> content = pageStores.stream()
                 .map(s -> mapToCard(s, distanceByStore.get(s.getId()),
                         gamesByStore.getOrDefault(s.getId(), List.of()),
-                        slotsByStore.getOrDefault(s.getId(), List.of())))
+                        slotsByStore.getOrDefault(s.getId().toString(), List.of())))
                 .toList();
 
         return new PageImpl<>(content, pageable, total);
@@ -113,17 +115,10 @@ public class SpaceServiceImpl implements SpaceService {
     }
 
     private SpaceCardResponse mapToCard(Store store, Double distanceMiles,
-                                        List<String> games, List<StoreTimeSlot> slots) {
+                                        List<String> games, List<SpaceSlotResponse> slots) {
         List<String> featured = games.size() > MAX_FEATURED_GAMES
                 ? games.subList(0, MAX_FEATURED_GAMES)
                 : games;
-
-        List<SpaceSlotResponse> slotResponses = slots.stream()
-                .map(slot -> SpaceSlotResponse.builder()
-                        .slotId(slot.getId())
-                        .startTime(slot.getStartTime() != null ? slot.getStartTime().format(HH_MM) : null)
-                        .build())
-                .toList();
 
         return SpaceCardResponse.builder()
                 .id(store.getId())
@@ -133,7 +128,7 @@ public class SpaceServiceImpl implements SpaceService {
                 .distanceMiles(distanceMiles)
                 .description(store.getDescription())
                 .featuredGames(featured)
-                .availableSlotsToday(slotResponses)
+                .availableSlotsToday(slots)
                 .build();
     }
 
