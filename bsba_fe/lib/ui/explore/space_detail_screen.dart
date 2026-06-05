@@ -41,7 +41,7 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
     return ListenableBuilder(
       listenable: _vm,
       builder: (context, _) {
-        if (_vm.isLoading || _vm.space == null) {
+        if (_vm.isLoading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
@@ -65,6 +65,12 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
                 ],
               ),
             ),
+          );
+        }
+
+        if (_vm.space == null) {
+          return const Scaffold(
+            body: Center(child: Text('Space not found.')),
           );
         }
 
