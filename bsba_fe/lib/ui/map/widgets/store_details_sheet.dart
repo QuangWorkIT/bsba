@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:project/data/models/map_store.dart';
 
 class StoreDetailsSheet extends StatelessWidget {
   const StoreDetailsSheet({
     super.key,
-    required this.storeName,
+    required this.store,
     required this.distance,
-    required this.hours,
-    required this.rating,
-    required this.description,
+    required this.onStartRoute,
+    required this.onBookmark,
   });
 
-  final String storeName;
+  final MapStore store;
   final String distance;
-  final String hours;
-  final String rating;
-  final String description;
+  final VoidCallback onStartRoute;
+  final VoidCallback onBookmark;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +50,7 @@ class StoreDetailsSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        storeName,
+                        store.name,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: colorScheme.onSurface,
@@ -67,7 +66,7 @@ class StoreDetailsSheet extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            ' • ',
+                            ' | ',
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: colorScheme.outline,
                             ),
@@ -80,7 +79,7 @@ class StoreDetailsSheet extends StatelessWidget {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              hours,
+                              store.hours,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w500,
                                 color: colorScheme.primary,
@@ -94,12 +93,19 @@ class StoreDetailsSheet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                _RatingBadge(rating: rating),
+                _RatingBadge(rating: store.rating.toStringAsFixed(1)),
               ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              store.address,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 12),
             Text(
-              description,
+              store.description,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 height: 1.6,
@@ -110,7 +116,7 @@ class StoreDetailsSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: () {},
+                    onPressed: onStartRoute,
                     icon: const Icon(Icons.directions, size: 20),
                     label: const Text('Start Route'),
                     style: FilledButton.styleFrom(
@@ -124,7 +130,7 @@ class StoreDetailsSheet extends StatelessWidget {
                 const SizedBox(width: 8),
                 _SecondaryIconButton(
                   icon: Icons.bookmark_border,
-                  onPressed: () {},
+                  onPressed: onBookmark,
                 ),
               ],
             ),

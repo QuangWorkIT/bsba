@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 
 class MapSearchBar extends StatefulWidget {
-  const MapSearchBar({super.key, required this.query});
+  const MapSearchBar({
+    super.key,
+    required this.query,
+    required this.hasQuery,
+    required this.onChanged,
+    required this.onSubmitted,
+    required this.onClear,
+  });
 
   final String query;
+  final bool hasQuery;
+  final ValueChanged<String> onChanged;
+  final ValueChanged<String> onSubmitted;
+  final VoidCallback onClear;
 
   @override
   State<MapSearchBar> createState() => _MapSearchBarState();
@@ -16,6 +27,14 @@ class _MapSearchBarState extends State<MapSearchBar> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.query);
+  }
+
+  @override
+  void didUpdateWidget(MapSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.query != widget.query && _controller.text != widget.query) {
+      _controller.text = widget.query;
+    }
   }
 
   @override
@@ -48,6 +67,8 @@ class _MapSearchBarState extends State<MapSearchBar> {
                 controller: _controller,
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.search,
+                onChanged: widget.onChanged,
+                onSubmitted: widget.onSubmitted,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurface,
                 ),
@@ -60,9 +81,9 @@ class _MapSearchBarState extends State<MapSearchBar> {
               ),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: widget.hasQuery ? widget.onClear : null,
               icon: Icon(
-                Icons.tune,
+                widget.hasQuery ? Icons.close : Icons.tune,
                 size: 20,
                 color: colorScheme.onSurfaceVariant,
               ),

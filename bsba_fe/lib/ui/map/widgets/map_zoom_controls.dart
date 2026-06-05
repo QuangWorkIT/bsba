@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
 
 class MapZoomControls extends StatelessWidget {
-  const MapZoomControls({super.key});
+  const MapZoomControls({
+    super.key,
+    required this.onZoomIn,
+    required this.onZoomOut,
+    required this.onLocate,
+    required this.isLocating,
+  });
+
+  final VoidCallback onZoomIn;
+  final VoidCallback onZoomOut;
+  final VoidCallback onLocate;
+  final bool isLocating;
 
   @override
   Widget build(BuildContext context) {
@@ -10,13 +21,13 @@ class MapZoomControls extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _MapControlButton(icon: Icons.add, onPressed: () {}),
+        _MapControlButton(icon: Icons.add, onPressed: onZoomIn),
         const SizedBox(height: 8),
-        _MapControlButton(icon: Icons.remove, onPressed: () {}),
+        _MapControlButton(icon: Icons.remove, onPressed: onZoomOut),
         const SizedBox(height: 8),
         _MapControlButton(
-          icon: Icons.my_location,
-          onPressed: () {},
+          icon: isLocating ? Icons.more_horiz : Icons.my_location,
+          onPressed: onLocate,
           iconColor: colorScheme.primary,
         ),
       ],
