@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../data/models/board_game.dart';
 import '../../data/models/board_space_detail.dart';
-import '../../data/repositories/board_game_repository.dart';
+import '../../data/repositories/board_space_repository.dart';
 import '../../data/services/api_client.dart';
-import '../../data/services/boardgame_service.dart';
 import 'game_card.dart';
 import 'game_library_screen.dart';
 import 'space_detail_viewmodel.dart';
@@ -27,9 +26,7 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _vm = SpaceDetailViewModel(
-      BoardGameRepository(BoardGameService(ApiClient())),
-    );
+    _vm = SpaceDetailViewModel(BoardSpaceRepository(ApiClient()));
     _vm.loadSpace(widget.spaceId);
   }
 
@@ -44,7 +41,7 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
     return ListenableBuilder(
       listenable: _vm,
       builder: (context, _) {
-        if (_vm.isLoading || _vm.space == null) {
+        if (_vm.isLoading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
@@ -68,6 +65,12 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
                 ],
               ),
             ),
+          );
+        }
+
+        if (_vm.space == null) {
+          return const Scaffold(
+            body: Center(child: Text('Space not found.')),
           );
         }
 
@@ -105,12 +108,8 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
                       onSelect: () => _showSlotPicker(context, space),
                     ),
 
-                    // Location & hours
+                    // Location & hours (now includes host & contact)
                     _LocationSection(space: space),
-                    const SizedBox(height: 16),
-
-                    // Host
-                    _HostSection(host: space.host),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -858,6 +857,45 @@ class _LocationSection extends StatelessWidget {
               ),
             ), // SizedBox
           ),
+
+          // Contact info
+          if (space.phone != null || space.email != null) ...[
+            const SizedBox(height: 16),
+            if (space.phone != null)
+              Row(
+                children: [
+                  Icon(Icons.phone_outlined, size: 16, color: cs.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    space.phone!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: cs.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            if (space.phone != null && space.email != null)
+              const SizedBox(height: 6),
+            if (space.email != null)
+              Row(
+                children: [
+                  Icon(Icons.email_outlined, size: 16, color: cs.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    space.email!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: cs.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+          const SizedBox(height: 16),
+
+          // Host section
+          _HostSection(host: space.host),
         ],
       ),
     );
