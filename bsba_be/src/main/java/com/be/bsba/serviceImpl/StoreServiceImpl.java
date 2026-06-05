@@ -1,4 +1,4 @@
-package com.be.bsba.service.impl;
+package com.be.bsba.serviceImpl;
 
 import com.be.bsba.dto.response.*;
 import com.be.bsba.entity.*;
@@ -30,7 +30,7 @@ public class StoreServiceImpl implements StoreService {
 
         // 1. Fetch the store (must be active)
         Store store = storeRepository.findByIdAndIsActiveTrue(storeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Store", "id", storeId));
+                .orElseThrow(() -> new ResourceNotFoundException("Store not found with id: " + storeId));
 
         // 2. Fetch store images
         List<StoreImageDto> images = storeImageRepository
