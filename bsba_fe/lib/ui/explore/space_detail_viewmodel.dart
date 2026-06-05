@@ -35,10 +35,8 @@ class SpaceDetailViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // TODO: Replace with real repository call, e.g.:
-      // _space = await _repository.getSpaceDetail(spaceId);
-      await Future.delayed(const Duration(milliseconds: 500));
-      _space = _mockSpace(spaceId);
+      final data = await _repository.fetchSpaceById(spaceId);
+      _space = BoardSpaceDetail.fromJson(data);
     } catch (e) {
       _error = e.toString();
     } finally {

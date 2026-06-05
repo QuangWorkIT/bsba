@@ -14,4 +14,8 @@ class BoardGameRepository {
   Future<BoardGame> fetchGameById(String id) async {
     return await _service.getBoardGameById(id);
   }
+
+  Future<Map<String, dynamic>> fetchSpaceById(String id) async {
+    return await _service.getSpaceDetail(id);
+  }
 }

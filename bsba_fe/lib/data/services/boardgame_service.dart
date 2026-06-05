@@ -20,4 +20,10 @@ class BoardGameService {
     final response = await _apiClient.get('/board-games/$id');
     return BoardGame.fromJson(response['data']);
   }
+
+  Future<Map<String, dynamic>> getSpaceDetail(String id) async {
+    // Calling the API endpoint defined in StoreController
+    final response = await _apiClient.get('/stores/$id');
+    return response['data'];
+  }
 }

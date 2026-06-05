@@ -105,12 +105,8 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
                       onSelect: () => _showSlotPicker(context, space),
                     ),
 
-                    // Location & hours
+                    // Location & hours (now includes host & contact)
                     _LocationSection(space: space),
-                    const SizedBox(height: 16),
-
-                    // Host
-                    _HostSection(host: space.host),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -858,6 +854,45 @@ class _LocationSection extends StatelessWidget {
               ),
             ), // SizedBox
           ),
+          
+          // Contact info
+          if (space.phone != null || space.email != null) ...[
+            const SizedBox(height: 16),
+            if (space.phone != null)
+              Row(
+                children: [
+                  Icon(Icons.phone_outlined, size: 16, color: cs.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    space.phone!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: cs.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            if (space.phone != null && space.email != null)
+              const SizedBox(height: 6),
+            if (space.email != null)
+              Row(
+                children: [
+                  Icon(Icons.email_outlined, size: 16, color: cs.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    space.email!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: cs.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+          const SizedBox(height: 16),
+
+          // Host section 
+          _HostSection(host: space.host),
         ],
       ),
     );
