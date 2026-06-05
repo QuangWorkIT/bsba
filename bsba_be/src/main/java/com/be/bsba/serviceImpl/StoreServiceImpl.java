@@ -37,6 +37,7 @@ public class StoreServiceImpl implements StoreService {
                 .findByStoreIdOrderByDisplayOrderAsc(storeId)
                 .stream()
                 .map(this::toStoreImageDto)
+                .filter(java.util.Objects::nonNull)
                 .toList();
 
         // 3. Fetch board games available at this store
@@ -44,6 +45,7 @@ public class StoreServiceImpl implements StoreService {
                 .findByStoreId(storeId)
                 .stream()
                 .map(this::toBoardGameDto)
+                .filter(java.util.Objects::nonNull)
                 .toList();
 
         // 4. Fetch upcoming time slots (from today onwards)
@@ -52,6 +54,7 @@ public class StoreServiceImpl implements StoreService {
                         storeId, LocalDate.now())
                 .stream()
                 .map(this::toTimeSlotDto)
+                .filter(java.util.Objects::nonNull)
                 .toList();
 
         // 5. Fetch reviews
@@ -59,6 +62,7 @@ public class StoreServiceImpl implements StoreService {
                 .findByStoreIdOrderByCreatedAtDesc(storeId)
                 .stream()
                 .map(this::toReviewDto)
+                .filter(java.util.Objects::nonNull)
                 .toList();
 
         long reviewCount = reviewRepository.countByStoreId(storeId);
@@ -94,48 +98,79 @@ public class StoreServiceImpl implements StoreService {
     // ── Mapping helpers ──────────────────────────────────────────────
 
     private StoreImageDto toStoreImageDto(StoreImage image) {
-        return StoreImageDto.builder()
-                .id(image.getId())
-                .imageUrl(image.getImageUrl())
-                .displayOrder(image.getDisplayOrder())
-                .build();
+        if (image == null) return null;
+        try {
+            return StoreImageDto.builder()
+                    .id(image.getId())
+                    .imageUrl(image.getImageUrl())
+                    .displayOrder(image.getDisplayOrder())
+                    .build();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private BoardGameDto toBoardGameDto(StoreBoardGame sbg) {
-        BoardGame game = sbg.getBoardGame();
-        return BoardGameDto.builder()
-                .id(game.getId())
-                .name(game.getName())
-                .description(game.getDescription())
-                .minPlayers(game.getMinPlayers())
-                .maxPlayers(game.getMaxPlayers())
-                .playTimeMinutes(game.getPlayTimeMinutes())
-                .ageRequirement(game.getAgeRequirement())
-                .difficultyLevel(game.getDifficultyLevel())
-                .imageUrl(game.getImageUrl())
-                .quantity(sbg.getQuantity())
-                .build();
+        if (sbg == null) return null;
+        try {
+            BoardGame game = sbg.getBoardGame();
+            if (game == null) return null;
+            return BoardGameDto.builder()
+                    .id(game.getId())
+                    .name(game.getName())
+                    .description(game.getDescription())
+                    .minPlayers(game.getMinPlayers())
+                    .maxPlayers(game.getMaxPlayers())
+                    .playTimeMinutes(game.getPlayTimeMinutes())
+                    .ageRequirement(game.getAgeRequirement())
+                    .difficultyLevel(game.getDifficultyLevel())
+                    .imageUrl(game.getImageUrl())
+                    .quantity(sbg.getQuantity())
+                    .build();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private TimeSlotDto toTimeSlotDto(StoreTimeSlot slot) {
-        return TimeSlotDto.builder()
-                .id(slot.getId())
-                .slotDate(slot.getSlotDate())
-                .startTime(slot.getStartTime())
-                .endTime(slot.getEndTime())
-                .status(slot.getStatus().name().toLowerCase())
-                .build();
+        if (slot == null) return null;
+        try {
+            return TimeSlotDto.builder()
+                    .id(slot.getId())
+                    .slotDate(slot.getSlotDate())
+                    .startTime(slot.getStartTime())
+                    .endTime(slot.getEndTime())
+                    .status(slot.getStatus() != null ? slot.getStatus().name().toLowerCase() : null)
+                    .build();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private ReviewDto toReviewDto(Review review) {
-        User user = review.getUser();
-        return ReviewDto.builder()
-                .id(review.getId())
-                .rating(review.getRating())
-                .comment(review.getComment())
-                .userFullName(user != null ? user.getFullName() : null)
-                .userAvatarUrl(user != null ? user.getAvatarUrl() : null)
-                .createdAt(review.getCreatedAt())
-                .build();
+        if (review == null) return null;
+        String fullName = null;
+        String avatarUrl = null;
+        try {
+            User user = review.getUser();
+            if (user != null) {
+                fullName = user.getFullName();
+                avatarUrl = user.getAvatarUrl();
+            }
+        } catch (Exception e) {
+            // Ignore if user proxy throws EntityNotFoundException
+        }
+        try {
+            return ReviewDto.builder()
+                    .id(review.getId())
+                    .rating(review.getRating())
+                    .comment(review.getComment())
+                    .userFullName(fullName)
+                    .userAvatarUrl(avatarUrl)
+                    .createdAt(review.getCreatedAt())
+                    .build();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
