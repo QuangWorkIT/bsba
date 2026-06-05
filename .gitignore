@@ -93,7 +93,9 @@ bsba_fe/.pub/
 bsba_fe/.flutter-plugins
 bsba_fe/.flutter-plugins-dependencies
 
-# Flutter build output
+# Flutter build output (root-level artifacts from running flutter outside bsba_fe/)
+/build/
+/.dart_tool/
 bsba_fe/build/
 bsba_fe/.build/
 bsba_fe/.buildlog/
@@ -149,6 +151,7 @@ bsba_fe/migrate_working_dir/
 bsba_fe/.env
 bsba_fe/.env.*
 bsba_fe/.mcp.json
+.mcp.json
 
 
 # ─────────────────────────────────────────
