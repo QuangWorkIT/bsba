@@ -151,6 +151,7 @@ bsba_fe/migrate_working_dir/
 bsba_fe/.env
 bsba_fe/.env.*
 bsba_fe/.mcp.json
+.mcp.json
 
 
 # ─────────────────────────────────────────

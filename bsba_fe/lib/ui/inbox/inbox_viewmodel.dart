@@ -7,11 +7,11 @@ import '../../data/services/draft_store.dart';
 
 /// TODO: replace with the authenticated user's id once login is wired up.
 /// Use a UUID that exists in the `users` table (seed one for the demo).
-const String kDemoUserId = 'a0000000-0000-0000-0000-000000000006';
+const String kDemoUserId = 'a0000000-0000-0000-0000-000000000002';
 
 /// Single knob for the demo role. Flip between 'CUSTOMER' / 'STAFF' / 'ADMIN'
 /// here to test each side — used by both the inbox and the chat screen.
-const String kDemoRole = 'STAFF';
+const String kDemoRole = 'CUSTOMER';
 
 class InboxViewModel extends ChangeNotifier {
   final ChatRepository _repository;
