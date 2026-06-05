@@ -1,84 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'package:project/data/repositories/chat_repository.dart';
+import 'package:project/data/services/api_client.dart';
+import 'package:project/data/services/chat_service.dart';
+import 'package:project/data/services/chat_socket_service.dart';
+import 'package:project/ui/inbox/inbox_viewmodel.dart';
 import 'package:project/ui/inbox/widgets/chat_item.dart';
 import 'package:project/ui/inbox/widgets/chat_screen.dart';
 
 class InboxContent extends StatelessWidget {
   const InboxContent({super.key});
 
-  final chats = const [
-    {
-      'name': 'Sarah M. (Game Master)',
-      'message':
-          "Your character sheet for the 'Echoes of Valoria' campaign looks great! Just one small tweak...",
-      'time': '12:45 PM',
-      'unread': 2,
-    },
-    {
-      'name': 'Alex Rivers',
-      'message': "I'll be there by 6 PM. Bringing the custom dice sets!",
-      'time': 'Yesterday',
-      'unread': 0,
-    },
-    {
-      'name': 'Dungeon Master Joe',
-      'message':
-          'Are we still on for the Friday night session? We need to finalize the map layouts.',
-      'time': 'Tuesday',
-      'unread': 0,
-    },
-    {
-      'name': 'Elena (Paladin)',
-      'message':
-          "That critical hit you landed was legendary! Let's talk about the loot distribution.",
-      'time': 'Oct 12',
-      'unread': 0,
-    },
-    {
-      'name': 'Tabletop Haven Support',
-      'message':
-          "Your booking for 'The Crystal Vault' has been confirmed. View details here.",
-      'time': 'Oct 10',
-      'unread': 0,
-      'icon': Icons.support_agent,
-    },
-  ];
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => InboxViewModel(
+        ChatRepository(ChatService(ApiClient())),
+        ChatSocketService(),
+      )..start(),
+      child: const _InboxView(),
+    );
+  }
+}
+
+class _InboxView extends StatelessWidget {
+  const _InboxView();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final vm = context.watch<InboxViewModel>();
 
     return Stack(
       children: [
         Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(24, 0, 24, 16),
-              child: _SearchField(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+              child: _SearchField(onChanged: vm.onSearchChanged),
             ),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: chats.length,
-                itemBuilder: (context, index) {
-                  final chat = chats[index];
-                  return ChatItem(
-                    name: chat['name'] as String,
-                    message: chat['message'] as String,
-                    time: chat['time'] as String,
-                    unreadCount: chat['unread'] as int,
-                    icon: chat['icon'] as IconData?,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              ChatScreen(name: chat['name'] as String),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
+            Expanded(child: _InboxBody(vm: vm)),
           ],
         ),
         Positioned(
@@ -105,12 +67,93 @@ class InboxContent extends StatelessWidget {
   }
 }
 
+class _InboxBody extends StatelessWidget {
+  const _InboxBody({required this.vm});
+
+  final InboxViewModel vm;
+
+  @override
+  Widget build(BuildContext context) {
+    if (vm.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (vm.error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                vm.error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: vm.loadConversations,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (vm.isEmpty) {
+      return const Center(
+        child: Text(
+          'No conversations yet',
+          style: TextStyle(color: Color(0xFF717785), fontSize: 14),
+        ),
+      );
+    }
+
+    final conversations = vm.conversations;
+
+    return RefreshIndicator(
+      onRefresh: vm.loadConversations,
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: conversations.length,
+        itemBuilder: (context, index) {
+          final c = conversations[index];
+          return ChatItem(
+            name: c.displayName,
+            message: c.preview,
+            draft: vm.draftFor(c.id),
+            time: c.timeLabel,
+            unreadCount: c.unreadCount,
+            onTap: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(
+                    conversationId: c.id,
+                    name: c.displayName,
+                    userId: kDemoUserId,
+                  ),
+                ),
+              );
+              // The draft may have changed (typed more, or sent) while away.
+              await vm.refreshDrafts();
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _SearchField extends StatelessWidget {
-  const _SearchField();
+  const _SearchField({required this.onChanged});
+
+  final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      onChanged: onChanged,
       decoration: InputDecoration(
         hintText: 'Search messages...',
         hintStyle: const TextStyle(color: Color(0xFFC1C6D5), fontSize: 14),

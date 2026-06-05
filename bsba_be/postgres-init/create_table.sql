@@ -77,6 +77,32 @@ CREATE TABLE stores (
 );
 
 -- ==========================================
+-- STORE STAFF (which staff answer chats for which store)
+-- ==========================================
+
+CREATE TABLE store_staff (
+                             id BIGSERIAL PRIMARY KEY,
+
+                             store_id UUID NOT NULL,
+                             user_id UUID NOT NULL,
+
+                             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+                             CONSTRAINT uk_store_staff
+                                 UNIQUE (store_id, user_id),
+
+                             CONSTRAINT fk_store_staff_store
+                                 FOREIGN KEY (store_id)
+                                     REFERENCES stores(id)
+                                     ON DELETE CASCADE,
+
+                             CONSTRAINT fk_store_staff_user
+                                 FOREIGN KEY (user_id)
+                                     REFERENCES users(id)
+                                     ON DELETE CASCADE
+);
+
+-- ==========================================
 -- STORE IMAGES
 -- ==========================================
 
@@ -405,3 +431,67 @@ CREATE TABLE booking_games (
                                    FOREIGN KEY (board_game_id)
                                        REFERENCES board_games(id)
 );
+
+-- ==========================================
+-- CONVERSATIONS
+-- ==========================================
+
+CREATE TABLE conversations (
+                               id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+                               user_id UUID NOT NULL,
+                               store_id UUID NOT NULL,
+
+                               last_message_preview TEXT,
+                               last_message_at TIMESTAMPTZ,
+
+                               created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                               updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+                               CONSTRAINT uk_conversation_user_store
+                                   UNIQUE (user_id, store_id),
+
+                               CONSTRAINT fk_conversations_user
+                                   FOREIGN KEY (user_id)
+                                       REFERENCES users(id)
+                                       ON DELETE CASCADE,
+
+                               CONSTRAINT fk_conversations_store
+                                   FOREIGN KEY (store_id)
+                                       REFERENCES stores(id)
+                                       ON DELETE CASCADE
+);
+
+-- ==========================================
+-- MESSAGES
+-- ==========================================
+
+CREATE TABLE messages (
+                          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+                          conversation_id UUID NOT NULL,
+                          sender_id UUID,
+
+                          sender_type VARCHAR(50),
+
+                          content TEXT,
+
+                          type VARCHAR(50) NOT NULL DEFAULT 'TEXT',
+
+                          is_read BOOLEAN NOT NULL DEFAULT FALSE,
+
+                          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+                          CONSTRAINT fk_messages_conversation
+                              FOREIGN KEY (conversation_id)
+                                  REFERENCES conversations(id)
+                                  ON DELETE CASCADE,
+
+                          CONSTRAINT fk_messages_sender
+                              FOREIGN KEY (sender_id)
+                                  REFERENCES users(id)
+                                  ON DELETE SET NULL
+);
+
+CREATE INDEX idx_messages_conversation
+    ON messages (conversation_id, created_at);
