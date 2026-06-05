@@ -13,6 +13,8 @@ import java.util.UUID;
 @Repository
 public interface StoreBoardGameRepository extends JpaRepository<StoreBoardGame, Long> {
 
+    List<StoreBoardGame> findByStoreId(UUID storeId);
+
     // Batch-fetch the games of several stores at once (JOIN FETCH avoids N+1).
     @Query("SELECT sbg FROM StoreBoardGame sbg JOIN FETCH sbg.boardGame " +
             "WHERE sbg.store.id IN :storeIds")

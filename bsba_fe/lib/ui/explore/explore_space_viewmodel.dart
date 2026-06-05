@@ -72,10 +72,7 @@ class ExploreViewModel extends ChangeNotifier {
 
     try {
       final loc = await _locationService.getCurrentLatLng();
-      _allSpaces = await _repository.fetchSpaces(
-        lat: loc?.$1,
-        lng: loc?.$2,
-      );
+      _allSpaces = await _repository.fetchSpaces(lat: loc?.$1, lng: loc?.$2);
     } catch (e) {
       _error = 'Failed to load spaces. Make sure the backend is running.';
       debugPrint('Error loading spaces: $e');

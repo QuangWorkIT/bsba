@@ -14,6 +14,9 @@ import java.util.UUID;
 @Repository
 public interface StoreTimeSlotRepository extends JpaRepository<StoreTimeSlot, UUID> {
 
+    List<StoreTimeSlot> findByStoreIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(
+            UUID storeId, LocalDate fromDate);
+
     /**
      * Today's AVAILABLE slots for several stores, case-insensitive on status.
      *

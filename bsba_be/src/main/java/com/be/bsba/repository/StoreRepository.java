@@ -1,13 +1,15 @@
 package com.be.bsba.repository;
 
-import com.be.bsba.entity.Store;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.UUID;
+import com.be.bsba.entity.Store;
 
 @Repository
 public interface StoreRepository extends JpaRepository<Store, UUID> {
@@ -19,4 +21,6 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
             "LOWER(s.name) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
             "LOWER(s.description) LIKE LOWER(CONCAT('%', :q, '%')))")
     List<Store> searchActive(@Param("q") String q);
+    
+    Optional<Store> findByIdAndIsActiveTrue(UUID id);
 }

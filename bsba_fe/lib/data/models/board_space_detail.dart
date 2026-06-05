@@ -36,6 +36,10 @@ class BoardSpaceDetail {
   final int totalGames;
   final String openHours; // e.g. "10:00 AM – 11:00 PM"
   final SpaceHost host;
+  final String? phone;
+  final String? email;
+  final double? latitude;
+  final double? longitude;
 
   const BoardSpaceDetail({
     required this.id,
@@ -54,5 +58,52 @@ class BoardSpaceDetail {
     required this.totalGames,
     required this.openHours,
     required this.host,
+    this.phone,
+    this.email,
+    this.latitude,
+    this.longitude,
   });
+
+  factory BoardSpaceDetail.fromJson(Map<String, dynamic> json) {
+    return BoardSpaceDetail(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      address: json['address'] ?? '',
+      imageUrl: json['coverImageUrl'] ?? 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=900&q=80',
+      rating: (json['ratingAvg'] as num?)?.toDouble() ?? 0.0,
+      reviewCount: json['reviewCount'] ?? 0,
+      maxPlayers: json['totalCapacity'] ?? 4,
+      areaSqFt: 450,
+      pricePerHour: 15.0,
+      availableSlots: (json['timeSlots'] as List<dynamic>?)?.map((s) {
+        final startTime = s['startTime'] as String?;
+        if (startTime != null && startTime.length >= 5) {
+          return startTime.substring(0, 5);
+        }
+        return '10:00';
+      }).toList() ?? [],
+      amenities: const [
+        Amenity(label: 'High-speed WiFi', iconName: 'wifi'),
+        Amenity(label: 'Coffee Station', iconName: 'coffee'),
+        Amenity(label: 'Mini Fridge', iconName: 'kitchen'),
+        Amenity(label: 'Smart TV', iconName: 'tv'),
+      ],
+      libraryHighlights: (json['boardGames'] as List<dynamic>?)
+              ?.map((g) => BoardGame.fromJson(g as Map<String, dynamic>))
+              .toList() ??
+          [],
+      totalGames: (json['boardGames'] as List<dynamic>?)?.length ?? 0,
+      openHours: '10:00 AM – 11:00 PM',
+      host: const SpaceHost(
+        name: 'Sarah M.',
+        avatarUrl: 'https://i.pravatar.cc/150?img=47',
+        isVerified: true,
+      ),
+      phone: json['phone'],
+      email: json['email'],
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+    );
+  }
 }
