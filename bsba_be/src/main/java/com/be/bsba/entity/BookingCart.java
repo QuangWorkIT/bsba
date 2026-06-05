@@ -1,9 +1,7 @@
 package com.be.bsba.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,55 +17,42 @@ import java.util.UUID;
 public class BookingCart {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "user_id",
-            nullable = false,
-            unique = true
-    )
-    private User user;
+    @Column(name = "user_id", nullable = false, unique = true)
+    private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "store_id",
-            nullable = false
-    )
-    private Store store;
+    @Column(name = "store_id", nullable = false)
+    private UUID storeId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "slot_id")
-    private StoreTimeSlot slot;
+    @Column(name = "slot_id")
+    private UUID slotId;
 
-    @Column(name = "participant_count")
+    @Column(name = "participant_count", nullable = false)
     private Integer participantCount = 1;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "note")
     private String note;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    @OneToMany(
-            mappedBy = "cart",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<BookingCartGame> cartGames = new ArrayList<>();
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<BookingCartGame> items = new ArrayList<>();
 
     @PrePersist
-    void prePersist() {
+    protected void onCreate() {
         createdAt = OffsetDateTime.now();
         updatedAt = OffsetDateTime.now();
     }
 
     @PreUpdate
-    void preUpdate() {
+    protected void onUpdate() {
         updatedAt = OffsetDateTime.now();
     }
 }

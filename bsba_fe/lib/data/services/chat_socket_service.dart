@@ -1,9 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:project/data/services/api_config.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
-
-import 'api_config.dart';
 
 /// Thin STOMP-over-WebSocket client.
 ///
@@ -63,7 +62,9 @@ class ChatSocketService {
         try {
           sub.onMessage(jsonDecode(body) as Map<String, dynamic>);
         } catch (e) {
-          debugPrint('Failed to parse STOMP payload for ${sub.destination}: $e');
+          debugPrint(
+            'Failed to parse STOMP payload for ${sub.destination}: $e',
+          );
         }
       },
     );
