@@ -3,7 +3,7 @@
 -- ==========================================
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
+CREATE EXTENSION IF NOT EXISTS postgis;
 -- ==========================================
 -- ROLES
 -- ==========================================
@@ -62,6 +62,9 @@ CREATE TABLE stores (
                         email VARCHAR(255),
 
                         cover_image_url VARCHAR(500),
+
+                        open_time TIME NOT NULL,
+                        close_time TIME NOT NULL,
 
                         total_capacity INTEGER NOT NULL
                             CHECK (total_capacity > 0),
@@ -495,3 +498,13 @@ CREATE TABLE messages (
 
 CREATE INDEX idx_messages_conversation
     ON messages (conversation_id, created_at);
+
+ALTER TABLE stores
+    ADD COLUMN location GEOGRAPHY(Point, 4326)
+GENERATED ALWAYS AS (
+  ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography
+) STORED;
+
+CREATE INDEX idx_stores_location
+    ON stores
+    USING GIST (location);
