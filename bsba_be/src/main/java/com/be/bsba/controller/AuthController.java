@@ -1,7 +1,7 @@
 package com.be.bsba.controller;
 
-import com.be.bsba.dto.ApiResponse;
 import com.be.bsba.dto.AuthResponse;
+import com.be.bsba.dto.response.ApiResponse;
 import com.be.bsba.dto.GoogleLoginRequest;
 import com.be.bsba.dto.LoginRequest;
 import com.be.bsba.service.IAuthService;
