@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgis/postgis:16-3.4
     container_name: postgres_container
     ports:
       - "5432:5432"
@@ -12,13 +12,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./bsba_be/postgres-init:/docker-entrypoint-initdb.d:ro
     networks:
-      bsba_network:
+      - bsba_network
 
 volumes:
   postgres_data:
     driver: local
 
-
 networks:
-    bsba_network:
-        driver: bridge
+  bsba_network:
+    driver: bridge

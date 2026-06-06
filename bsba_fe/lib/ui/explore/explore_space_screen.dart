@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../data/repositories/space_repository.dart';
+import '../../data/services/api_client.dart';
+import '../../data/services/location_service.dart';
+import '../../data/services/space_service.dart';
 import 'space_card.dart';
 import 'explore_space_filter.dart';
 import 'explore_space_viewmodel.dart';
@@ -14,7 +18,10 @@ class ExploreScreen extends StatefulWidget {
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
-  final ExploreViewModel _vm = ExploreViewModel();
+  final ExploreViewModel _vm = ExploreViewModel(
+    SpaceRepository(SpaceService(ApiClient())),
+    LocationService(),
+  );
   final TextEditingController _searchController = TextEditingController();
 
   @override
