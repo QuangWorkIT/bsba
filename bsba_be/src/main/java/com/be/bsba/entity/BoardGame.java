@@ -3,6 +3,7 @@ package com.be.bsba.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -36,6 +37,10 @@ public class BoardGame {
     private Integer difficultyLevel;
 
     private String imageUrl;
+
+    private String category;
+
+    private BigDecimal rentalPrice;
 
     @CreationTimestamp
     private OffsetDateTime createdAt;

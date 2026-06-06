@@ -53,7 +53,7 @@ class GameCard extends StatelessWidget {
 
             // ── Title ─────────────────────────────────────────────────────
             Text(
-              game.title,
+              game.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
