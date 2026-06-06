@@ -1,4 +1,4 @@
-package com.be.bsba.serviceImple;
+package com.be.bsba.serviceImpl;
 
 import com.be.bsba.dto.*;
 import com.be.bsba.entity.Role;
