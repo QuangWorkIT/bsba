@@ -198,8 +198,8 @@ CREATE TABLE store_time_slots (
 
                                   end_time TIME NOT NULL,
 
-                                  status VARCHAR(20) NOT NULL DEFAULT 'available'
-                                      CHECK (status IN ('available', 'closed', 'cancelled')),
+                                  status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE'
+                                      CHECK (status IN ('AVAILABLE', 'CLOSED', 'CANCELLED')),
 
                                   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
@@ -229,15 +229,15 @@ CREATE TABLE bookings (
 
                           note TEXT,
 
-                          status VARCHAR(50) NOT NULL DEFAULT 'pending'
+                          status VARCHAR(50) NOT NULL DEFAULT 'PENDING'
                               CHECK (
                                   status IN (
-                                             'pending',
-                                             'confirmed',
-                                             'checked_in',
-                                             'completed',
-                                             'cancelled',
-                                             'no_show'
+                                             'PENDING',
+                                             'CONFIRMED',
+                                             'CHECKED_IN',
+                                             'COMPLETED',
+                                             'CANCELLED',
+                                             'NO_SHOW'
                                       )
                                   ),
 

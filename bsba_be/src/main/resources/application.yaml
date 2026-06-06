@@ -13,3 +13,16 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+momo:
+  api:
+    base-url: https://test-payment.momo.vn
+    path: /v2/gateway/api/create
+    partner-code: MOMO
+    access-key: F8BBA842ECF85
+    secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
+    ipn-url: https://prone-distract-monstrous.ngrok-free.dev/api/Wallet/deposit/momo-ipn
+    redirect-url: https://google.com
+    request-type: captureWallet
+    lang: vi
+    timeout-seconds: 30

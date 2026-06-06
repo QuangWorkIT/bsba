@@ -3,6 +3,10 @@ import 'package:project/ui/checkout/billing_details_section.dart';
 import 'package:project/ui/checkout/checkout_app_bar.dart';
 import 'package:project/ui/checkout/checkout_order_summary.dart';
 import 'package:project/ui/checkout/payment_method_section.dart';
+import 'package:project/data/services/api_client.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -16,8 +20,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   static const _titleColor = Color(0xFF181C22);
 
   final _nameController = TextEditingController(text: 'Alex Rivers');
-  final _emailController =
-      TextEditingController(text: 'alex.rivers@example.com');
+  final _emailController = TextEditingController(
+    text: 'alex.rivers@example.com',
+  );
   final _phoneController = TextEditingController();
   final _cardNumberController = TextEditingController();
   final _expiryController = TextEditingController();
@@ -36,11 +41,110 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.dispose();
   }
 
-  void _onConfirmBooking() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Booking confirmed (demo)')),
+  Future<void> _onConfirmBooking() async {
+    if (_paymentMethod == PaymentMethod.momo) {
+      await _handleMomoPayment();
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Booking confirmed (demo)')));
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
+  Future<void> _handleMomoPayment() async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final orderId = 'ORDER_${DateTime.now().millisecondsSinceEpoch}';
+      const amount =
+          64800; // Total 60.0 + 8% tax = 64.8. MoMo uses VND, so usually 64800
+      const orderInfo = 'Board Game Booking - Alex Rivers';
+
+      // Call backend to create payment link
+      final url =
+          '${ApiClient.baseUrl}/payment/momo/create?orderId=$orderId&amount=$amount&orderInfo=$orderInfo';
+      debugPrint('[MoMo] Calling: $url');
+
+      final response = await http
+          .post(Uri.parse(url))
+          .timeout(const Duration(seconds: 45));
+
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Hide loading indicator if showing
+
+      debugPrint('[MoMo] Status: ${response.statusCode}');
+      debugPrint('[MoMo] Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final payUrl = data['payUrl'];
+        if (payUrl != null) {
+          final uri = Uri.parse(payUrl);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+            if (!mounted) return;
+            _showStatusCheckDialog(orderId);
+          } else {
+            throw 'Could not launch payment URL: $payUrl';
+          }
+        } else {
+          throw 'Payment response missing payUrl';
+        }
+      } else {
+        throw 'Backend Error (${response.statusCode}): ${response.body}';
+      }
+    } catch (e) {
+      debugPrint('[MoMo] Error: $e');
+      if (!mounted) return;
+      if (Navigator.canPop(context))
+        Navigator.of(context).pop(); // Hide loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          duration: const Duration(seconds: 10),
+          action: SnackBarAction(label: 'RETRY', onPressed: _handleMomoPayment),
+        ),
+      );
+    }
+  }
+
+  void _showStatusCheckDialog(String orderId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Payment Initiated'),
+        content: const Text(
+          'Please complete your payment in the MoMo app/website. After finishing, click the button below to check your status.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('CANCEL'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // TODO: Call backend to check status
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Status checking is not implemented yet. Please use the demo confirmation flow.',
+                  ),
+                ),
+              );
+            },
+            child: const Text('CHECK STATUS'),
+          ),
+        ],
+      ),
     );
-    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override
