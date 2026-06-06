@@ -8,12 +8,14 @@ class StoreDetailsSheet extends StatelessWidget {
     required this.distance,
     required this.onStartRoute,
     required this.onBookmark,
+    this.isLoadingRoute = false,
   });
 
   final MapStore store;
   final String distance;
   final VoidCallback onStartRoute;
   final VoidCallback onBookmark;
+  final bool isLoadingRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -116,9 +118,18 @@ class StoreDetailsSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: onStartRoute,
-                    icon: const Icon(Icons.directions, size: 20),
-                    label: const Text('Start Route'),
+                    onPressed: isLoadingRoute ? null : onStartRoute,
+                    icon: isLoadingRoute
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.onPrimary,
+                            ),
+                          )
+                        : const Icon(Icons.directions, size: 20),
+                    label: Text(isLoadingRoute ? 'Loading route...' : 'Start Route'),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(

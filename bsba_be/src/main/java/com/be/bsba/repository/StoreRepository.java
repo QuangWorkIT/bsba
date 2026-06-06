@@ -46,4 +46,30 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
                 @Param("radiusKm") double radiusKm
         );
 
+        @Query(value = """
+        SELECT
+            s.id,
+            s.name,
+            s.address,
+            s.description,
+            s.latitude,
+            s.open_time AS openTime,
+            s.close_time AS closeTime,
+            s.longitude,
+            s.rating_avg AS ratingAvg,
+            s.cover_image_url AS coverImageUrl,
+            CAST(NULL AS double precision) AS distanceKm
+        FROM stores s
+        WHERE s.is_active = true
+          AND (:name IS NULL OR LOWER(COALESCE(s.name, '')) LIKE LOWER(CONCAT('%', :name, '%')))
+          AND (:description IS NULL OR LOWER(COALESCE(s.description, '')) LIKE LOWER(CONCAT('%', :description, '%')))
+          AND (:address IS NULL OR LOWER(COALESCE(s.address, '')) LIKE LOWER(CONCAT('%', :address, '%')))
+        ORDER BY s.name ASC
+        """, nativeQuery = true)
+        List<NearbyStoreProjection> searchStores(
+                @Param("name") String name,
+                @Param("description") String description,
+                @Param("address") String address
+        );
+
 }

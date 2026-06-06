@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:project/data/repositories/store_repository.dart';
 import 'package:project/data/services/api_client.dart';
+import 'package:project/data/services/directions_service.dart';
 import 'package:project/data/services/map_service.dart';
 import 'package:provider/provider.dart';
 
 import 'map_viewmodel.dart';
 import 'widgets/map_search_bar.dart';
+import 'widgets/map_search_results_dropdown.dart';
 import 'widgets/map_zoom_controls.dart';
 import 'widgets/store_details_sheet.dart';
 
@@ -16,9 +18,15 @@ class MapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => MapViewModel(
-        StoreRepository(MapService(ApiClient())),
-      )..load(),
+      create: (_) {
+        final apiClient = ApiClient();
+        return MapViewModel(
+          StoreRepository(
+            MapService(apiClient),
+            DirectionsService(apiClient: apiClient),
+          ),
+        )..load();
+      },
       child: const _MapBody(),
     );
   }
@@ -50,12 +58,27 @@ class _MapBody extends StatelessWidget {
           left: 24,
           right: 24,
           top: 24,
-          child: MapSearchBar(
-            query: viewModel.query,
-            hasQuery: viewModel.query.isNotEmpty,
-            onChanged: viewModel.onSearchChanged,
-            onSubmitted: (_) => viewModel.submitSearch(),
-            onClear: viewModel.clearSearch,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              MapSearchBar(
+                query: viewModel.query,
+                hasQuery: viewModel.query.isNotEmpty,
+                onChanged: viewModel.onSearchChanged,
+                onSubmitted: (_) => viewModel.submitSearch(),
+                onClear: viewModel.clearSearch,
+              ),
+              if (viewModel.showSearchSuggestions) ...[
+                const SizedBox(height: 4),
+                MapSearchResultsDropdown(
+                  results: viewModel.searchResults,
+                  isLoading: viewModel.isSearching,
+                  onStoreSelected: viewModel.selectSearchResult,
+                  distanceLabelFor: viewModel.distanceLabelFor,
+                ),
+              ],
+            ],
           ),
         ),
         Positioned(
@@ -93,7 +116,15 @@ class _MapBody extends StatelessWidget {
             top: 228,
             child: _MapMessage(message: viewModel.locationError!),
           ),
+        if (viewModel.routeError != null)
+          Positioned(
+            left: 24,
+            right: 24,
+            top: 292,
+            child: _MapMessage(message: viewModel.routeError!),
+          ),
         if (!viewModel.isLoading &&
+            !viewModel.showSearchSuggestions &&
             viewModel.loadError == null &&
             viewModel.stores.isEmpty)
           const Positioned(
@@ -102,7 +133,7 @@ class _MapBody extends StatelessWidget {
             top: 96,
             child: _MapMessage(message: 'No board-game spaces found.'),
           ),
-        if (selectedStore != null)
+        if (viewModel.showStoreDetails && selectedStore != null)
           Positioned(
             left: 0,
             right: 0,
@@ -111,6 +142,7 @@ class _MapBody extends StatelessWidget {
               store: selectedStore,
               distance: viewModel.distanceLabelFor(selectedStore),
               onStartRoute: viewModel.showRouteToSelectedStore,
+              isLoadingRoute: viewModel.isLoadingRoute,
               onBookmark: () {},
             ),
           ),
