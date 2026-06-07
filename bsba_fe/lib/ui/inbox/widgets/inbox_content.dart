@@ -120,7 +120,7 @@ class _InboxBody extends StatelessWidget {
         itemBuilder: (context, index) {
           final c = conversations[index];
           return ChatItem(
-            name: c.displayName,
+            name: c.displayNameFor(vm.role),
             message: c.preview,
             draft: vm.draftFor(c.id),
             time: c.timeLabel,
@@ -130,7 +130,7 @@ class _InboxBody extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (_) => ChatScreen(
                     conversationId: c.id,
-                    name: c.displayName,
+                    name: c.displayNameFor(vm.role),
                     userId: kDemoUserId,
                   ),
                 ),

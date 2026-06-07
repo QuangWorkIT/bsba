@@ -26,7 +26,23 @@ class ChatViewModel extends ChangeNotifier {
       '/topic/conversations/$conversationId/messages',
       (json) => _onIncoming(Message.fromJson(json)),
     );
+    // Live read receipts: the other side read messages of this sender type.
+    _socket.subscribeJson(
+      '/topic/conversations/$conversationId/read',
+      _onReadReceipt,
+    );
+    // Reflect connection status in the UI and resync after a dropped link.
+    _socket.onStateChange = (connected) {
+      if (connected && _wasConnected) {
+        loadMessages(); // pull anything missed while offline
+      }
+      _wasConnected = _wasConnected || connected;
+      notifyListeners();
+    };
   }
+
+  bool _wasConnected = false;
+  bool get isLive => _socket.isConnected;
 
   // ── State (messages kept oldest → newest) ──────────────────────────────────
   List<Message> _messages = [];
@@ -162,6 +178,29 @@ class ChatViewModel extends ChangeNotifier {
     if (_messages.any((m) => m.id == message.id)) return; // dedupe POST + echo
     _messages.add(message);
     notifyListeners();
+
+    // I'm sitting in this conversation, so a message from the other party is
+    // seen immediately — ack it now so their "Đã xem" updates in real time.
+    if (!isMine(message)) {
+      markRead();
+    }
+  }
+
+  /// The other party opened the chat and read messages of [readSenderType];
+  /// flag those locally so the "Đã xem" receipt appears without a refresh.
+  void _onReadReceipt(Map<String, dynamic> json) {
+    final readSenderType = json['readSenderType'] as String?;
+    if (readSenderType == null) return;
+
+    var changed = false;
+    for (var i = 0; i < _messages.length; i++) {
+      final m = _messages[i];
+      if (m.senderType == readSenderType && !m.isRead) {
+        _messages[i] = m.asRead();
+        changed = true;
+      }
+    }
+    if (changed) notifyListeners();
   }
 
   @override

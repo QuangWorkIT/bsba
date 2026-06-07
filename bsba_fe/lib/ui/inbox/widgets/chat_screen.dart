@@ -53,10 +53,11 @@ class _ChatView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<ChatViewModel>();
+    final statusSubtitle = vm.isLive ? subtitle : 'Connecting…';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F3FC),
-      appBar: ChatHeader(name: name, subtitle: subtitle),
+      appBar: ChatHeader(name: name, subtitle: statusSubtitle),
       body: Column(
         children: [
           Expanded(child: _MessageList(vm: vm)),

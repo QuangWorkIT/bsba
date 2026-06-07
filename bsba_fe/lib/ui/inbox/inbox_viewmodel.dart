@@ -55,7 +55,7 @@ class InboxViewModel extends ChangeNotifier {
     return _conversations
         .where(
           (c) =>
-              c.displayName.toLowerCase().contains(q) ||
+              c.displayNameFor(role).toLowerCase().contains(q) ||
               c.preview.toLowerCase().contains(q),
         )
         .toList();

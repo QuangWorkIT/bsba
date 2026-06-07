@@ -34,6 +34,18 @@ class Message {
         createdAt: value,
       );
 
+  /// Copy of this message flagged as read (for live read receipts).
+  Message asRead() => Message(
+        id: id,
+        conversationId: conversationId,
+        senderId: senderId,
+        senderType: senderType,
+        content: content,
+        type: type,
+        isRead: true,
+        createdAt: createdAt,
+      );
+
   /// Short clock label like "2:14 PM".
   String get timeLabel {
     final dt = createdAt;
