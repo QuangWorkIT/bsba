@@ -11,7 +11,7 @@
 -- ------------------------------------------
 INSERT INTO roles (id, name) VALUES
     (1, 'ADMIN'),
-    (2, 'USER'),
+    (2, 'CUSTOMER'),
     (3, 'STAFF')
 ON CONFLICT (id) DO NOTHING;
 
@@ -26,7 +26,8 @@ INSERT INTO users (id, email, password_hash, full_name, phone, avatar_url, auth_
     ('a0000000-0000-0000-0000-000000000003', 'binh.tran@gmail.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Tran Thi Binh', '0900000003', 'https://i.pravatar.cc/150?img=20', 'local',  2, TRUE),
     ('a0000000-0000-0000-0000-000000000004', 'cuong.le@gmail.com',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Le Van Cuong',  '0900000004', 'https://i.pravatar.cc/150?img=33', 'google', 2, TRUE),
     ('a0000000-0000-0000-0000-000000000005', 'dung.pham@gmail.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Pham Thi Dung', '0900000005', 'https://i.pravatar.cc/150?img=45', 'local',  2, TRUE),
-    ('a0000000-0000-0000-0000-000000000006', 'owner@boardnest.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Store Owner',   '0900000006', 'https://i.pravatar.cc/150?img=51', 'local',  3, TRUE)
+    ('a0000000-0000-0000-0000-000000000006', 'owner@boardnest.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Store Owner',   '0900000006', 'https://i.pravatar.cc/150?img=51', 'local',  3, TRUE),
+    ('a0000000-0000-0000-0000-000000000007', 'owner02@boardnest.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Store Owner 02',   '0900000007', 'https://i.pravatar.cc/150?img=51', 'local',  3, TRUE)
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------
@@ -187,4 +188,10 @@ INSERT INTO messages (id, conversation_id, sender_id, sender_type, content, type
     ('60000000-0000-0000-0000-000000000003', '50000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000002', 'CUSTOMER', 'Yes please, for 4 people at 9am.',     'TEXT', TRUE,  NOW() - INTERVAL '2 hours 15 minutes'),
     ('60000000-0000-0000-0000-000000000004', '50000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000006', 'STAFF',    'Great, see you at 9!',                 'TEXT', TRUE,  NOW() - INTERVAL '2 hours'),
     ('60000000-0000-0000-0000-000000000005', '50000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000003', 'CUSTOMER', 'Do you have Wingspan available?',       'TEXT', FALSE, NOW() - INTERVAL '30 minutes')
+ON CONFLICT (id) DO NOTHING;
+
+
+INSERT INTO store_staff (id, created_at, user_id, store_id) VALUES
+    (1, now(), 'a0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001'),
+    (2, now(), 'a0000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000003')
 ON CONFLICT (id) DO NOTHING;

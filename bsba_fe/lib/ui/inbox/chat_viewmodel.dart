@@ -134,7 +134,7 @@ class ChatViewModel extends ChangeNotifier {
       );
       // Reconcile the placeholder with the server's message (real id + time).
       // Fall back to the optimistic timestamp if the server omits createdAt.
-      final reconciled = sent.createdAt == null
+      var reconciled = sent.createdAt == null
           ? sent.withCreatedAt(optimistic.createdAt)
           : sent;
       final idx = _messages.indexWhere((m) => m.id == tempId);
@@ -143,6 +143,9 @@ class ChatViewModel extends ChangeNotifier {
         if (_messages.any((m) => m.id == sent.id)) {
           _messages.removeAt(idx);
         } else {
+          // A "read" receipt may have landed on the placeholder before the POST
+          // returned — keep it so the "Đã xem" doesn't flicker back off.
+          if (_messages[idx].isRead) reconciled = reconciled.asRead();
           _messages[idx] = reconciled;
         }
       } else {

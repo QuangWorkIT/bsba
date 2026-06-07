@@ -73,7 +73,7 @@ class LoginViewModel extends ChangeNotifier {
 
     // Simulate API Network call latency
     await Future.delayed(const Duration(seconds: 1));
-    
+
     setLoading(false);
 
     // Demo bypass: "test" / "test" navigates straight into the app

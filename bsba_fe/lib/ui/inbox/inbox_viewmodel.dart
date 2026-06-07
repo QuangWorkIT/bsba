@@ -7,7 +7,7 @@ import '../../data/services/draft_store.dart';
 
 /// TODO: replace with the authenticated user's id once login is wired up.
 /// Use a UUID that exists in the `users` table (seed one for the demo).
-const String kDemoUserId = 'a0000000-0000-0000-0000-000000000006';
+const String kDemoUserId = 'a0000000-0000-0000-0000-000000000007';
 
 /// Single knob for the demo role. Flip between 'CUSTOMER' / 'STAFF' / 'ADMIN'
 /// here to test each side — used by both the inbox and the chat screen.
@@ -95,6 +95,22 @@ class InboxViewModel extends ChangeNotifier {
   Future<void> refreshDrafts() async {
     await _refreshDrafts();
     notifyListeners();
+  }
+
+  /// Re-fetch conversations + drafts WITHOUT the loading spinner. Call this when
+  /// returning from a chat so unread counts reflect what was just read, even if
+  /// a socket update was missed or arrived out of order.
+  Future<void> silentReload() async {
+    try {
+      _conversations = await _repository.fetchConversations(
+        userId: userId,
+        role: role,
+      );
+      await _refreshDrafts();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error reloading conversations: $e');
+    }
   }
 
   Future<void> _refreshDrafts() async {

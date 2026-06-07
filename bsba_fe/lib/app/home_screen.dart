@@ -22,18 +22,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const int _inboxIndex = 3;
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = const [
-    ExploreScreen(),
-    MapScreen(),
-    CartScreen(),
-    InboxScreen(),
-    ProfileScreen(),
-  ];
+  void _select(int index) => setState(() => _selectedIndex = index);
 
   @override
   Widget build(BuildContext context) {
+    final screens = <Widget>[
+      ExploreScreen(onOpenInbox: () => _select(_inboxIndex)),
+      const MapScreen(),
+      const CartScreen(),
+      const InboxScreen(),
+      const ProfileScreen(),
+    ];
+
     return ChangeNotifierProvider(
       create: (_) => UnreadBadgeViewModel(
         ChatRepository(ChatService(ApiClient())),
@@ -43,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: _selectedIndex == 2
             ? CartAppBar(onBack: () => setState(() => _selectedIndex = 0))
             : const BoardNestAppBar(),
-        body: IndexedStack(index: _selectedIndex, children: _screens),
+        body: IndexedStack(index: _selectedIndex, children: screens),
         bottomNavigationBar: Consumer<UnreadBadgeViewModel>(
           builder: (context, badge, _) => Navigation(
             selectedIndex: _selectedIndex,

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../data/models/board_space.dart';
+import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/services/api_client.dart';
+import '../../data/services/chat_service.dart';
 import '../../data/services/location_service.dart';
 import '../../data/services/space_service.dart';
+import '../inbox/inbox_viewmodel.dart' show kDemoUserId, kDemoRole;
+import '../inbox/widgets/chat_screen.dart';
 import 'space_card.dart';
 import 'explore_space_filter.dart';
 import 'explore_space_viewmodel.dart';
@@ -11,7 +16,10 @@ import 'space_detail_screen.dart';
 
 /// Explore screen – lists nearby board game spaces.
 class ExploreScreen extends StatefulWidget {
-  const ExploreScreen({super.key});
+  const ExploreScreen({super.key, this.onOpenInbox});
+
+  /// Switches the host's bottom nav to the Inbox tab (used by staff chat).
+  final VoidCallback? onOpenInbox;
 
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
@@ -22,6 +30,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     SpaceRepository(SpaceService(ApiClient())),
     LocationService(),
   );
+  final ChatRepository _chatRepository = ChatRepository(ChatService(ApiClient()));
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -106,6 +115,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     return SpaceCard(
                       space: space,
                       onBookTap: () => _onBookTap(space.id),
+                      onChatTap: () => _onChatTap(space),
                     );
                   }, childCount: _vm.spaces.length),
                 ),
@@ -120,6 +130,50 @@ class _ExploreScreenState extends State<ExploreScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => SpaceDetailScreen(spaceId: spaceId)),
     );
+  }
+
+  Future<void> _onChatTap(BoardSpace space) async {
+    final isStaff = kDemoRole == 'STAFF' || kDemoRole == 'ADMIN';
+
+    // Staff/admin don't chat with one store — send them to the Inbox tab.
+    if (isStaff) {
+      widget.onOpenInbox?.call();
+      return;
+    }
+
+    // Customer: open (or create) the thread with this specific store.
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final conversation = await _chatRepository.startConversation(
+        userId: kDemoUserId,
+        storeId: space.id,
+      );
+      if (!mounted) return;
+      navigator.pop(); // close the loading dialog
+      navigator.push(
+        MaterialPageRoute(
+          builder: (_) => ChatScreen(
+            conversationId: conversation.id,
+            name: space.name,
+            userId: kDemoUserId,
+            role: kDemoRole,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      navigator.pop(); // close the loading dialog
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not open chat. Try again.')),
+      );
+    }
   }
 }
 

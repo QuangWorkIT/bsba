@@ -135,8 +135,9 @@ class _InboxBody extends StatelessWidget {
                   ),
                 ),
               );
-              // The draft may have changed (typed more, or sent) while away.
-              await vm.refreshDrafts();
+              // Re-sync unread + drafts on return: covers a missed/out-of-order
+              // socket update so a thread you just read isn't still bold.
+              await vm.silentReload();
             },
           );
         },
