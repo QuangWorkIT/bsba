@@ -1,0 +1,19 @@
+import 'package:project/data/models/auth_session.dart';
+import 'package:project/data/services/auth_service.dart';
+
+class AuthRepository {
+  final AuthService _service;
+
+  AuthRepository(this._service);
+
+  Future<AuthSession> login({
+    required String emailOrPhone,
+    required String password,
+  }) {
+    return _service.login(emailOrPhone: emailOrPhone, password: password);
+  }
+
+  Future<String?> currentToken() => _service.getToken();
+
+  Future<void> logout() => _service.clearSession();
+}

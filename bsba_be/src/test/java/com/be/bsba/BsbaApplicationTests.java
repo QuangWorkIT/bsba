@@ -9,5 +9,4 @@ class BsbaApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }
