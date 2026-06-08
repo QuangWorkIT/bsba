@@ -25,6 +25,19 @@ class ChatService {
         .toList();
   }
 
+  /// POST /api/v1/conversations?userId=.. with body { storeId }.
+  /// Get-or-create: returns the existing thread or a freshly created one.
+  Future<Conversation> startConversation({
+    required String userId,
+    required String storeId,
+  }) async {
+    final response = await _apiClient.post(
+      '/conversations?userId=$userId',
+      {'storeId': storeId},
+    );
+    return Conversation.fromJson(response['data'] as Map<String, dynamic>);
+  }
+
   /// GET /api/v1/conversations/{id}/messages — newest first (page 0).
   Future<List<Message>> getMessages({
     required String conversationId,

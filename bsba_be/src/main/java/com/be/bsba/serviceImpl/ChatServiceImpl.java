@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -146,6 +147,12 @@ public class ChatServiceImpl implements ChatService {
         if (updated == 0) {
             return;
         }
+
+        // Live read receipt: tell anyone with this chat open that messages from
+        // `target` were just read, so their "seen" indicator updates instantly.
+        messagingTemplate.convertAndSend(
+                "/topic/conversations/" + conversationId + "/read",
+                (Object) Map.of("readSenderType", target.name()));
 
         // The bulk update cleared the persistence context; re-load to map lazy fields safely.
         Conversation refreshed = conversationRepository.findById(conversationId).orElse(conversation);

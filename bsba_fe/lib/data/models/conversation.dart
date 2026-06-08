@@ -27,11 +27,19 @@ class Conversation {
     this.updatedAt,
   });
 
-  /// Customer view shows the store; staff view shows the customer.
-  String get displayName =>
-      storeName ?? customerName ?? 'Conversation';
+  /// The conversation title from the viewer's perspective:
+  /// a customer sees the store, while staff/admin see the customer.
+  String displayNameFor(String role) {
+    final isStaff = role == 'STAFF' || role == 'ADMIN';
+    if (isStaff) return customerName ?? storeName ?? 'Conversation';
+    return storeName ?? customerName ?? 'Conversation';
+  }
 
-  String get avatarUrl => storeCoverImageUrl ?? customerAvatarUrl ?? '';
+  String avatarUrlFor(String role) {
+    final isStaff = role == 'STAFF' || role == 'ADMIN';
+    if (isStaff) return customerAvatarUrl ?? storeCoverImageUrl ?? '';
+    return storeCoverImageUrl ?? customerAvatarUrl ?? '';
+  }
 
   String get preview => lastMessagePreview ?? 'No messages yet';
 

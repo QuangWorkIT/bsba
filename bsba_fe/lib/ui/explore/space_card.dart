@@ -4,8 +4,14 @@ import '../../data/models/board_space.dart';
 class SpaceCard extends StatelessWidget {
   final BoardSpace space;
   final VoidCallback? onBookTap;
+  final VoidCallback? onChatTap;
 
-  const SpaceCard({super.key, required this.space, this.onBookTap});
+  const SpaceCard({
+    super.key,
+    required this.space,
+    this.onBookTap,
+    this.onChatTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,9 +58,17 @@ class SpaceCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 _AvailableSlots(slots: space.availableSlots),
                 const SizedBox(height: 14),
-                ElevatedButton(
-                  onPressed: onBookTap,
-                  child: const Text('Book Table'),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: onBookTap,
+                        child: const Text('Book Table'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    _ChatButton(onTap: onChatTap),
+                  ],
                 ),
               ],
             ),
@@ -66,6 +80,32 @@ class SpaceCard extends StatelessWidget {
 }
 
 // ── Sub-widgets ────────────────────────────────────────────────────────────────
+
+class _ChatButton extends StatelessWidget {
+  final VoidCallback? onTap;
+  const _ChatButton({this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return SizedBox(
+      height: 48,
+      width: 48,
+      child: OutlinedButton(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          padding: EdgeInsets.zero,
+          foregroundColor: colors.primary,
+          side: BorderSide(color: colors.primary),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
+      ),
+    );
+  }
+}
 
 class _SpaceImage extends StatelessWidget {
   final BoardSpace space;

@@ -17,8 +17,12 @@ class ChatSocketService {
 
   StompClient? _client;
   final List<_Subscription> _subscriptions = [];
+  bool _connected = false;
 
-  bool get isConnected => _client?.connected ?? false;
+  bool get isConnected => _connected;
+
+  /// Notified whenever the connection goes up (true) or down (false).
+  void Function(bool connected)? onStateChange;
 
   /// Listen to a topic; safe to call before or after [connect].
   void subscribeJson(
@@ -33,19 +37,30 @@ class ChatSocketService {
   void connect() {
     if (_client != null) return;
 
+    debugPrint('STOMP connecting → $wsUrl');
     _client = StompClient(
       config: StompConfig(
         url: wsUrl,
         onConnect: (StompFrame _) {
+          _connected = true;
+          debugPrint('STOMP connected ✓ ($wsUrl)');
           for (final sub in _subscriptions) {
             _activate(sub);
           }
+          onStateChange?.call(true);
         },
-        onWebSocketError: (dynamic error) =>
-            debugPrint('STOMP websocket error: $error'),
+        onWebSocketError: (dynamic error) {
+          _connected = false;
+          debugPrint('STOMP websocket error: $error');
+          onStateChange?.call(false);
+        },
         onStompError: (StompFrame frame) =>
             debugPrint('STOMP error: ${frame.body}'),
-        onDisconnect: (StompFrame frame) => debugPrint('STOMP disconnected'),
+        onDisconnect: (StompFrame frame) {
+          _connected = false;
+          debugPrint('STOMP disconnected');
+          onStateChange?.call(false);
+        },
         reconnectDelay: const Duration(seconds: 3),
       ),
     );
@@ -73,7 +88,9 @@ class ChatSocketService {
   void disconnect() {
     _client?.deactivate();
     _client = null;
+    _connected = false;
     _subscriptions.clear();
+    onStateChange = null;
   }
 }
 

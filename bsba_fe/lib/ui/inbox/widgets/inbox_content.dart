@@ -120,7 +120,7 @@ class _InboxBody extends StatelessWidget {
         itemBuilder: (context, index) {
           final c = conversations[index];
           return ChatItem(
-            name: c.displayName,
+            name: c.displayNameFor(vm.role),
             message: c.preview,
             draft: vm.draftFor(c.id),
             time: c.timeLabel,
@@ -130,13 +130,14 @@ class _InboxBody extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (_) => ChatScreen(
                     conversationId: c.id,
-                    name: c.displayName,
+                    name: c.displayNameFor(vm.role),
                     userId: kDemoUserId,
                   ),
                 ),
               );
-              // The draft may have changed (typed more, or sent) while away.
-              await vm.refreshDrafts();
+              // Re-sync unread + drafts on return: covers a missed/out-of-order
+              // socket update so a thread you just read isn't still bold.
+              await vm.silentReload();
             },
           );
         },

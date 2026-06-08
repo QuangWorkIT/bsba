@@ -14,6 +14,13 @@ class ChatRepository {
     return _service.getConversations(userId: userId, role: role);
   }
 
+  Future<Conversation> startConversation({
+    required String userId,
+    required String storeId,
+  }) {
+    return _service.startConversation(userId: userId, storeId: storeId);
+  }
+
   Future<List<Message>> fetchMessages({
     required String conversationId,
     int page = 0,
