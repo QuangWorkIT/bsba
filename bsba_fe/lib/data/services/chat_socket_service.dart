@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:project/data/services/api_config.dart';
+import 'package:project/data/services/api_client.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 /// Thin STOMP-over-WebSocket client.
@@ -11,7 +11,7 @@ import 'package:stomp_dart_client/stomp_dart_client.dart';
 /// live inbox (`/topic/users/{id}/conversations`) and the open chat
 /// (`/topic/conversations/{id}/messages`).
 class ChatSocketService {
-  ChatSocketService({String? wsUrl}) : wsUrl = wsUrl ?? ApiConfig.wsUrl;
+  ChatSocketService({String? wsUrl}) : wsUrl = wsUrl ?? ApiClient.wsUrl;
 
   final String wsUrl;
 
