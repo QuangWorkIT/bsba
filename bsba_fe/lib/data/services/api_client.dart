@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Thrown on a non-2xx response. [message] carries the backend's
 /// `ApiResponse.message` when present, so screens can show a friendly reason.
@@ -21,17 +22,33 @@ class ApiClient {
       .replaceFirst('http', 'ws')
       .replaceFirst('/api/v1', '/ws');
 
+  // Must match the key AuthService persists the JWT under.
+  static const String _tokenKey = 'auth_token';
+
   final http.Client _client = http.Client();
 
+  /// JSON headers + the bearer token when the user is logged in.
+  Future<Map<String, String>> _headers() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString(_tokenKey);
+    return {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
+
   Future<Map<String, dynamic>> get(String path) async {
-    final response = await _client.get(Uri.parse('$baseUrl$path'));
+    final response = await _client.get(
+      Uri.parse('$baseUrl$path'),
+      headers: await _headers(),
+    );
     return _handleResponse(response);
   }
 
   Future<Map<String, dynamic>> post(String path, dynamic body) async {
     final response = await _client.post(
       Uri.parse('$baseUrl$path'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _headers(),
       body: jsonEncode(body),
     );
     return _handleResponse(response);
@@ -40,7 +57,7 @@ class ApiClient {
   Future<Map<String, dynamic>> patch(String path, [dynamic body]) async {
     final response = await _client.patch(
       Uri.parse('$baseUrl$path'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _headers(),
       body: body != null ? jsonEncode(body) : null,
     );
     return _handleResponse(response);
