@@ -5,34 +5,11 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FA),
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Color(0xFF0F52BA)),
-          onPressed: () {},
-        ),
-        title: const Text(
-          'Tabletop Haven',
-          style: TextStyle(
-            color: Color(0xFF0F52BA),
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Color(0xFF0F52BA)),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+    return Container(
+      color: const Color(0xFFF8F9FA),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -148,6 +125,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 40),
           ],
         ),
+      ),
       ),
     );
   }
