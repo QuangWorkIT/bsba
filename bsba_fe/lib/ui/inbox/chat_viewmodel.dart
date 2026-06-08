@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../data/models/message.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/services/chat_socket_service.dart';
+import '../../data/services/current_user.dart';
 import '../../data/services/draft_store.dart';
-import 'inbox_viewmodel.dart' show kDemoRole;
 
 class ChatViewModel extends ChangeNotifier {
   final ChatRepository _repository;
@@ -18,10 +18,10 @@ class ChatViewModel extends ChangeNotifier {
     this._repository,
     this._socket, {
     required this.conversationId,
-    required this.userId,
-    this.role = kDemoRole,
     DraftStore? draftStore,
-  }) : _draftStore = draftStore ?? DraftStore() {
+  })  : userId = CurrentUser.instance.id,
+        role = CurrentUser.instance.role,
+        _draftStore = draftStore ?? DraftStore() {
     _socket.subscribeJson(
       '/topic/conversations/$conversationId/messages',
       (json) => _onIncoming(Message.fromJson(json)),

@@ -4,9 +4,9 @@ import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/space_repository.dart';
 import '../../data/services/api_client.dart';
 import '../../data/services/chat_service.dart';
+import '../../data/services/current_user.dart';
 import '../../data/services/location_service.dart';
 import '../../data/services/space_service.dart';
-import '../inbox/inbox_viewmodel.dart' show kDemoUserId, kDemoRole;
 import '../inbox/widgets/chat_screen.dart';
 import 'space_card.dart';
 import 'explore_space_filter.dart';
@@ -133,7 +133,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   Future<void> _onChatTap(BoardSpace space) async {
-    final isStaff = kDemoRole == 'STAFF' || kDemoRole == 'ADMIN';
+    final role = CurrentUser.instance.role;
+    final isStaff = role == 'STAFF' || role == 'ADMIN';
 
     // Staff/admin don't chat with one store — send them to the Inbox tab.
     if (isStaff) {
@@ -152,7 +153,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
     try {
       final conversation = await _chatRepository.startConversation(
-        userId: kDemoUserId,
+        userId: CurrentUser.instance.id,
         storeId: space.id,
       );
       if (!mounted) return;
@@ -162,8 +163,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
           builder: (_) => ChatScreen(
             conversationId: conversation.id,
             name: space.name,
-            userId: kDemoUserId,
-            role: kDemoRole,
           ),
         ),
       );
