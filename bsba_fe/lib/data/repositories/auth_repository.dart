@@ -13,6 +13,20 @@ class AuthRepository {
     return _service.login(emailOrPhone: emailOrPhone, password: password);
   }
 
+  Future<AuthSession> register({
+    required String fullName,
+    required String phone,
+    required String email,
+    required String password,
+  }) {
+    return _service.register(
+      fullName: fullName,
+      phone: phone,
+      email: email,
+      password: password,
+    );
+  }
+
   Future<String?> currentToken() => _service.getToken();
 
   Future<void> logout() => _service.clearSession();

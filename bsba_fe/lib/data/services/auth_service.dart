@@ -31,6 +31,26 @@ class AuthService {
     return session;
   }
 
+  Future<AuthSession> register({
+    required String fullName,
+    required String phone,
+    required String email,
+    required String password,
+  }) async {
+    final response = await _apiClient.post('/auth/register', {
+      'fullName': fullName,
+      'phone': phone,
+      'email': email,
+      'password': password,
+    });
+
+    final data = response['data'] as Map<String, dynamic>;
+    final session = AuthSession.fromJson(data);
+
+    await _persistSession(session);
+    return session;
+  }
+
   Future<void> _persistSession(AuthSession session) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, session.token);

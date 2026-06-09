@@ -136,6 +136,50 @@ public class AuthService implements IAuthService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public AuthResponse register(RegisterRequest request) {
+        System.out.println("AuthService: Registering user with email=" + request.getEmail() + ", phone=" + request.getPhone());
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            System.out.println("AuthService: Registration failed - Email already exists: " + request.getEmail());
+            throw new AppException("Email is already registered", HttpStatus.BAD_REQUEST);
+        }
+        if (userRepository.findByEmailOrPhone(request.getEmail(), request.getPhone()).isPresent()) {
+            System.out.println("AuthService: Registration failed - Phone number or email already exists");
+            throw new AppException("Phone number or email is already registered", HttpStatus.BAD_REQUEST);
+        }
+
+        System.out.println("AuthService: Fetching or creating USER role...");
+        Role userRole = roleRepository.findByName("USER")
+                .orElseGet(() -> {
+                    System.out.println("AuthService: USER role not found, creating new one...");
+                    return roleRepository.save(Role.builder().name("USER").build());
+                });
+
+        User user = User.builder()
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .fullName(request.getFullName())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .authProvider("local")
+                .isActive(true)
+                .role(userRole)
+                .build();
+
+        System.out.println("AuthService: Saving user to database...");
+        User savedUser = userRepository.save(user);
+        System.out.println("AuthService: User saved successfully, ID: " + savedUser.getId());
+
+        String roleName = savedUser.getRole() != null ? savedUser.getRole().getName() : "USER";
+        System.out.println("AuthService: Generating token for " + savedUser.getEmail() + " with role: " + roleName);
+        String token = jwtService.generateToken(savedUser.getEmail(), roleName);
+
+        return AuthResponse.builder()
+                .token(token)
+                .user(mapToUserDto(savedUser))
+                .build();
+    }
+
     private UserDto mapToUserDto(User user) {
         return UserDto.builder()
                 .id(user.getId())
