@@ -3,15 +3,8 @@ import 'package:flutter/material.dart';
 import '../../data/models/conversation.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/services/chat_socket_service.dart';
+import '../../data/services/current_user.dart';
 import '../../data/services/draft_store.dart';
-
-/// TODO: replace with the authenticated user's id once login is wired up.
-/// Use a UUID that exists in the `users` table (seed one for the demo).
-const String kDemoUserId = 'a0000000-0000-0000-0000-000000000007';
-
-/// Single knob for the demo role. Flip between 'CUSTOMER' / 'STAFF' / 'ADMIN'
-/// here to test each side — used by both the inbox and the chat screen.
-const String kDemoRole = 'STAFF';
 
 class InboxViewModel extends ChangeNotifier {
   final ChatRepository _repository;
@@ -23,10 +16,10 @@ class InboxViewModel extends ChangeNotifier {
   InboxViewModel(
     this._repository,
     this._socket, {
-    this.userId = kDemoUserId,
-    this.role = kDemoRole,
     DraftStore? draftStore,
-  }) : _draftStore = draftStore ?? DraftStore() {
+  })  : userId = CurrentUser.instance.id,
+        role = CurrentUser.instance.role,
+        _draftStore = draftStore ?? DraftStore() {
     _socket.subscribeJson(
       '/topic/users/$userId/conversations',
       (json) => _applyRealtimeUpdate(Conversation.fromJson(json)),

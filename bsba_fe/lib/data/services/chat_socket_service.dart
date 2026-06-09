@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:project/data/services/api_config.dart';
+import 'package:project/data/services/api_client.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 /// Thin STOMP-over-WebSocket client.
@@ -11,13 +12,14 @@ import 'package:stomp_dart_client/stomp_dart_client.dart';
 /// live inbox (`/topic/users/{id}/conversations`) and the open chat
 /// (`/topic/conversations/{id}/messages`).
 class ChatSocketService {
-  ChatSocketService({String? wsUrl}) : wsUrl = wsUrl ?? ApiConfig.wsUrl;
+  ChatSocketService({String? wsUrl}) : wsUrl = wsUrl ?? ApiClient.wsUrl;
 
   final String wsUrl;
 
   StompClient? _client;
   final List<_Subscription> _subscriptions = [];
   bool _connected = false;
+  bool _connecting = false;
 
   bool get isConnected => _connected;
 
@@ -34,13 +36,24 @@ class ChatSocketService {
     if (isConnected) _activate(sub);
   }
 
-  void connect() {
-    if (_client != null) return;
+  Future<void> connect() async {
+    if (_client != null || _connecting) return;
+    _connecting = true;
+
+    // Attach the JWT so Spring Security lets the /ws handshake through.
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final authHeaders = (token != null && token.isNotEmpty)
+        ? {'Authorization': 'Bearer $token'}
+        : <String, String>{};
 
     debugPrint('STOMP connecting → $wsUrl');
     _client = StompClient(
       config: StompConfig(
         url: wsUrl,
+        // HTTP handshake headers (read by the security filter) + STOMP frame.
+        webSocketConnectHeaders: authHeaders,
+        stompConnectHeaders: authHeaders,
         onConnect: (StompFrame _) {
           _connected = true;
           debugPrint('STOMP connected ✓ ($wsUrl)');
@@ -65,6 +78,7 @@ class ChatSocketService {
       ),
     );
 
+    _connecting = false;
     _client!.activate();
   }
 
@@ -89,6 +103,7 @@ class ChatSocketService {
     _client?.deactivate();
     _client = null;
     _connected = false;
+    _connecting = false;
     _subscriptions.clear();
     onStateChange = null;
   }

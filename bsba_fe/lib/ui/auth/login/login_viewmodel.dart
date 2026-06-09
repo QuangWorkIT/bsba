@@ -3,6 +3,7 @@ import 'package:project/app/home_screen.dart';
 import 'package:project/data/repositories/auth_repository.dart';
 import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/auth_service.dart';
+import 'package:project/data/services/current_user.dart';
 
 class LoginViewModel extends ChangeNotifier {
   LoginViewModel({AuthRepository? authRepository})
@@ -92,6 +93,9 @@ class LoginViewModel extends ChangeNotifier {
         emailOrPhone: _email.trim(),
         password: _password,
       );
+
+      // Make the signed-in user available to the rest of the app (chat, inbox…).
+      CurrentUser.instance.setFrom(session.user);
 
       setLoading(false);
 

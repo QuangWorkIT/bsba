@@ -7,7 +7,6 @@ import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/chat_service.dart';
 import 'package:project/data/services/chat_socket_service.dart';
 import 'package:project/ui/inbox/chat_viewmodel.dart';
-import 'package:project/ui/inbox/inbox_viewmodel.dart' show kDemoRole;
 import 'package:project/ui/inbox/widgets/chat/chat_header.dart';
 import 'package:project/ui/inbox/widgets/chat/chat_input_area.dart';
 import 'package:project/ui/inbox/widgets/chat/chat_staff_message.dart';
@@ -18,15 +17,11 @@ class ChatScreen extends StatelessWidget {
     super.key,
     required this.conversationId,
     required this.name,
-    required this.userId,
-    this.role = kDemoRole,
     this.subtitle = 'Online',
   });
 
   final String conversationId;
   final String name;
-  final String userId;
-  final String role;
   final String subtitle;
 
   @override
@@ -36,8 +31,6 @@ class ChatScreen extends StatelessWidget {
         ChatRepository(ChatService(ApiClient())),
         ChatSocketService(),
         conversationId: conversationId,
-        userId: userId,
-        role: role,
       )..start(),
       child: _ChatView(name: name, subtitle: subtitle),
     );
