@@ -15,5 +15,5 @@ class AuthRepository {
 
   Future<String?> currentToken() => _service.getToken();
 
-  Future<void> logout() => _service.clearSession();
+  Future<void> logout() => _service.logout();
 }

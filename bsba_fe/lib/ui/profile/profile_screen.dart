@@ -1,18 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:project/ui/auth/login/login.dart';
 
-class ProfileScreen extends StatelessWidget {
+import 'profile_viewmodel.dart';
+
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  late final ProfileViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = ProfileViewModel();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  Future<void> _logout() async {
+    final didLogout = await _viewModel.logout();
+    if (!mounted) return;
+
+    if (didLogout) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_viewModel.errorMessage ?? 'Logout failed.'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFF8F9FA),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, child) => Container(
+        color: const Color(0xFFF8F9FA),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             const Center(
               child: Text(
                 'Profile',
@@ -81,7 +126,11 @@ class ProfileScreen extends StatelessWidget {
               _buildListTile('Manage Profile', Icons.person_outline),
               _buildListTile('Password & Security', Icons.lock_outline),
               _buildListTile('Notifications', Icons.notifications_none),
-              _buildListTile('Language', Icons.translate, trailingText: 'English'),
+              _buildListTile(
+                'Language',
+                Icons.translate,
+                trailingText: 'English',
+              ),
             ]),
             const SizedBox(height: 24),
             _buildSectionTitle('Preferences'),
@@ -101,11 +150,17 @@ class ProfileScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.logout, color: Color(0xFFD32F2F)),
-                label: const Text(
-                  'Log Out',
-                  style: TextStyle(
+                onPressed: _viewModel.isLoggingOut ? null : _logout,
+                icon: _viewModel.isLoggingOut
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.logout, color: Color(0xFFD32F2F)),
+                label: Text(
+                  _viewModel.isLoggingOut ? 'Logging Out...' : 'Log Out',
+                  style: const TextStyle(
                     color: Color(0xFFD32F2F),
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -123,9 +178,10 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-          ],
+              ],
+            ),
+          ),
         ),
-      ),
       ),
     );
   }
@@ -145,11 +201,12 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildCardGroup(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.white,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Column(
         children: children.asMap().entries.map((entry) {
@@ -159,7 +216,12 @@ class ProfileScreen extends StatelessWidget {
             children: [
               child,
               if (idx < children.length - 1)
-                Divider(height: 1, color: Colors.grey.shade100, indent: 52, endIndent: 16),
+                Divider(
+                  height: 1,
+                  color: Colors.grey.shade100,
+                  indent: 52,
+                  endIndent: 16,
+                ),
             ],
           );
         }).toList(),
@@ -169,7 +231,8 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildListTile(String title, IconData icon, {String? trailingText}) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
       leading: Icon(icon, color: const Color(0xFF424242)),
       title: Text(
         title,
