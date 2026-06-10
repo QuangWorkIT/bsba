@@ -131,7 +131,6 @@ class _InboxBody extends StatelessWidget {
                   builder: (_) => ChatScreen(
                     conversationId: c.id,
                     name: c.displayNameFor(vm.role),
-                    userId: kDemoUserId,
                   ),
                 ),
               );
