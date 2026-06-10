@@ -36,12 +36,32 @@ class AuthService {
     required String phone,
     required String email,
     required String password,
+    required String otpCode,
   }) async {
     final response = await _apiClient.post('/auth/register', {
       'fullName': fullName,
       'phone': phone,
       'email': email,
       'password': password,
+      'otpCode': otpCode,
+    });
+
+    final data = response['data'] as Map<String, dynamic>;
+    final session = AuthSession.fromJson(data);
+
+    await _persistSession(session);
+    return session;
+  }
+
+  Future<void> sendRegistrationOtp(String email) async {
+    await _apiClient.post('/auth/register/send-otp', {
+      'email': email,
+    });
+  }
+
+  Future<AuthSession> loginWithGoogle(String idToken) async {
+    final response = await _apiClient.post('/auth/google', {
+      'idToken': idToken,
     });
 
     final data = response['data'] as Map<String, dynamic>;

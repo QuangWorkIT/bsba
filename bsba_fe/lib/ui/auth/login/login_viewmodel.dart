@@ -4,6 +4,7 @@ import 'package:project/data/repositories/auth_repository.dart';
 import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/auth_service.dart';
 import 'package:project/data/services/current_user.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginViewModel extends ChangeNotifier {
   LoginViewModel({AuthRepository? authRepository})
@@ -11,6 +12,9 @@ class LoginViewModel extends ChangeNotifier {
             authRepository ?? AuthRepository(AuthService(ApiClient()));
 
   final AuthRepository _authRepository;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+  );
 
   String _email = '';
   String _password = '';
@@ -158,7 +162,63 @@ class LoginViewModel extends ChangeNotifier {
   }
 
   // Core business action: Social Sign-In
-  Future<void> loginWithSocial(String provider, BuildContext context) async {
+  Future<bool> loginWithSocial(String provider, BuildContext context) async {
+    if (provider == 'Google') {
+      _errorMessage = null;
+      setLoading(true);
+      try {
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          setLoading(false);
+          return false; // User cancelled
+        }
+
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final String? idToken = googleAuth.idToken;
+
+        if (idToken == null) {
+          throw Exception('Failed to obtain Google ID Token.');
+        }
+
+        print('Google Sign-In: obtained ID Token. Sending to backend...');
+        final session = await _authRepository.loginWithGoogle(idToken);
+        CurrentUser.instance.setFrom(session.user);
+        setLoading(false);
+
+        if (context.mounted) {
+          final name = session.user.fullName?.isNotEmpty == true
+              ? session.user.fullName!
+              : session.user.email;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text('Welcome back, $name!')),
+                ],
+              ),
+              backgroundColor: const Color(0xFF0056C6),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+        return true;
+      } catch (e) {
+        print('Google Sign-in failed: $e');
+        _errorMessage = e.toString();
+        setLoading(false);
+        if (context.mounted) _showError(context, 'Google Sign-in failed: $e');
+        return false;
+      }
+    }
+
     setLoading(true);
 
     // Simulate API Network call latency
@@ -187,5 +247,6 @@ class LoginViewModel extends ChangeNotifier {
         ),
       );
     }
+    return true;
   }
 }

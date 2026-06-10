@@ -29,6 +29,26 @@ public class AuthService implements IAuthService {
     private final JwtService jwtService;
     private final TokenBlacklistService tokenBlacklistService;
 
+    private final Map<String, OtpDetails> otpCache = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static class OtpDetails {
+        private final String code;
+        private final long expiryTime;
+
+        public OtpDetails(String code, long expiryTime) {
+            this.code = code;
+            this.expiryTime = expiryTime;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public boolean isExpired() {
+            return System.currentTimeMillis() > expiryTime;
+        }
+    }
+
     @Value("${google.client.id}")
     private String googleClientId;
 
@@ -139,12 +159,34 @@ public class AuthService implements IAuthService {
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        System.out.println("AuthService: Registering user with email=" + request.getEmail() + ", phone=" + request.getPhone());
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            System.out.println("AuthService: Registration failed - Email already exists: " + request.getEmail());
+        String email = request.getEmail().trim().toLowerCase();
+        System.out.println("AuthService: Registering user with email=" + email + ", phone=" + request.getPhone());
+        
+        // 1. Verify OTP code
+        OtpDetails cachedOtp = otpCache.get(email);
+        if (cachedOtp == null) {
+            System.out.println("AuthService: Registration failed - No OTP requested for email: " + email);
+            throw new AppException("No OTP requested for this email", HttpStatus.BAD_REQUEST);
+        }
+        if (cachedOtp.isExpired()) {
+            otpCache.remove(email);
+            System.out.println("AuthService: Registration failed - OTP has expired for email: " + email);
+            throw new AppException("OTP has expired. Please request a new one.", HttpStatus.BAD_REQUEST);
+        }
+        if (!cachedOtp.getCode().equals(request.getOtpCode())) {
+            System.out.println("AuthService: Registration failed - Invalid OTP entered for email: " + email);
+            throw new AppException("Invalid OTP code", HttpStatus.BAD_REQUEST);
+        }
+
+        // Clear verified OTP
+        otpCache.remove(email);
+
+        // 2. Perform DB checks
+        if (userRepository.findByEmail(email).isPresent()) {
+            System.out.println("AuthService: Registration failed - Email already exists: " + email);
             throw new AppException("Email is already registered", HttpStatus.BAD_REQUEST);
         }
-        if (userRepository.findByEmailOrPhone(request.getEmail(), request.getPhone()).isPresent()) {
+        if (userRepository.findByEmailOrPhone(email, request.getPhone()).isPresent()) {
             System.out.println("AuthService: Registration failed - Phone number or email already exists");
             throw new AppException("Phone number or email is already registered", HttpStatus.BAD_REQUEST);
         }
@@ -157,7 +199,7 @@ public class AuthService implements IAuthService {
                 });
 
         User user = User.builder()
-                .email(request.getEmail())
+                .email(email)
                 .phone(request.getPhone())
                 .fullName(request.getFullName())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
@@ -178,6 +220,28 @@ public class AuthService implements IAuthService {
                 .token(token)
                 .user(mapToUserDto(savedUser))
                 .build();
+    }
+
+    @Override
+    public void sendRegistrationOtp(SendOtpRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+        System.out.println("AuthService: Requesting OTP for email: " + email);
+
+        if (userRepository.findByEmail(email).isPresent()) {
+            System.out.println("AuthService: Request OTP failed - Email already exists: " + email);
+            throw new AppException("Email is already registered", HttpStatus.BAD_REQUEST);
+        }
+
+        // Generate 6-digit random code
+        String otpCode = String.format("%06d", new java.util.Random().nextInt(1000000));
+        long expiryTime = System.currentTimeMillis() + (5 * 60 * 1000); // 5 minutes
+        
+        otpCache.put(email, new OtpDetails(otpCode, expiryTime));
+
+        System.out.println("==================================================");
+        System.out.println("--- GMAIL REGISTRATION OTP FOR " + email + " ---");
+        System.out.println("                 CODE: " + otpCode);
+        System.out.println("==================================================");
     }
 
     private UserDto mapToUserDto(User user) {

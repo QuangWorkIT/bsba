@@ -46,24 +46,12 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> post(String path, dynamic body) async {
-    print('--- ApiClient POST Request ---');
-    print('Url: $baseUrl$path');
-    print('Body: ${jsonEncode(body)}');
-    try {
-      final response = await _client.post(
-        Uri.parse('$baseUrl$path'),
-        headers: await _headers(),
-        body: jsonEncode(body),
-      );
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-      print('-----------------------------');
-      return _handleResponse(response);
-    } catch (e) {
-      print('ApiClient POST Error: $e');
-      print('-----------------------------');
-      rethrow;
-    }
+    final response = await _client.post(
+      Uri.parse('$baseUrl$path'),
+      headers: await _headers(),
+      body: jsonEncode(body),
+    );
+    return _handleResponse(response);
   }
 
   Future<Map<String, dynamic>> patch(String path, [dynamic body]) async {

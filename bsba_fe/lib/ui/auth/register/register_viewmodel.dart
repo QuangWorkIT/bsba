@@ -4,6 +4,7 @@ import 'package:project/data/repositories/auth_repository.dart';
 import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/auth_service.dart';
 import 'package:project/data/services/current_user.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   RegisterViewModel({AuthRepository? authRepository})
@@ -11,11 +12,15 @@ class RegisterViewModel extends ChangeNotifier {
             authRepository ?? AuthRepository(AuthService(ApiClient()));
 
   final AuthRepository _authRepository;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+  );
 
   String _fullName = '';
   String _phone = '';
   String _email = '';
   String _password = '';
+  String _otpCode = '';
   bool _obscurePassword = true;
   bool _isHoveringGoogle = false;
   bool _isLoading = false;
@@ -26,6 +31,7 @@ class RegisterViewModel extends ChangeNotifier {
   String get phone => _phone;
   String get email => _email;
   String get password => _password;
+  String get otpCode => _otpCode;
   bool get obscurePassword => _obscurePassword;
   bool get isHoveringGoogle => _isHoveringGoogle;
   bool get isLoading => _isLoading;
@@ -52,6 +58,11 @@ class RegisterViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setOtpCode(String value) {
+    _otpCode = value;
+    notifyListeners();
+  }
+
   void togglePasswordVisibility() {
     _obscurePassword = !_obscurePassword;
     notifyListeners();
@@ -67,13 +78,45 @@ class RegisterViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Core registration action
+  // Send OTP trigger
+  Future<bool> sendOtp(BuildContext context) async {
+    print('RegisterViewModel.sendOtp: requesting OTP for email="$_email"');
+    if (_email.trim().isEmpty) {
+      _showError(context, 'Please enter a valid email address first');
+      return false;
+    }
+
+    _errorMessage = null;
+    setLoading(true);
+
+    try {
+      await _authRepository.sendRegistrationOtp(_email.trim());
+      setLoading(false);
+      print('RegisterViewModel.sendOtp: success');
+      return true;
+    } on ApiException catch (e) {
+      print('RegisterViewModel.sendOtp: ApiException: $e');
+      _errorMessage = e.message;
+      setLoading(false);
+      if (context.mounted) _showError(context, e.message);
+      return false;
+    } catch (e) {
+      print('RegisterViewModel.sendOtp: General error: $e');
+      _errorMessage = 'Unable to reach the server. Check your connection.';
+      setLoading(false);
+      if (context.mounted) _showError(context, _errorMessage!);
+      return false;
+    }
+  }
+
+  // Core registration action with OTP
   Future<bool> register(BuildContext context) async {
-    print('RegisterViewModel.register: fullName="$_fullName", phone="$_phone", email="$_email", passwordLength=${_password.length}');
+    print('RegisterViewModel.register: fullName="$_fullName", phone="$_phone", email="$_email", passwordLength=${_password.length}, otpCode="$_otpCode"');
     if (_fullName.trim().isEmpty ||
         _phone.trim().isEmpty ||
         _email.trim().isEmpty ||
-        _password.isEmpty) {
+        _password.isEmpty ||
+        _otpCode.trim().isEmpty) {
       print('RegisterViewModel.register: local validation failed (some fields are empty)');
       return false;
     }
@@ -87,6 +130,7 @@ class RegisterViewModel extends ChangeNotifier {
         phone: _phone.trim(),
         email: _email.trim(),
         password: _password,
+        otpCode: _otpCode.trim(),
       );
 
       print('RegisterViewModel.register: success, user id: ${session.user.id}');
@@ -155,8 +199,64 @@ class RegisterViewModel extends ChangeNotifier {
     );
   }
 
-  // Social Sign-In (Stubbed, similar to Login screen)
-  Future<void> loginWithSocial(String provider, BuildContext context) async {
+  // Social Sign-In
+  Future<bool> loginWithSocial(String provider, BuildContext context) async {
+    if (provider == 'Google') {
+      _errorMessage = null;
+      setLoading(true);
+      try {
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          setLoading(false);
+          return false; // User cancelled
+        }
+
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final String? idToken = googleAuth.idToken;
+
+        if (idToken == null) {
+          throw Exception('Failed to obtain Google ID Token.');
+        }
+
+        print('Google Sign-In: obtained ID Token. Sending to backend...');
+        final session = await _authRepository.loginWithGoogle(idToken);
+        CurrentUser.instance.setFrom(session.user);
+        setLoading(false);
+
+        if (context.mounted) {
+          final name = session.user.fullName?.isNotEmpty == true
+              ? session.user.fullName!
+              : session.user.email;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text('Welcome, $name!')),
+                ],
+              ),
+              backgroundColor: const Color(0xFF0056C6),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+        return true;
+      } catch (e) {
+        print('Google Sign-in failed: $e');
+        _errorMessage = e.toString();
+        setLoading(false);
+        if (context.mounted) _showError(context, 'Google Sign-in failed: $e');
+        return false;
+      }
+    }
+
     setLoading(true);
 
     // Simulate API Network call latency
@@ -185,5 +285,6 @@ class RegisterViewModel extends ChangeNotifier {
         ),
       );
     }
+    return true;
   }
 }
