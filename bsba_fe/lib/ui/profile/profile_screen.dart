@@ -1,131 +1,162 @@
 import 'package:flutter/material.dart';
+import 'package:project/data/models/auth_session.dart';
+import 'package:project/data/services/api_client.dart';
+import 'package:project/data/services/user_service.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  late Future<AuthUser> _userFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _userFuture = UserService(ApiClient()).fetchUserProfile();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFFF8F9FA),
       child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Center(
-              child: Text(
-                'Profile',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF212121),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Profile Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Row(
+        child: FutureBuilder<AuthUser>(
+          future: _userFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData) {
+              return const Center(child: Text('No profile data found.'));
+            }
+
+            final user = snapshot.data!;
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.blue, width: 2),
-                    ),
-                    child: const CircleAvatar(
-                      radius: 32,
-                      backgroundImage: NetworkImage(
-                        'https://randomuser.me/api/portraits/men/32.jpg',
+                  const Center(
+                    child: Text(
+                      'Profile',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF212121),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 24),
+                  // Profile Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          'Ronald Richards',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF333333),
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.blue, width: 2),
+                          ),
+                          child: CircleAvatar(
+                            radius: 32,
+                            backgroundImage: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                                ? NetworkImage(user.avatarUrl!)
+                                : const NetworkImage('https://ui-avatars.com/api/?name=User&background=random'),
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
-                          'ronaldrichards@gmail.com',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.fullName ?? 'Unknown User',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF333333),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                user.email,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                        )
                       ],
                     ),
-                  )
+                  ),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Account'),
+                  const SizedBox(height: 8),
+                  _buildCardGroup([
+                    _buildListTile('Manage Profile', Icons.person_outline),
+                    _buildListTile('Password & Security', Icons.lock_outline),
+                    _buildListTile('Notifications', Icons.notifications_none),
+                    _buildListTile('Language', Icons.translate, trailingText: 'English'),
+                  ]),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Preferences'),
+                  const SizedBox(height: 8),
+                  _buildCardGroup([
+                    _buildListTile('About Us', Icons.info_outline),
+                    _buildListTile('Theme', Icons.contrast, trailingText: 'Light'),
+                    _buildListTile('Appointments', Icons.calendar_today_outlined),
+                  ]),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Support'),
+                  const SizedBox(height: 8),
+                  _buildCardGroup([
+                    _buildListTile('Help Center', Icons.help_outline),
+                  ]),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.logout, color: Color(0xFFD32F2F)),
+                      label: const Text(
+                        'Log Out',
+                        style: TextStyle(
+                          color: Color(0xFFD32F2F),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFEBEB),
+                        foregroundColor: const Color(0xFFD32F2F),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Account'),
-            const SizedBox(height: 8),
-            _buildCardGroup([
-              _buildListTile('Manage Profile', Icons.person_outline),
-              _buildListTile('Password & Security', Icons.lock_outline),
-              _buildListTile('Notifications', Icons.notifications_none),
-              _buildListTile('Language', Icons.translate, trailingText: 'English'),
-            ]),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Preferences'),
-            const SizedBox(height: 8),
-            _buildCardGroup([
-              _buildListTile('About Us', Icons.info_outline),
-              _buildListTile('Theme', Icons.contrast, trailingText: 'Light'),
-              _buildListTile('Appointments', Icons.calendar_today_outlined),
-            ]),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Support'),
-            const SizedBox(height: 8),
-            _buildCardGroup([
-              _buildListTile('Help Center', Icons.help_outline),
-            ]),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.logout, color: Color(0xFFD32F2F)),
-                label: const Text(
-                  'Log Out',
-                  style: TextStyle(
-                    color: Color(0xFFD32F2F),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFEBEB),
-                  foregroundColor: const Color(0xFFD32F2F),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 40),
-          ],
+            );
+          },
         ),
-      ),
       ),
     );
   }
