@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:project/data/models/auth_session.dart';
 import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/user_service.dart';
+import 'package:project/app/settings_provider.dart';
+import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,9 +23,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFF8F9FA),
-      child: SafeArea(
+    final settings = Provider.of<SettingsProvider>(context);
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SafeArea(
         child: FutureBuilder<AuthUser>(
           future: _userFuture,
           builder: (context, snapshot) {
@@ -42,13 +47,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Center(
+                  Center(
                     child: Text(
                       'Profile',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF212121),
+                        color: theme.textTheme.titleLarge?.color,
                       ),
                     ),
                   ),
@@ -57,9 +62,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.cardTheme.color ?? theme.cardColor,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
                     ),
                     child: Row(
                       children: [
@@ -83,10 +88,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               Text(
                                 user.fullName ?? 'Unknown User',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF333333),
+                                  color: theme.textTheme.bodyLarge?.color,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -106,25 +111,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
                   _buildSectionTitle('Account'),
                   const SizedBox(height: 8),
-                  _buildCardGroup([
-                    _buildListTile('Manage Profile', Icons.person_outline),
-                    _buildListTile('Password & Security', Icons.lock_outline),
-                    _buildListTile('Notifications', Icons.notifications_none),
-                    _buildListTile('Language', Icons.translate, trailingText: 'English'),
+                  _buildCardGroup(theme, [
+                    _buildListTile(theme, 'Manage Profile', Icons.person_outline),
+                    _buildListTile(theme, 'Password & Security', Icons.lock_outline),
+                    _buildListTile(theme, 'Notifications', Icons.notifications_none),
+                    _buildListTile(theme, 'Language', Icons.translate, trailingText: settings.language, onTap: () {
+                      _showLanguageDialog(context, settings);
+                    }),
                   ]),
                   const SizedBox(height: 24),
                   _buildSectionTitle('Preferences'),
                   const SizedBox(height: 8),
-                  _buildCardGroup([
-                    _buildListTile('About Us', Icons.info_outline),
-                    _buildListTile('Theme', Icons.contrast, trailingText: 'Light'),
-                    _buildListTile('Appointments', Icons.calendar_today_outlined),
+                  _buildCardGroup(theme, [
+                    _buildListTile(theme, 'About Us', Icons.info_outline),
+                    _buildListTile(theme, 'Theme', Icons.contrast, trailingText: settings.themeMode == ThemeMode.dark ? 'Dark' : 'Light', onTap: () {
+                      _showThemeDialog(context, settings);
+                    }),
+                    _buildListTile(theme, 'Appointments', Icons.calendar_today_outlined),
                   ]),
                   const SizedBox(height: 24),
                   _buildSectionTitle('Support'),
                   const SizedBox(height: 8),
-                  _buildCardGroup([
-                    _buildListTile('Help Center', Icons.help_outline),
+                  _buildCardGroup(theme, [
+                    _buildListTile(theme, 'Help Center', Icons.help_outline),
                   ]),
                   const SizedBox(height: 32),
                   SizedBox(
@@ -175,12 +184,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildCardGroup(List<Widget> children) {
+  Widget _buildCardGroup(ThemeData theme, List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardTheme.color ?? theme.cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
       ),
       child: Column(
         children: children.asMap().entries.map((entry) {
@@ -190,7 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               child,
               if (idx < children.length - 1)
-                Divider(height: 1, color: Colors.grey.shade100, indent: 52, endIndent: 16),
+                Divider(height: 1, color: theme.dividerColor.withOpacity(0.1), indent: 52, endIndent: 16),
             ],
           );
         }).toList(),
@@ -198,16 +207,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildListTile(String title, IconData icon, {String? trailingText}) {
+  Widget _buildListTile(ThemeData theme, String title, IconData icon, {String? trailingText, VoidCallback? onTap}) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
-      leading: Icon(icon, color: const Color(0xFF424242)),
+      leading: Icon(icon, color: theme.iconTheme.color),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w500,
-          color: Color(0xFF333333),
+          color: theme.textTheme.bodyLarge?.color,
         ),
       ),
       trailing: Row(
@@ -224,7 +233,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
         ],
       ),
-      onTap: () {},
+      onTap: onTap ?? () {},
+    );
+  }
+
+  void _showThemeDialog(BuildContext context, SettingsProvider settings) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Select Theme'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<ThemeMode>(
+                title: const Text('Light'),
+                value: ThemeMode.light,
+                groupValue: settings.themeMode,
+                onChanged: (value) {
+                  settings.setTheme(value!);
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text('Dark'),
+                value: ThemeMode.dark,
+                groupValue: settings.themeMode,
+                onChanged: (value) {
+                  settings.setTheme(value!);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context, SettingsProvider settings) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Select Language'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<String>(
+                title: const Text('English'),
+                value: 'English',
+                groupValue: settings.language,
+                onChanged: (value) {
+                  settings.setLanguage(value!);
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title: const Text('Vietnamese'),
+                value: 'Vietnamese',
+                groupValue: settings.language,
+                onChanged: (value) {
+                  settings.setLanguage(value!);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
