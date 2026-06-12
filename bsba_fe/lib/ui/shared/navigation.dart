@@ -22,8 +22,12 @@ class Navigation extends StatelessWidget {
       child: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: onDestinationSelected,
-        backgroundColor: const Color(0xE0E2EBFF),
-        indicatorColor: const Color(0xFFB6D0FF),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).colorScheme.surfaceContainer
+            : const Color(0xE0E2EBFF),
+        indicatorColor: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).colorScheme.secondaryContainer
+            : const Color(0xFFB6D0FF),
         elevation: 0,
         destinations: [
           const NavigationDestination(icon: Icon(Icons.search), label: 'Explore'),

@@ -28,11 +28,30 @@ class CartGameItemCard extends StatelessWidget {
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
 
-  static const _borderColor = Color(0xFFE0E2EB);
-  static const _imagePlaceholderColor = Color(0xFFEBEDF7);
-  static const _bodyTextColor = Color(0xFF414753);
-  static const _titleColor = Color(0xFF181C22);
-  static const _stepperBackground = Color(0xFFEBEDF7);
+  static Color _borderColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.outlineVariant
+      : const Color(0xFFE0E2EB);
+  static Color _imagePlaceholderColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.surfaceContainerHighest
+      : const Color(0xFFEBEDF7);
+  static Color _bodyTextColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.onSurfaceVariant
+      : const Color(0xFF414753);
+  static Color _titleColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.onSurface
+      : const Color(0xFF181C22);
+  static Color _stepperBackground(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.surfaceContainerHighest
+      : const Color(0xFFEBEDF7);
+  static Color _cardColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.surfaceContainer
+      : Colors.white;
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +59,9 @@ class CartGameItemCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _borderColor),
+        border: Border.all(color: _borderColor(context)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0D000000),
@@ -60,7 +79,7 @@ class CartGameItemCard extends StatelessWidget {
             child: Container(
               width: 80,
               height: 80,
-              color: _imagePlaceholderColor,
+              color: _imagePlaceholderColor(context),
               alignment: Alignment.center,
               child: Icon(
                 Icons.videogame_asset_outlined,
@@ -76,8 +95,8 @@ class CartGameItemCard extends StatelessWidget {
               children: [
                 Text(
                   item.name,
-                  style: const TextStyle(
-                    color: _titleColor,
+                  style: TextStyle(
+                    color: _titleColor(context),
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     height: 1.5,
@@ -86,8 +105,8 @@ class CartGameItemCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   item.category,
-                  style: const TextStyle(
-                    color: _bodyTextColor,
+                  style: TextStyle(
+                    color: _bodyTextColor(context),
                     fontSize: 14,
                     height: 1.43,
                   ),
@@ -143,7 +162,7 @@ class _QuantityStepper extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: CartGameItemCard._stepperBackground,
+        color: CartGameItemCard._stepperBackground(context),
         borderRadius: BorderRadius.circular(9999),
       ),
       child: Row(
@@ -155,8 +174,8 @@ class _QuantityStepper extends StatelessWidget {
             child: Text(
               '$quantity',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: CartGameItemCard._titleColor,
+              style: TextStyle(
+                color: CartGameItemCard._titleColor(context),
                 fontSize: 14,
                 height: 1.43,
               ),
@@ -185,7 +204,11 @@ class _StepperButton extends StatelessWidget {
         child: SizedBox(
           width: 24,
           height: 24,
-          child: Icon(icon, size: 16, color: CartGameItemCard._titleColor),
+          child: Icon(
+            icon,
+            size: 16,
+            color: CartGameItemCard._titleColor(context),
+          ),
         ),
       ),
     );
