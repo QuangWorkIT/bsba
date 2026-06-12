@@ -121,11 +121,47 @@ INSERT INTO booking_games (booking_id, board_game_id, quantity) VALUES
 -- ------------------------------------------
 -- PAYMENTS
 -- ------------------------------------------
-INSERT INTO payments (id, booking_id, amount, payment_method, payment_status, transaction_code, paid_at) VALUES
-    ('10000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 60000.00, 'momo',         'paid',     'TXN-20240601-0001', NOW() - INTERVAL '2 days'),
-    ('10000000-0000-0000-0000-000000000002', 'f0000000-0000-0000-0000-000000000002', 45000.00, 'vnpay',        'paid',     'TXN-20240602-0002', NOW() - INTERVAL '1 day'),
-    ('10000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000003', 15000.00, 'cash',         'pending',  NULL,                NULL),
-    ('10000000-0000-0000-0000-000000000004', 'f0000000-0000-0000-0000-000000000004', 28000.00, 'vnpay',        'refunded', 'TXN-20240603-0004', NOW() - INTERVAL '3 days')
+INSERT INTO payments (
+    id, booking_id, user_id, provider, app_trans_id,
+    zp_trans_token, zp_trans_id, order_url, amount, status,
+    callback_raw_data, callback_received_at, created_at, updated_at
+) VALUES
+    (
+        '10000000-0000-0000-0000-000000000001',
+        'f0000000-0000-0000-0000-000000000001',
+        'a0000000-0000-0000-0000-000000000002',
+        'ZALOPAY', '260610_seed0001',
+        'seed-zp-trans-token-0001', '260610000000001', NULL,
+        60000.00, 'SUCCESS', NULL,
+        NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'
+    ),
+    (
+        '10000000-0000-0000-0000-000000000002',
+        'f0000000-0000-0000-0000-000000000002',
+        'a0000000-0000-0000-0000-000000000003',
+        'ZALOPAY', '260611_seed0002',
+        'seed-zp-trans-token-0002', '260611000000002', NULL,
+        45000.00, 'SUCCESS', NULL,
+        NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'
+    ),
+    (
+        '10000000-0000-0000-0000-000000000003',
+        'f0000000-0000-0000-0000-000000000003',
+        'a0000000-0000-0000-0000-000000000004',
+        'ZALOPAY', '260612_seed0003',
+        'seed-zp-trans-token-0003', NULL, NULL,
+        15000.00, 'PENDING', NULL,
+        NULL, NOW(), NOW()
+    ),
+    (
+        '10000000-0000-0000-0000-000000000004',
+        'f0000000-0000-0000-0000-000000000004',
+        'a0000000-0000-0000-0000-000000000004',
+        'ZALOPAY', '260609_seed0004',
+        NULL, NULL, NULL,
+        28000.00, 'CANCELED', NULL,
+        NULL, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'
+    )
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------

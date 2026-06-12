@@ -349,23 +349,40 @@ CREATE TABLE payments (
                           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
                           booking_id UUID NOT NULL,
+                          user_id UUID NOT NULL,
 
-                          amount NUMERIC(10,2) NOT NULL,
+                          provider VARCHAR(30) NOT NULL
+                              CHECK (provider IN ('ZALOPAY')),
 
-                          payment_method VARCHAR(50),
+                          app_trans_id VARCHAR(40) NOT NULL,
+                          zp_trans_token VARCHAR(255),
+                          zp_trans_id VARCHAR(100),
+                          order_url VARCHAR(1000),
 
-                          payment_status VARCHAR(50),
+                          amount NUMERIC(19,2) NOT NULL
+                              CHECK (amount > 0),
 
-                          transaction_code VARCHAR(255),
+                          status VARCHAR(30) NOT NULL
+                              CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED', 'CANCELED')),
 
-                          paid_at TIMESTAMPTZ,
+                          callback_raw_data TEXT,
+                          callback_received_at TIMESTAMPTZ,
 
                           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
                           CONSTRAINT fk_payments_booking
                               FOREIGN KEY (booking_id)
-                                  REFERENCES bookings(id)
+                                  REFERENCES bookings(id),
+
+                          CONSTRAINT fk_payments_user
+                              FOREIGN KEY (user_id)
+                                  REFERENCES users(id)
 );
+
+CREATE UNIQUE INDEX uq_payments_app_trans_id ON payments (app_trans_id);
+CREATE INDEX idx_payments_booking_id ON payments (booking_id);
+CREATE INDEX idx_payments_user_id ON payments (user_id);
 
 
 CREATE TABLE booking_carts (
