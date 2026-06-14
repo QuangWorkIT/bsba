@@ -41,63 +41,72 @@ class _CartScreenState extends State<CartScreen> {
   Widget build(BuildContext context) {
     final totalGameItems = _games.fold<int>(0, (sum, g) => sum + g.quantity);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const ReservationSummaryCard(),
-          const SizedBox(height: 32),
-          _SelectedGamesHeader(itemCount: totalGameItems),
-          const SizedBox(height: 16),
-          ...List.generate(_games.length, (index) {
-            final game = _games[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: CartGameItemCard(
-                item: game,
-                onRemove: () => _removeGame(index),
-                onDecrement: () {
-                  if (game.quantity > 1) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('Cart'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const ReservationSummaryCard(),
+            const SizedBox(height: 32),
+            _SelectedGamesHeader(itemCount: totalGameItems),
+            const SizedBox(height: 16),
+            ...List.generate(_games.length, (index) {
+              final game = _games[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: CartGameItemCard(
+                  item: game,
+                  onRemove: () => _removeGame(index),
+                  onDecrement: () {
+                    if (game.quantity > 1) {
+                      _updateGame(
+                        index,
+                        CartGameItem(
+                          name: game.name,
+                          category: game.category,
+                          pricePerHour: game.pricePerHour,
+                          quantity: game.quantity - 1,
+                        ),
+                      );
+                    }
+                  },
+                  onIncrement: () {
                     _updateGame(
                       index,
                       CartGameItem(
                         name: game.name,
                         category: game.category,
                         pricePerHour: game.pricePerHour,
-                        quantity: game.quantity - 1,
+                        quantity: game.quantity + 1,
                       ),
                     );
-                  }
-                },
-                onIncrement: () {
-                  _updateGame(
-                    index,
-                    CartGameItem(
-                      name: game.name,
-                      category: game.category,
-                      pricePerHour: game.pricePerHour,
-                      quantity: game.quantity + 1,
-                    ),
-                  );
-                },
-              ),
-            );
-          }),
-          const SizedBox(height: 16),
-          OrderSummaryCard(
-            roomTotal: 45,
-            gamesTotal: 27,
-            serviceFee: 5.5,
-            onCheckout: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const CheckoutScreen(),
+                  },
                 ),
               );
-            },
-          ),
-        ],
+            }),
+            const SizedBox(height: 16),
+            OrderSummaryCard(
+              roomTotal: 45,
+              gamesTotal: 27,
+              serviceFee: 5.5,
+              onCheckout: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const CheckoutScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

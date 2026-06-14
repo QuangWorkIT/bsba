@@ -4,12 +4,11 @@ import 'package:project/data/repositories/chat_repository.dart';
 import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/chat_service.dart';
 import 'package:project/data/services/chat_socket_service.dart';
-import 'package:project/ui/cart/cart_app_bar.dart';
 import 'package:project/ui/shared/appbar.dart';
 import 'package:project/ui/shared/navigation.dart';
 import 'package:project/ui/explore/explore_space_screen.dart';
 import 'package:project/ui/map/map_screen.dart';
-import 'package:project/ui/cart/cart_screen.dart';
+import 'package:project/ui/booking/booking_screen.dart';
 import 'package:project/ui/inbox/inbox_screen.dart';
 import 'package:project/ui/inbox/unread_badge_viewmodel.dart';
 import 'package:project/ui/profile/profile_screen.dart';
@@ -32,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final screens = <Widget>[
       ExploreScreen(onOpenInbox: () => _select(_inboxIndex)),
       const MapScreen(),
-      const CartScreen(),
+      const BookingScreen(),
       const InboxScreen(),
       const ProfileScreen(),
     ];
@@ -43,9 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ChatSocketService(),
       )..start(),
       child: Scaffold(
-        appBar: _selectedIndex == 2
-            ? CartAppBar(onBack: () => setState(() => _selectedIndex = 0))
-            : const BoardNestAppBar(),
+        appBar: _selectedIndex == 2 ? null : const BoardNestAppBar(),
         body: IndexedStack(index: _selectedIndex, children: screens),
         bottomNavigationBar: Consumer<UnreadBadgeViewModel>(
           builder: (context, badge, _) => Navigation(

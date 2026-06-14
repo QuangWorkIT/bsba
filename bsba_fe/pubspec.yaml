@@ -32,3 +32,4 @@ flutter:
   assets:
     - .env
     - assets/images/map/
+    - assets/images/booking/
