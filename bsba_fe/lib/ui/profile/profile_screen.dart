@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:project/ui/auth/login/login.dart';
-
-import 'profile_viewmodel.dart';
+import 'package:project/data/models/auth_session.dart';
+import 'package:project/data/services/api_client.dart';
+import 'package:project/data/services/user_service.dart';
+import 'package:project/app/settings_provider.dart';
+import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,176 +13,158 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late final ProfileViewModel _viewModel;
+  late Future<AuthUser> _userFuture;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = ProfileViewModel();
-  }
-
-  @override
-  void dispose() {
-    _viewModel.dispose();
-    super.dispose();
-  }
-
-  Future<void> _logout() async {
-    final didLogout = await _viewModel.logout();
-    if (!mounted) return;
-
-    if (didLogout) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (route) => false,
-      );
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_viewModel.errorMessage ?? 'Logout failed.'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    _userFuture = UserService(ApiClient()).fetchUserProfile();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _viewModel,
-      builder: (context, child) => Container(
-        color: const Color(0xFFF8F9FA),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-            const Center(
-              child: Text(
-                'Profile',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF212121),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Profile Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Row(
+    final settings = Provider.of<SettingsProvider>(context);
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SafeArea(
+        child: FutureBuilder<AuthUser>(
+          future: _userFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData) {
+              return const Center(child: Text('No profile data found.'));
+            }
+
+            final user = snapshot.data!;
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.blue, width: 2),
-                    ),
-                    child: const CircleAvatar(
-                      radius: 32,
-                      backgroundImage: NetworkImage(
-                        'https://randomuser.me/api/portraits/men/32.jpg',
+                  Center(
+                    child: Text(
+                      'Profile',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: theme.textTheme.titleLarge?.color,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 24),
+                  // Profile Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.cardTheme.color ?? theme.cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          'Ronald Richards',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF333333),
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.blue, width: 2),
+                          ),
+                          child: CircleAvatar(
+                            radius: 32,
+                            backgroundImage: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                                ? NetworkImage(user.avatarUrl!)
+                                : const NetworkImage('https://ui-avatars.com/api/?name=User&background=random'),
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
-                          'ronaldrichards@gmail.com',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.fullName ?? 'Unknown User',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.textTheme.bodyLarge?.color,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                user.email,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                        )
                       ],
                     ),
-                  )
+                  ),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Account'),
+                  const SizedBox(height: 8),
+                  _buildCardGroup(theme, [
+                    _buildListTile(theme, 'Manage Profile', Icons.person_outline),
+                    _buildListTile(theme, 'Password & Security', Icons.lock_outline),
+                    _buildListTile(theme, 'Notifications', Icons.notifications_none),
+                    _buildListTile(theme, 'Language', Icons.translate, trailingText: settings.language, onTap: () {
+                      _showLanguageDialog(context, settings);
+                    }),
+                  ]),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Preferences'),
+                  const SizedBox(height: 8),
+                  _buildCardGroup(theme, [
+                    _buildListTile(theme, 'About Us', Icons.info_outline),
+                    _buildListTile(theme, 'Theme', Icons.contrast, trailingText: settings.themeMode == ThemeMode.dark ? 'Dark' : 'Light', onTap: () {
+                      _showThemeDialog(context, settings);
+                    }),
+                    _buildListTile(theme, 'Appointments', Icons.calendar_today_outlined),
+                  ]),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Support'),
+                  const SizedBox(height: 8),
+                  _buildCardGroup(theme, [
+                    _buildListTile(theme, 'Help Center', Icons.help_outline),
+                  ]),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.logout, color: Color(0xFFD32F2F)),
+                      label: const Text(
+                        'Log Out',
+                        style: TextStyle(
+                          color: Color(0xFFD32F2F),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFEBEB),
+                        foregroundColor: const Color(0xFFD32F2F),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Account'),
-            const SizedBox(height: 8),
-            _buildCardGroup([
-              _buildListTile('Manage Profile', Icons.person_outline),
-              _buildListTile('Password & Security', Icons.lock_outline),
-              _buildListTile('Notifications', Icons.notifications_none),
-              _buildListTile(
-                'Language',
-                Icons.translate,
-                trailingText: 'English',
-              ),
-            ]),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Preferences'),
-            const SizedBox(height: 8),
-            _buildCardGroup([
-              _buildListTile('About Us', Icons.info_outline),
-              _buildListTile('Theme', Icons.contrast, trailingText: 'Light'),
-              _buildListTile('Appointments', Icons.calendar_today_outlined),
-            ]),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Support'),
-            const SizedBox(height: 8),
-            _buildCardGroup([
-              _buildListTile('Help Center', Icons.help_outline),
-            ]),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _viewModel.isLoggingOut ? null : _logout,
-                icon: _viewModel.isLoggingOut
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.logout, color: Color(0xFFD32F2F)),
-                label: Text(
-                  _viewModel.isLoggingOut ? 'Logging Out...' : 'Log Out',
-                  style: const TextStyle(
-                    color: Color(0xFFD32F2F),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFEBEB),
-                  foregroundColor: const Color(0xFFD32F2F),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 40),
-              ],
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -200,13 +184,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildCardGroup(List<Widget> children) {
-    return Material(
-      color: Colors.white,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
+  Widget _buildCardGroup(ThemeData theme, List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color ?? theme.cardColor,
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
       ),
       child: Column(
         children: children.asMap().entries.map((entry) {
@@ -216,12 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               child,
               if (idx < children.length - 1)
-                Divider(
-                  height: 1,
-                  color: Colors.grey.shade100,
-                  indent: 52,
-                  endIndent: 16,
-                ),
+                Divider(height: 1, color: theme.dividerColor.withOpacity(0.1), indent: 52, endIndent: 16),
             ],
           );
         }).toList(),
@@ -229,17 +207,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildListTile(String title, IconData icon, {String? trailingText}) {
+  Widget _buildListTile(ThemeData theme, String title, IconData icon, {String? trailingText, VoidCallback? onTap}) {
     return ListTile(
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
-      leading: Icon(icon, color: const Color(0xFF424242)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
+      leading: Icon(icon, color: theme.iconTheme.color),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w500,
-          color: Color(0xFF333333),
+          color: theme.textTheme.bodyLarge?.color,
         ),
       ),
       trailing: Row(
@@ -256,7 +233,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
         ],
       ),
-      onTap: () {},
+      onTap: onTap ?? () {},
+    );
+  }
+
+  void _showThemeDialog(BuildContext context, SettingsProvider settings) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Select Theme'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<ThemeMode>(
+                title: const Text('Light'),
+                value: ThemeMode.light,
+                groupValue: settings.themeMode,
+                onChanged: (value) {
+                  settings.setTheme(value!);
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text('Dark'),
+                value: ThemeMode.dark,
+                groupValue: settings.themeMode,
+                onChanged: (value) {
+                  settings.setTheme(value!);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context, SettingsProvider settings) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Select Language'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<String>(
+                title: const Text('English'),
+                value: 'English',
+                groupValue: settings.language,
+                onChanged: (value) {
+                  settings.setLanguage(value!);
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title: const Text('Vietnamese'),
+                value: 'Vietnamese',
+                groupValue: settings.language,
+                onChanged: (value) {
+                  settings.setLanguage(value!);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

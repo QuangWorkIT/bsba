@@ -6,8 +6,8 @@ import 'package:project/data/services/auth_service.dart';
 import 'package:project/data/services/current_user.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class LoginViewModel extends ChangeNotifier {
-  LoginViewModel({AuthRepository? authRepository})
+class RegisterViewModel extends ChangeNotifier {
+  RegisterViewModel({AuthRepository? authRepository})
       : _authRepository =
             authRepository ?? AuthRepository(AuthService(ApiClient()));
 
@@ -16,26 +16,38 @@ class LoginViewModel extends ChangeNotifier {
     scopes: ['email', 'profile'],
   );
 
+  String _fullName = '';
+  String _phone = '';
   String _email = '';
   String _password = '';
+  String _otpCode = '';
   bool _obscurePassword = true;
-  bool _rememberMe = false;
   bool _isHoveringGoogle = false;
-  bool _isHoveringApple = false;
   bool _isLoading = false;
   String? _errorMessage;
 
   // Getters
+  String get fullName => _fullName;
+  String get phone => _phone;
   String get email => _email;
   String get password => _password;
+  String get otpCode => _otpCode;
   bool get obscurePassword => _obscurePassword;
-  bool get rememberMe => _rememberMe;
   bool get isHoveringGoogle => _isHoveringGoogle;
-  bool get isHoveringApple => _isHoveringApple;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
   // Mutators & State Controllers
+  void setFullName(String value) {
+    _fullName = value;
+    notifyListeners();
+  }
+
+  void setPhone(String value) {
+    _phone = value;
+    notifyListeners();
+  }
+
   void setEmail(String value) {
     _email = value;
     notifyListeners();
@@ -46,13 +58,13 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void togglePasswordVisibility() {
-    _obscurePassword = !_obscurePassword;
+  void setOtpCode(String value) {
+    _otpCode = value;
     notifyListeners();
   }
 
-  void toggleRememberMe() {
-    _rememberMe = !_rememberMe;
+  void togglePasswordVisibility() {
+    _obscurePassword = !_obscurePassword;
     notifyListeners();
   }
 
@@ -61,44 +73,68 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setHoverApple(bool isHovering) {
-    _isHoveringApple = isHovering;
-    notifyListeners();
-  }
-
   void setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
 
-  // Core business action: Normal Login
-  Future<bool> login(BuildContext context) async {
-    if (_email.trim().isEmpty || _password.isEmpty) {
+  // Send OTP trigger
+  Future<bool> sendOtp(BuildContext context) async {
+    print('RegisterViewModel.sendOtp: requesting OTP for email="$_email"');
+    if (_email.trim().isEmpty) {
+      _showError(context, 'Please enter a valid email address first');
       return false;
     }
 
     _errorMessage = null;
     setLoading(true);
 
-    // Demo bypass: "test" / "test" navigates straight into the app
-    // without hitting the backend.
-    if (_email.trim() == 'test' && _password == 'test') {
+    try {
+      await _authRepository.sendRegistrationOtp(_email.trim());
       setLoading(false);
-      if (context.mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
+      print('RegisterViewModel.sendOtp: success');
       return true;
+    } on ApiException catch (e) {
+      print('RegisterViewModel.sendOtp: ApiException: $e');
+      _errorMessage = e.message;
+      setLoading(false);
+      if (context.mounted) _showError(context, e.message);
+      return false;
+    } catch (e) {
+      print('RegisterViewModel.sendOtp: General error: $e');
+      _errorMessage = 'Unable to reach the server. Check your connection.';
+      setLoading(false);
+      if (context.mounted) _showError(context, _errorMessage!);
+      return false;
+    }
+  }
+
+  // Core registration action with OTP
+  Future<bool> register(BuildContext context) async {
+    print('RegisterViewModel.register: fullName="$_fullName", phone="$_phone", email="$_email", passwordLength=${_password.length}, otpCode="$_otpCode"');
+    if (_fullName.trim().isEmpty ||
+        _phone.trim().isEmpty ||
+        _email.trim().isEmpty ||
+        _password.isEmpty ||
+        _otpCode.trim().isEmpty) {
+      print('RegisterViewModel.register: local validation failed (some fields are empty)');
+      return false;
     }
 
+    _errorMessage = null;
+    setLoading(true);
+
     try {
-      final session = await _authRepository.login(
-        emailOrPhone: _email.trim(),
+      final session = await _authRepository.register(
+        fullName: _fullName.trim(),
+        phone: _phone.trim(),
+        email: _email.trim(),
         password: _password,
+        otpCode: _otpCode.trim(),
       );
 
-      // Make the signed-in user available to the rest of the app (chat, inbox…).
+      print('RegisterViewModel.register: success, user id: ${session.user.id}');
+      // Make the signed-in user available to the rest of the app
       CurrentUser.instance.setFrom(session.user);
 
       setLoading(false);
@@ -113,7 +149,7 @@ class LoginViewModel extends ChangeNotifier {
               children: [
                 const Icon(Icons.check_circle_outline, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Welcome back, $name!')),
+                Expanded(child: Text('Welcome, $name! Account created successfully.')),
               ],
             ),
             backgroundColor: const Color(0xFF0056C6),
@@ -129,11 +165,13 @@ class LoginViewModel extends ChangeNotifier {
       }
       return true;
     } on ApiException catch (e) {
+      print('RegisterViewModel.register: ApiException: $e');
       _errorMessage = e.message;
       setLoading(false);
       if (context.mounted) _showError(context, e.message);
       return false;
-    } catch (_) {
+    } catch (e) {
+      print('RegisterViewModel.register: General error: $e');
       _errorMessage =
           'Unable to reach the server. Check your connection and try again.';
       setLoading(false);
@@ -161,7 +199,7 @@ class LoginViewModel extends ChangeNotifier {
     );
   }
 
-  // Core business action: Social Sign-In
+  // Social Sign-In
   Future<bool> loginWithSocial(String provider, BuildContext context) async {
     if (provider == 'Google') {
       _errorMessage = null;
@@ -195,7 +233,7 @@ class LoginViewModel extends ChangeNotifier {
                 children: [
                   const Icon(Icons.check_circle_outline, color: Colors.white),
                   const SizedBox(width: 8),
-                  Expanded(child: Text('Welcome back, $name!')),
+                  Expanded(child: Text('Welcome, $name!')),
                 ],
               ),
               backgroundColor: const Color(0xFF0056C6),

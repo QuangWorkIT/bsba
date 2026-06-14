@@ -3,10 +3,26 @@ import 'package:flutter/material.dart';
 class ReservationSummaryCard extends StatelessWidget {
   const ReservationSummaryCard({super.key});
 
-  static const _borderColor = Color(0xFFE0E2EB);
-  static const _imagePlaceholderColor = Color(0xFFEBEDF7);
-  static const _bodyTextColor = Color(0xFF414753);
-  static const _titleColor = Color(0xFF181C22);
+  static Color _borderColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.outlineVariant
+      : const Color(0xFFE0E2EB);
+  static Color _imagePlaceholderColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.surfaceContainerHighest
+      : const Color(0xFFEBEDF7);
+  static Color _bodyTextColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.onSurfaceVariant
+      : const Color(0xFF414753);
+  static Color _titleColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.onSurface
+      : const Color(0xFF181C22);
+  static Color _cardColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.surfaceContainer
+      : Colors.white;
 
   @override
   Widget build(BuildContext context) {
@@ -14,9 +30,9 @@ class ReservationSummaryCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _borderColor),
+        border: Border.all(color: _borderColor(context)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0D000000),
@@ -33,7 +49,7 @@ class ReservationSummaryCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: Container(
               height: 173,
-              color: _imagePlaceholderColor,
+              color: _imagePlaceholderColor(context),
               alignment: Alignment.center,
               child: Icon(
                 Icons.image_outlined,
@@ -46,11 +62,11 @@ class ReservationSummaryCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   "The Dragon's Lair -\nVIP Room",
                   style: TextStyle(
-                    color: _titleColor,
+                    color: _titleColor(context),
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
                     height: 1.33,
@@ -58,7 +74,10 @@ class ReservationSummaryCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: scheme.primary,
                   borderRadius: BorderRadius.circular(9999),
@@ -88,8 +107,8 @@ class _DetailGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const textStyle = TextStyle(
-      color: ReservationSummaryCard._bodyTextColor,
+    final textStyle = TextStyle(
+      color: ReservationSummaryCard._bodyTextColor(context),
       fontSize: 14,
       height: 1.43,
     );

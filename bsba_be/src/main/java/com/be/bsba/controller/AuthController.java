@@ -4,6 +4,8 @@ import com.be.bsba.dto.AuthResponse;
 import com.be.bsba.dto.response.ApiResponse;
 import com.be.bsba.dto.GoogleLoginRequest;
 import com.be.bsba.dto.LoginRequest;
+import com.be.bsba.dto.RegisterRequest;
+import com.be.bsba.dto.SendOtpRequest;
 import com.be.bsba.service.IAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -28,6 +30,26 @@ public class AuthController {
                 ApiResponse.success(
                         authResponse,
                         "Login successful")
+        );
+    }
+
+    @PostMapping("/register/send-otp")
+    public ResponseEntity<ApiResponse<Void>> sendRegistrationOtp(@Valid @RequestBody SendOtpRequest request) {
+        authService.sendRegistrationOtp(request);
+        return ResponseEntity.ok(
+                ApiResponse.success(null, "OTP sent successfully")
+        );
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
+        System.out.println("AuthController: received registration request for email: " + request.getEmail() + ", phone: " + request.getPhone());
+        AuthResponse authResponse = authService.register(request);
+        System.out.println("AuthController: registration successful for email: " + request.getEmail());
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        authResponse,
+                        "Registration successful")
         );
     }
 
