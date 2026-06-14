@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../data/models/board_game.dart';
 import '../../data/models/board_space_detail.dart';
+import '../../data/repositories/board_space_repository.dart';
+import '../../data/services/api_client.dart';
 import 'game_card.dart';
+import 'game_library_screen.dart';
 import 'space_detail_viewmodel.dart';
 
 /// Space detail screen.
@@ -23,7 +26,7 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _vm = SpaceDetailViewModel();
+    _vm = SpaceDetailViewModel(BoardSpaceRepository(ApiClient()));
     _vm.loadSpace(widget.spaceId);
   }
 
@@ -38,7 +41,7 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
     return ListenableBuilder(
       listenable: _vm,
       builder: (context, _) {
-        if (_vm.isLoading || _vm.space == null) {
+        if (_vm.isLoading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
@@ -62,6 +65,12 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
                 ],
               ),
             ),
+          );
+        }
+
+        if (_vm.space == null) {
+          return const Scaffold(
+            body: Center(child: Text('Space not found.')),
           );
         }
 
@@ -99,12 +108,8 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
                       onSelect: () => _showSlotPicker(context, space),
                     ),
 
-                    // Location & hours
+                    // Location & hours (now includes host & contact)
                     _LocationSection(space: space),
-                    const SizedBox(height: 16),
-
-                    // Host
-                    _HostSection(host: space.host),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -187,8 +192,7 @@ class _DetailSliverAppBar extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
                 color: cs.primaryContainer,
-                child: Icon(Icons.image_outlined,
-                    size: 64, color: cs.primary),
+                child: Icon(Icons.image_outlined, size: 64, color: cs.primary),
               ),
             ),
             // Gradient overlay so app bar icons remain readable
@@ -261,16 +265,20 @@ class _RatingBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 8,
-              offset: const Offset(0, 2)),
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.star_border_rounded,
-              color: Color(0xFFF59E0B), size: 17),
+          const Icon(
+            Icons.star_border_rounded,
+            color: Color(0xFFF59E0B),
+            size: 17,
+          ),
           const SizedBox(width: 4),
           Text(
             '${rating.toStringAsFixed(1)} ($reviewCount reviews)',
@@ -412,10 +420,10 @@ class _AmenitiesSection extends StatelessWidget {
             spacing: 20,
             runSpacing: 12,
             children: amenities
-                .map((a) => _AmenityItem(
-              icon: _iconFor(a.iconName),
-              label: a.label,
-            ))
+                .map(
+                  (a) =>
+                      _AmenityItem(icon: _iconFor(a.iconName), label: a.label),
+                )
                 .toList(),
           ),
         ],
@@ -474,7 +482,11 @@ class _LibrarySection extends StatelessWidget {
                 const _SectionTitle('Library Highlights'),
                 GestureDetector(
                   onTap: () {
-                    // TODO: Navigate to full game library
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const GameLibraryScreen(),
+                      ),
+                    );
                   },
                   child: Text(
                     'See all $totalGames+',
@@ -546,8 +558,7 @@ class _BookingBar extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text:
-                  '\$${pricePerHour.toStringAsFixed(0)}',
+                  text: '\$${pricePerHour.toStringAsFixed(0)}',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
@@ -571,8 +582,7 @@ class _BookingBar extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: cs.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 24, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -631,7 +641,9 @@ class _SlotPickerSheet extends StatelessWidget {
           Text(
             'Today · Select a time to continue',
             style: TextStyle(
-                fontSize: 13, color: cs.onSurface.withValues(alpha: 0.5)),
+              fontSize: 13,
+              color: cs.onSurface.withValues(alpha: 0.5),
+            ),
           ),
           const SizedBox(height: 20),
           Wrap(
@@ -644,11 +656,11 @@ class _SlotPickerSheet extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 10),
+                    horizontal: 18,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
-                    color: selected
-                        ? cs.primary
-                        : cs.surface,
+                    color: selected ? cs.primary : cs.surface,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: selected ? cs.primary : cs.outline,
@@ -686,155 +698,205 @@ class _LocationSection extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           const _SectionTitle('Location & Hours'),
-      const SizedBox(height: 14),
-      ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: SizedBox(
-          height: 180,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Map placeholder
-              Expanded(
-                flex: 5,
-                child: Container(
-                  color: cs.primaryContainer,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Icon(Icons.map_rounded,
-                          size: 72,
-                          color: cs.primary.withValues(alpha: 0.25)),
-                      Icon(Icons.location_on_rounded,
-                          size: 36, color: cs.primary),
-                    ],
-                  ),
-                ),
-              ),
-              // Info panel
-              Expanded(
-                flex: 6,
-                child: Container(
-                  color: cs.surface,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Address
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              height: 180,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Map placeholder
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      color: cs.primaryContainer,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          Icon(Icons.location_on_outlined,
-                              size: 18, color: cs.primary),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  space.name,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  space.address,
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    color:
-                                    cs.onSurface.withValues(alpha: 0.6),
-                                    height: 1.4,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                GestureDetector(
-                                  onTap: () {
-                                    // TODO: open maps
-                                  },
-                                  child: Text(
-                                    'Get Directions',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: cs.primary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                          Icon(
+                            Icons.map_rounded,
+                            size: 72,
+                            color: cs.primary.withValues(alpha: 0.25),
+                          ),
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 36,
+                            color: cs.primary,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-
-                      // Hours
-                      Row(
+                    ),
+                  ),
+                  // Info panel
+                  Expanded(
+                    flex: 6,
+                    child: Container(
+                      color: cs.surface,
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.access_time_rounded,
-                              size: 18, color: cs.primary),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
+                          // Address
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                size: 18,
+                                color: cs.primary,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Today',
-                                      style: TextStyle(
+                                    Text(
+                                      space.name,
+                                      style: const TextStyle(
                                         fontSize: 13,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
+                                    const SizedBox(height: 2),
                                     Text(
-                                      space.openHours,
+                                      space.address,
                                       style: TextStyle(
-                                        fontSize: 11,
-                                        color: cs.onSurface
-                                            .withValues(alpha: 0.6),
+                                        fontSize: 11.5,
+                                        color: cs.onSurface.withValues(
+                                          alpha: 0.6,
+                                        ),
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    GestureDetector(
+                                      onTap: () {
+                                        // TODO: open maps
+                                      },
+                                      child: Text(
+                                        'Get Directions',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: cs.primary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 4),
-                                GestureDetector(
-                                  onTap: () {
-                                    // TODO: show all hours
-                                  },
-                                  child: Text(
-                                    'See all hours',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: cs.primary,
-                                      fontWeight: FontWeight.w600,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Hours
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.access_time_rounded,
+                                size: 18,
+                                color: cs.primary,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text(
+                                          'Today',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        Text(
+                                          space.openHours,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: cs.onSurface.withValues(
+                                              alpha: 0.6,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
+                                    const SizedBox(height: 4),
+                                    GestureDetector(
+                                      onTap: () {
+                                        // TODO: show all hours
+                                      },
+                                      child: Text(
+                                        'See all hours',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: cs.primary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ), // SizedBox
           ),
-        ),// SizedBox
-      ),
-      ],
+
+          // Contact info
+          if (space.phone != null || space.email != null) ...[
+            const SizedBox(height: 16),
+            if (space.phone != null)
+              Row(
+                children: [
+                  Icon(Icons.phone_outlined, size: 16, color: cs.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    space.phone!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: cs.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            if (space.phone != null && space.email != null)
+              const SizedBox(height: 6),
+            if (space.email != null)
+              Row(
+                children: [
+                  Icon(Icons.email_outlined, size: 16, color: cs.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    space.email!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: cs.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+          const SizedBox(height: 16),
+
+          // Host section
+          _HostSection(host: space.host),
+        ],
       ),
     );
   }
@@ -886,8 +948,11 @@ class _HostSection extends StatelessWidget {
                   const SizedBox(height: 3),
                   Row(
                     children: [
-                      Icon(Icons.verified_outlined,
-                          size: 14, color: cs.primary),
+                      Icon(
+                        Icons.verified_outlined,
+                        size: 14,
+                        color: cs.primary,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'Verified Host',
@@ -914,8 +979,7 @@ class _HostSection extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
             child: const Text(
               'Contact',
@@ -953,7 +1017,9 @@ class _Divider extends StatelessWidget {
     return Divider(
       height: 1,
       thickness: 1,
-      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+      color: Theme.of(
+        context,
+      ).colorScheme.outlineVariant.withValues(alpha: 0.5),
       indent: 16,
       endIndent: 16,
     );

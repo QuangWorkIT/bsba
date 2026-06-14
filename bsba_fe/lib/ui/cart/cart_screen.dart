@@ -106,24 +106,24 @@ class _CartScreenState extends State<CartScreen> {
 class _SelectedGamesHeader extends StatelessWidget {
   const _SelectedGamesHeader({required this.itemCount});
 
-  static const _borderColor = Color(0xFFE0E2EB);
+  static Color _borderColor(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? Theme.of(context).colorScheme.outlineVariant : const Color(0xFFE0E2EB);
 
   final int itemCount;
 
   @override
   Widget build(BuildContext context) {
-    const bodyTextColor = Color(0xFF414753);
-    const titleColor = Color(0xFF181C22);
+    final bodyTextColor = Theme.of(context).brightness == Brightness.dark ? Theme.of(context).colorScheme.onSurfaceVariant : const Color(0xFF414753);
+    final titleColor = Theme.of(context).brightness == Brightness.dark ? Theme.of(context).colorScheme.onSurface : const Color(0xFF181C22);
 
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: _borderColor)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: _borderColor(context))),
       ),
       padding: const EdgeInsets.only(bottom: 9),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          const Text(
+          Text(
             'Selected Games',
             style: TextStyle(
               color: titleColor,
@@ -135,7 +135,7 @@ class _SelectedGamesHeader extends StatelessWidget {
           const Spacer(),
           Text(
             '$itemCount ${itemCount == 1 ? 'Item' : 'Items'}',
-            style: const TextStyle(
+            style: TextStyle(
               color: bodyTextColor,
               fontSize: 14,
               height: 1.43,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/ui/auth/register/register.dart';
 import 'login_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -521,10 +522,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             onTap: _viewModel.isLoading
                                 ? null
                                 : () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Sign up screen coming soon!'),
-                                        behavior: SnackBarBehavior.floating,
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => const RegisterScreen(),
                                       ),
                                     );
                                   },

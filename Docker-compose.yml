@@ -1,24 +1,23 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgis/postgis:16-3.4
     container_name: postgres_container
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: mydb
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./bsba_be/postgres-init:/docker-entrypoint-initdb.d:ro
     networks:
-      bsba_network:
+      - bsba_network
 
 volumes:
   postgres_data:
     driver: local
 
-
 networks:
-    bsba_network:
-        driver: bridge
+  bsba_network:
+    driver: bridge

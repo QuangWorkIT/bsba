@@ -14,9 +14,22 @@ class OrderSummaryCard extends StatelessWidget {
   final double serviceFee;
   final VoidCallback onCheckout;
 
-  static const _borderColor = Color(0xFFE0E2EB);
-  static const _bodyTextColor = Color(0xFF414753);
-  static const _titleColor = Color(0xFF181C22);
+  static Color _borderColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.outlineVariant
+      : const Color(0xFFE0E2EB);
+  static Color _bodyTextColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.onSurfaceVariant
+      : const Color(0xFF414753);
+  static Color _titleColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.onSurface
+      : const Color(0xFF181C22);
+  static Color _cardColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.surfaceContainer
+      : Colors.white;
 
   double get total => roomTotal + gamesTotal + serviceFee;
 
@@ -26,9 +39,9 @@ class OrderSummaryCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _borderColor),
+        border: Border.all(color: _borderColor(context)),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0D000000),
@@ -41,40 +54,34 @@ class OrderSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             'Order Summary',
             style: TextStyle(
-              color: _titleColor,
+              color: _titleColor(context),
               fontSize: 24,
               fontWeight: FontWeight.w600,
               height: 1.33,
             ),
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: _borderColor),
+          Divider(height: 1, color: _borderColor(context)),
           const SizedBox(height: 16),
-          _SummaryRow(
-            label: 'Room Reservation (3 hrs)',
-            amount: roomTotal,
-          ),
+          _SummaryRow(label: 'Room Reservation (3 hrs)', amount: roomTotal),
           const SizedBox(height: 8),
-          _SummaryRow(
-            label: 'Game Rentals (2 items)',
-            amount: gamesTotal,
-          ),
+          _SummaryRow(label: 'Game Rentals (2 items)', amount: gamesTotal),
           const SizedBox(height: 8),
           _SummaryRow(label: 'Service Fee', amount: serviceFee),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: _borderColor),
+          Divider(height: 1, color: _borderColor(context)),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Text(
+              Text(
                 'Total',
                 style: TextStyle(
-                  color: _titleColor,
+                  color: _titleColor(context),
                   fontSize: 16,
                   height: 1.5,
                 ),
@@ -98,7 +105,10 @@ class OrderSummaryCard extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: scheme.primary,
                 foregroundColor: scheme.onPrimary,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 24,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -108,10 +118,7 @@ class OrderSummaryCard extends StatelessWidget {
                 children: [
                   Text(
                     'Proceed to Checkout',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(width: 8),
                   Icon(Icons.arrow_forward, size: 16),
@@ -138,16 +145,16 @@ class _SummaryRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: OrderSummaryCard._bodyTextColor,
+          style: TextStyle(
+            color: OrderSummaryCard._bodyTextColor(context),
             fontSize: 14,
             height: 1.43,
           ),
         ),
         Text(
           '\$${amount.toStringAsFixed(2)}',
-          style: const TextStyle(
-            color: OrderSummaryCard._bodyTextColor,
+          style: TextStyle(
+            color: OrderSummaryCard._bodyTextColor(context),
             fontSize: 14,
             height: 1.43,
           ),

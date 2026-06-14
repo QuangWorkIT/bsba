@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:project/app/home_screen.dart';
-import 'package:project/data/models/login_credentials.dart';
+import 'package:project/data/repositories/auth_repository.dart';
+import 'package:project/data/services/api_client.dart';
+import 'package:project/data/services/auth_service.dart';
+import 'package:project/data/services/current_user.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginViewModel extends ChangeNotifier {
+  LoginViewModel({AuthRepository? authRepository})
+      : _authRepository =
+            authRepository ?? AuthRepository(AuthService(ApiClient()));
+
+  final AuthRepository _authRepository;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+  );
+
   String _email = '';
   String _password = '';
   bool _obscurePassword = true;
@@ -10,6 +23,7 @@ class LoginViewModel extends ChangeNotifier {
   bool _isHoveringGoogle = false;
   bool _isHoveringApple = false;
   bool _isLoading = false;
+  String? _errorMessage;
 
   // Getters
   String get email => _email;
@@ -19,6 +33,7 @@ class LoginViewModel extends ChangeNotifier {
   bool get isHoveringGoogle => _isHoveringGoogle;
   bool get isHoveringApple => _isHoveringApple;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   // Mutators & State Controllers
   void setEmail(String value) {
@@ -62,22 +77,13 @@ class LoginViewModel extends ChangeNotifier {
       return false;
     }
 
+    _errorMessage = null;
     setLoading(true);
 
-    // Create the credentials model representation
-    final credentials = LoginCredentials(
-      emailOrPhone: _email,
-      password: _password,
-      rememberMe: _rememberMe,
-    );
-
-    // Simulate API Network call latency
-    await Future.delayed(const Duration(seconds: 1));
-    
-    setLoading(false);
-
     // Demo bypass: "test" / "test" navigates straight into the app
+    // without hitting the backend.
     if (_email.trim() == 'test' && _password == 'test') {
+      setLoading(false);
       if (context.mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -86,29 +92,133 @@ class LoginViewModel extends ChangeNotifier {
       return true;
     }
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_outline, color: Colors.white),
-              const SizedBox(width: 8),
-              Text('Welcome back! Successfully logged in as ${credentials.emailOrPhone}'),
-            ],
-          ),
-          backgroundColor: const Color(0xFF0056C6),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+    try {
+      final session = await _authRepository.login(
+        emailOrPhone: _email.trim(),
+        password: _password,
       );
+
+      // Make the signed-in user available to the rest of the app (chat, inbox…).
+      CurrentUser.instance.setFrom(session.user);
+
+      setLoading(false);
+
+      if (context.mounted) {
+        final name = session.user.fullName?.isNotEmpty == true
+            ? session.user.fullName!
+            : session.user.email;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_outline, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Welcome back, $name!')),
+              ],
+            ),
+            backgroundColor: const Color(0xFF0056C6),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
+      return true;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      setLoading(false);
+      if (context.mounted) _showError(context, e.message);
+      return false;
+    } catch (_) {
+      _errorMessage =
+          'Unable to reach the server. Check your connection and try again.';
+      setLoading(false);
+      if (context.mounted) _showError(context, _errorMessage!);
+      return false;
     }
-    return true;
+  }
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
   }
 
   // Core business action: Social Sign-In
-  Future<void> loginWithSocial(String provider, BuildContext context) async {
+  Future<bool> loginWithSocial(String provider, BuildContext context) async {
+    if (provider == 'Google') {
+      _errorMessage = null;
+      setLoading(true);
+      try {
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          setLoading(false);
+          return false; // User cancelled
+        }
+
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final String? idToken = googleAuth.idToken;
+
+        if (idToken == null) {
+          throw Exception('Failed to obtain Google ID Token.');
+        }
+
+        print('Google Sign-In: obtained ID Token. Sending to backend...');
+        final session = await _authRepository.loginWithGoogle(idToken);
+        CurrentUser.instance.setFrom(session.user);
+        setLoading(false);
+
+        if (context.mounted) {
+          final name = session.user.fullName?.isNotEmpty == true
+              ? session.user.fullName!
+              : session.user.email;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text('Welcome back, $name!')),
+                ],
+              ),
+              backgroundColor: const Color(0xFF0056C6),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+        return true;
+      } catch (e) {
+        print('Google Sign-in failed: $e');
+        _errorMessage = e.toString();
+        setLoading(false);
+        if (context.mounted) _showError(context, 'Google Sign-in failed: $e');
+        return false;
+      }
+    }
+
     setLoading(true);
 
     // Simulate API Network call latency
@@ -137,5 +247,6 @@ class LoginViewModel extends ChangeNotifier {
         ),
       );
     }
+    return true;
   }
 }

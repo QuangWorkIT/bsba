@@ -126,6 +126,22 @@ If you need a new semantic color, extend `ColorScheme` or add an extension on `T
 - **Comments**: code should be self-explanatory via naming. Only add a comment when the *why* is non-obvious (workaround, invariant, surprising constraint).
 - **No new top-level docs** (`README` additions, design docs) unless explicitly requested.
 
+## UI code structure requirements (PRM393 rubric)
+
+The course grades *how* the UI is built, not just that screens render. These are the structural expectations for any feature UI you add or edit:
+
+- **Widget decomposition** — never put a whole screen in one `build()`. Split into small, named, reusable widgets: **one public widget per file** under `lib/ui/<feature>/widgets/`, keeping tightly-coupled sub-widgets as private (`_`-prefixed) classes in the same file. See [lib/ui/inbox/widgets/chat/](lib/ui/inbox/widgets/chat/) for the reference pattern (a `*_screen.dart` that only composes; each bubble/header/input extracted into its own file).
+- **Folder organization** — feature-first under `lib/ui/<feature>/`: extracted pieces in a `widgets/` subfolder, screen state in `*_viewmodel.dart`, cross-feature widgets in `lib/ui/shared/`. Data layer stays in `lib/data/{models,services,repositories}`. Never scatter files into `lib/` root.
+- **State management** — one viewmodel/Provider per screen; don't drive cross-screen state with scattered `setState`. UI binds to data from models/repositories — no hardcoded lists in widgets.
+- **Data-driven UI states** — any screen backed by an API/repository must handle all four: **loading, loaded, error, empty**. Don't assume data is always present.
+- **Validation** — validate form inputs (login, checkout, chat); block empty/invalid submits and show the message inline. Use the correct `keyboardType` (email/phone/number).
+- **Error handling** — wrap async/API calls and surface failures instead of white screens; guard against null before rendering; never call `setState` after `dispose`.
+- **Responsive layout** — wrap scrollable forms in `SafeArea` + `SingleChildScrollView`; use `Expanded`/`Flexible`/`MediaQuery`/`LayoutBuilder` to avoid `RenderFlex overflowed`; ellipsize long text.
+- **Performance** — long lists use `ListView.builder`/`GridView.builder`, never `Column(children: list.map(...))`; wrap a `ListView` inside a `Column` in `Expanded`. Prefer `const` widgets. Never call APIs from `build()`.
+- **Consistency** — pull colors/text styles from `Theme.of(context)` (see brand palette above); don't inline new hex literals in feature code.
+- **Navigation** — use `Navigator`/named routes; pass typed objects/ids between screens; verify the back stack and the logged-in gate.
+- **Interaction feedback** — give every user action a visible response (SnackBar on add-to-cart, dialog/screen on success, disabled buttons while loading or out of stock).
+
 ## Testing
 
 - Tests live in [test/](test/) mirroring `lib/` paths.

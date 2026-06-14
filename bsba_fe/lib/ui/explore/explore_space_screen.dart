@@ -1,19 +1,36 @@
 import 'package:flutter/material.dart';
+import '../../data/models/board_space.dart';
+import '../../data/repositories/chat_repository.dart';
+import '../../data/repositories/space_repository.dart';
+import '../../data/services/api_client.dart';
+import '../../data/services/chat_service.dart';
+import '../../data/services/current_user.dart';
+import '../../data/services/location_service.dart';
+import '../../data/services/space_service.dart';
+import '../inbox/widgets/chat_screen.dart';
 import 'space_card.dart';
 import 'explore_space_filter.dart';
 import 'explore_space_viewmodel.dart';
+import 'game_library_screen.dart';
 import 'space_detail_screen.dart';
 
 /// Explore screen – lists nearby board game spaces.
 class ExploreScreen extends StatefulWidget {
-  const ExploreScreen({super.key});
+  const ExploreScreen({super.key, this.onOpenInbox});
+
+  /// Switches the host's bottom nav to the Inbox tab (used by staff chat).
+  final VoidCallback? onOpenInbox;
 
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
-  final ExploreViewModel _vm = ExploreViewModel();
+  final ExploreViewModel _vm = ExploreViewModel(
+    SpaceRepository(SpaceService(ApiClient())),
+    LocationService(),
+  );
+  final ChatRepository _chatRepository = ChatRepository(ChatService(ApiClient()));
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -42,9 +59,22 @@ class _ExploreScreenState extends State<ExploreScreen> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: _SearchBar(
-                  controller: _searchController,
-                  onChanged: _vm.onSearchChanged,
+                child: Column(
+                  children: [
+                    _SearchBar(
+                      controller: _searchController,
+                      onChanged: _vm.onSearchChanged,
+                    ),
+                    const SizedBox(height: 12),
+                    // Quick Access Banner
+                    _LibraryBanner(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const GameLibraryScreen(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -85,6 +115,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     return SpaceCard(
                       space: space,
                       onBookTap: () => _onBookTap(space.id),
+                      onChatTap: () => _onChatTap(space),
                     );
                   }, childCount: _vm.spaces.length),
                 ),
@@ -99,6 +130,49 @@ class _ExploreScreenState extends State<ExploreScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => SpaceDetailScreen(spaceId: spaceId)),
     );
+  }
+
+  Future<void> _onChatTap(BoardSpace space) async {
+    final role = CurrentUser.instance.role;
+    final isStaff = role == 'STAFF' || role == 'ADMIN';
+
+    // Staff/admin don't chat with one store — send them to the Inbox tab.
+    if (isStaff) {
+      widget.onOpenInbox?.call();
+      return;
+    }
+
+    // Customer: open (or create) the thread with this specific store.
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final conversation = await _chatRepository.startConversation(
+        userId: CurrentUser.instance.id,
+        storeId: space.id,
+      );
+      if (!mounted) return;
+      navigator.pop(); // close the loading dialog
+      navigator.push(
+        MaterialPageRoute(
+          builder: (_) => ChatScreen(
+            conversationId: conversation.id,
+            name: space.name,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      navigator.pop(); // close the loading dialog
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not open chat. Try again.')),
+      );
+    }
   }
 }
 
@@ -335,6 +409,74 @@ class _ErrorState extends StatelessWidget {
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 18),
               label: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LibraryBanner extends StatelessWidget {
+  final VoidCallback onTap;
+  const _LibraryBanner({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [colors.primary, colors.primary.withValues(alpha: 0.8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: colors.primary.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.auto_stories_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Browse Game Library',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Explore our collection of 500+ games',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white,
+              size: 16,
             ),
           ],
         ),
