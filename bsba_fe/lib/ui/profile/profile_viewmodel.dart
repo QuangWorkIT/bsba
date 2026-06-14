@@ -1,21 +1,49 @@
 import 'package:flutter/foundation.dart';
+import 'package:project/data/models/auth_session.dart';
 import 'package:project/data/repositories/auth_repository.dart';
 import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/auth_service.dart';
 import 'package:project/data/services/current_user.dart';
+import 'package:project/data/services/user_service.dart';
 
 class ProfileViewModel extends ChangeNotifier {
-  ProfileViewModel({AuthRepository? authRepository})
-      : _authRepository =
-            authRepository ?? AuthRepository(AuthService(ApiClient()));
+  ProfileViewModel({
+    AuthRepository? authRepository,
+    UserService? userService,
+  })  : _authRepository = authRepository ?? AuthRepository(AuthService(ApiClient())),
+        _userService = userService ?? UserService(ApiClient()) {
+    fetchProfile();
+  }
 
   final AuthRepository _authRepository;
+  final UserService _userService;
 
   bool _isLoggingOut = false;
   String? _errorMessage;
 
+  bool _isLoadingProfile = false;
+  AuthUser? _user;
+
   bool get isLoggingOut => _isLoggingOut;
   String? get errorMessage => _errorMessage;
+  bool get isLoadingProfile => _isLoadingProfile;
+  AuthUser? get user => _user;
+
+  Future<void> fetchProfile() async {
+    _isLoadingProfile = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _user = await _userService.fetchUserProfile();
+    } catch (e) {
+      debugPrint('[ProfileViewModel] Error fetching profile: $e');
+      _errorMessage = e.toString();
+    } finally {
+      _isLoadingProfile = false;
+      notifyListeners();
+    }
+  }
 
   Future<bool> logout() async {
     if (_isLoggingOut) return false;
