@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// The authenticated user returned by the backend on login.
 class AuthUser {
   final String id;
@@ -19,15 +21,23 @@ class AuthUser {
   });
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
-    return AuthUser(
-      id: json['id']?.toString() ?? '',
-      email: json['email'] ?? '',
-      fullName: json['fullName'],
-      phone: json['phone'],
-      avatarUrl: json['avatarUrl'],
-      authProvider: json['authProvider'],
-      role: json['role'],
-    );
+    debugPrint('[AUTH_USER] AuthUser.fromJson() called with: $json');
+    try {
+      final user = AuthUser(
+        id: json['id']?.toString() ?? '',
+        email: json['email'] ?? '',
+        fullName: json['fullName'],
+        phone: json['phone'],
+        avatarUrl: json['avatarUrl'],
+        authProvider: json['authProvider'],
+        role: json['role'],
+      );
+      debugPrint('[AUTH_USER] Successfully parsed AuthUser: ${user.id}, ${user.email}');
+      return user;
+    } catch (e, stackTrace) {
+      debugPrint('[AUTH_USER] Exception in AuthUser.fromJson: $e\n$stackTrace');
+      rethrow;
+    }
   }
 }
 

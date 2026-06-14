@@ -18,29 +18,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _userFuture = UserService(ApiClient()).fetchUserProfile();
+    debugPrint('[PROFILE] ProfileScreen.initState() called');
+    try {
+      _userFuture = UserService(ApiClient()).fetchUserProfile();
+      debugPrint('[PROFILE] _userFuture initialized successfully');
+    } catch (e, stackTrace) {
+      debugPrint('[PROFILE] Exception in initState: $e\n$stackTrace');
+      rethrow;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<SettingsProvider>(context);
-    final theme = Theme.of(context);
+    debugPrint('[PROFILE] build() called');
+    try {
+      final settings = Provider.of<SettingsProvider>(context);
+      final theme = Theme.of(context);
+      debugPrint('[PROFILE] Settings and Theme acquired from Provider');
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: FutureBuilder<AuthUser>(
-          future: _userFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData) {
-              return const Center(child: Text('No profile data found.'));
-            }
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: SafeArea(
+          child: FutureBuilder<AuthUser>(
+            future: _userFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                debugPrint('[PROFILE] FutureBuilder connectionState: waiting');
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                debugPrint('[PROFILE] FutureBuilder hasError: ${snapshot.error}');
+                debugPrint('[PROFILE] FutureBuilder error stack trace: ${snapshot.stackTrace}');
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error, color: Colors.red, size: 48),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error: ${snapshot.error}',
+                            style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Stack Trace:\n${snapshot.stackTrace}',
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              } else if (!snapshot.hasData) {
+                debugPrint('[PROFILE] FutureBuilder !hasData: returning "No profile data found."');
+                return const Center(child: Text('No profile data found.'));
+              }
 
-            final user = snapshot.data!;
+              debugPrint('[PROFILE] FutureBuilder hasData: successfully unwrapped AuthUser');
+              final user = snapshot.data!;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -168,6 +206,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+    } catch (e, stackTrace) {
+      debugPrint('[PROFILE] Exception in build(): $e\n$stackTrace');
+      return Scaffold(body: Center(child: Text('Build Error: $e')));
+    }
   }
 
   Widget _buildSectionTitle(String title) {
