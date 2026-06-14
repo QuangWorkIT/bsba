@@ -3,7 +3,7 @@
 -- Runs automatically AFTER create_table.sql on a fresh Postgres volume
 -- (postgres-init scripts execute in alphabetical order).
 -- All UUIDs are fixed/deterministic so foreign keys stay wired across runs.
--- Password hash below is a bcrypt hash of "password" (for local dev only).
+-- Local login password for all seeded users: Password@123
 -- ==========================================
 
 -- ------------------------------------------
@@ -21,13 +21,11 @@ SELECT setval(pg_get_serial_sequence('roles', 'id'), (SELECT MAX(id) FROM roles)
 -- USERS
 -- ------------------------------------------
 INSERT INTO users (id, email, password_hash, full_name, phone, avatar_url, auth_provider, role_id, is_active) VALUES
-    ('a0000000-0000-0000-0000-000000000001', 'admin@bsba.com',     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'System Admin',  '0900000001', 'https://i.pravatar.cc/150?img=1',  'local',  1, TRUE),
-    ('a0000000-0000-0000-0000-000000000002', 'an.nguyen@gmail.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Nguyen Van An', '0900000002', 'https://i.pravatar.cc/150?img=12', 'local',  2, TRUE),
-    ('a0000000-0000-0000-0000-000000000003', 'binh.tran@gmail.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Tran Thi Binh', '0900000003', 'https://i.pravatar.cc/150?img=20', 'local',  2, TRUE),
-    ('a0000000-0000-0000-0000-000000000004', 'cuong.le@gmail.com',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Le Van Cuong',  '0900000004', 'https://i.pravatar.cc/150?img=33', 'google', 2, TRUE),
-    ('a0000000-0000-0000-0000-000000000005', 'dung.pham@gmail.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Pham Thi Dung', '0900000005', 'https://i.pravatar.cc/150?img=45', 'local',  2, TRUE),
-    ('a0000000-0000-0000-0000-000000000006', 'owner@boardnest.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Store Owner',   '0900000006', 'https://i.pravatar.cc/150?img=51', 'local',  3, TRUE),
-    ('a0000000-0000-0000-0000-000000000007', 'owner02@boardnest.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Store Owner 02',   '0900000007', 'https://i.pravatar.cc/150?img=51', 'local',  3, TRUE)
+    ('a0000000-0000-0000-0000-000000000002', 'customer01@gmail.com', crypt('Password@123', gen_salt('bf', 10)), 'Customer One',   '0901000001', 'https://i.pravatar.cc/150?img=12', 'local', 2, TRUE),
+    ('a0000000-0000-0000-0000-000000000003', 'customer02@gmail.com', crypt('Password@123', gen_salt('bf', 10)), 'Customer Two',   '0901000002', 'https://i.pravatar.cc/150?img=20', 'local', 2, TRUE),
+    ('a0000000-0000-0000-0000-000000000004', 'customer03@gmail.com', crypt('Password@123', gen_salt('bf', 10)), 'Customer Three', '0901000003', 'https://i.pravatar.cc/150?img=33', 'local', 2, TRUE),
+    ('a0000000-0000-0000-0000-000000000005', 'staff01@gmail.com',    crypt('Password@123', gen_salt('bf', 10)), 'Staff One',      '0902000001', 'https://i.pravatar.cc/150?img=51', 'local', 3, TRUE),
+    ('a0000000-0000-0000-0000-000000000006', 'staff02@gmail.com',    crypt('Password@123', gen_salt('bf', 10)), 'Staff Two',      '0902000002', 'https://i.pravatar.cc/150?img=52', 'local', 3, TRUE)
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------
@@ -107,7 +105,7 @@ INSERT INTO bookings (id, user_id, store_id, slot_id, participant_count, total_p
     ('f0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 4, 60000.00, 'Birthday meetup, please prepare Catan.', 'COMPLETED'),
     ('f0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000004', 2, 45000.00, NULL,                                     'CONFIRMED'),
     ('f0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000003', 'e0000000-0000-0000-0000-000000000007', 6, 15000.00, 'Party night with friends.',              'PENDING'),
-    ('f0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000002', 3, 28000.00, NULL,                                     'CANCELLED')
+    ('f0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000002', 3, 28000.00, NULL,                                     'CANCELLED')
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------
@@ -123,11 +121,47 @@ INSERT INTO booking_games (booking_id, board_game_id, quantity) VALUES
 -- ------------------------------------------
 -- PAYMENTS
 -- ------------------------------------------
-INSERT INTO payments (id, booking_id, amount, payment_method, payment_status, transaction_code, paid_at) VALUES
-    ('10000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 60000.00, 'momo',         'paid',     'TXN-20240601-0001', NOW() - INTERVAL '2 days'),
-    ('10000000-0000-0000-0000-000000000002', 'f0000000-0000-0000-0000-000000000002', 45000.00, 'vnpay',        'paid',     'TXN-20240602-0002', NOW() - INTERVAL '1 day'),
-    ('10000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000003', 15000.00, 'cash',         'pending',  NULL,                NULL),
-    ('10000000-0000-0000-0000-000000000004', 'f0000000-0000-0000-0000-000000000004', 28000.00, 'vnpay',        'refunded', 'TXN-20240603-0004', NOW() - INTERVAL '3 days')
+INSERT INTO payments (
+    id, booking_id, user_id, provider, app_trans_id,
+    zp_trans_token, zp_trans_id, order_url, amount, status,
+    callback_raw_data, callback_received_at, created_at, updated_at
+) VALUES
+    (
+        '10000000-0000-0000-0000-000000000001',
+        'f0000000-0000-0000-0000-000000000001',
+        'a0000000-0000-0000-0000-000000000002',
+        'ZALOPAY', '260610_seed0001',
+        'seed-zp-trans-token-0001', '260610000000001', NULL,
+        60000.00, 'SUCCESS', NULL,
+        NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'
+    ),
+    (
+        '10000000-0000-0000-0000-000000000002',
+        'f0000000-0000-0000-0000-000000000002',
+        'a0000000-0000-0000-0000-000000000003',
+        'ZALOPAY', '260611_seed0002',
+        'seed-zp-trans-token-0002', '260611000000002', NULL,
+        45000.00, 'SUCCESS', NULL,
+        NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'
+    ),
+    (
+        '10000000-0000-0000-0000-000000000003',
+        'f0000000-0000-0000-0000-000000000003',
+        'a0000000-0000-0000-0000-000000000004',
+        'ZALOPAY', '260612_seed0003',
+        'seed-zp-trans-token-0003', NULL, NULL,
+        15000.00, 'PENDING', NULL,
+        NULL, NOW(), NOW()
+    ),
+    (
+        '10000000-0000-0000-0000-000000000004',
+        'f0000000-0000-0000-0000-000000000004',
+        'a0000000-0000-0000-0000-000000000004',
+        'ZALOPAY', '260609_seed0004',
+        NULL, NULL, NULL,
+        28000.00, 'CANCELED', NULL,
+        NULL, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'
+    )
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------
@@ -162,7 +196,7 @@ ON CONFLICT (id) DO NOTHING;
 -- BOOKING CARTS (active cart per user)
 -- ------------------------------------------
 INSERT INTO booking_carts (id, user_id, store_id, slot_id, participant_count, note) VALUES
-    ('40000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000005', 4, 'Planning a Wingspan session.')
+    ('40000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000005', 4, 'Planning a Wingspan session.')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO booking_cart_games (cart_id, board_game_id, quantity) VALUES
@@ -192,6 +226,6 @@ ON CONFLICT (id) DO NOTHING;
 
 
 INSERT INTO store_staff (id, created_at, user_id, store_id) VALUES
-    (1, now(), 'a0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001'),
-    (2, now(), 'a0000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000003')
-ON CONFLICT (id) DO NOTHING;
+    (1, now(), 'a0000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001'),
+    (2, now(), 'a0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001')
+ON CONFLICT (store_id, user_id) DO NOTHING;

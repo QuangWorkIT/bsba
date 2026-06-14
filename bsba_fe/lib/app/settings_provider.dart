@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsProvider extends ChangeNotifier {
@@ -13,11 +14,17 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   void _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isDark = prefs.getBool('is_dark') ?? false;
-    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-    _language = prefs.getString('language') ?? 'English';
-    notifyListeners();
+    debugPrint('[SETTINGS_PROVIDER] _loadSettings() called');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isDark = prefs.getBool('is_dark') ?? false;
+      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+      _language = prefs.getString('language') ?? 'English';
+      debugPrint('[SETTINGS_PROVIDER] Settings loaded: isDark=$isDark, language=$_language');
+      notifyListeners();
+    } catch (e, stackTrace) {
+      debugPrint('[SETTINGS_PROVIDER] Exception in _loadSettings: $e\n$stackTrace');
+    }
   }
 
   void setTheme(ThemeMode mode) async {

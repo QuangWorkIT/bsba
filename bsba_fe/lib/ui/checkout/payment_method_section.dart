@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project/ui/checkout/checkout_form_field.dart';
 
-enum PaymentMethod { card, eWallet, bankTransfer, payAtCounter, momo }
+enum PaymentMethod { card, eWallet, bankTransfer, payAtCounter, momo, zalopay }
 
 class PaymentMethodSection extends StatelessWidget {
   const PaymentMethodSection({
@@ -63,6 +63,13 @@ class PaymentMethodSection extends StatelessWidget {
             icon: Icons.account_balance_wallet,
             isSelected: selectedMethod == PaymentMethod.momo,
             onTap: () => onMethodSelected(PaymentMethod.momo),
+          ),
+          const SizedBox(height: 8),
+          _PaymentOption(
+            label: 'Zalopay E-Wallet',
+            icon: Icons.account_balance_wallet,
+            isSelected: selectedMethod == PaymentMethod.zalopay,
+            onTap: () => onMethodSelected(PaymentMethod.zalopay),
           ),
           if (selectedMethod == PaymentMethod.card) ...[
             const SizedBox(height: 16),

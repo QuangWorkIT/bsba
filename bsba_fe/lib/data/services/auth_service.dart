@@ -82,6 +82,11 @@ class AuthService {
     return prefs.getString(_tokenKey);
   }
 
+  Future<void> logout() async {
+    await _apiClient.post('/auth/logout', {});
+    await clearSession();
+  }
+
   Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);

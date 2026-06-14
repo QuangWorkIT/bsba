@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/ui/checkout/checkout_viewmodel.dart';
 import 'package:project/ui/checkout/billing_details_section.dart';
 import 'package:project/ui/checkout/checkout_app_bar.dart';
 import 'package:project/ui/checkout/checkout_order_summary.dart';
@@ -19,6 +20,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   static const _bodyTextColor = Color(0xFF414753);
   static const _titleColor = Color(0xFF181C22);
 
+  late final CheckoutViewModel _viewModel;
+
   final _nameController = TextEditingController(text: 'Alex Rivers');
   final _emailController = TextEditingController(
     text: 'alex.rivers@example.com',
@@ -31,7 +34,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   PaymentMethod _paymentMethod = PaymentMethod.card;
 
   @override
+  void initState() {
+    super.initState();
+    _viewModel = CheckoutViewModel();
+  }
+
+  @override
   void dispose() {
+    _viewModel.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
@@ -44,6 +54,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _onConfirmBooking() async {
     if (_paymentMethod == PaymentMethod.momo) {
       await _handleMomoPayment();
+    } else if (_paymentMethod == PaymentMethod.zalopay) {
+      await _handleZaloPayPayment();
     } else {
       ScaffoldMessenger.of(
         context,
@@ -110,6 +122,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           content: Text('Error: $e'),
           duration: const Duration(seconds: 10),
           action: SnackBarAction(label: 'RETRY', onPressed: _handleMomoPayment),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleZaloPayPayment() async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final success = await _viewModel.handleZaloPayPayment();
+
+    if (!mounted) return;
+    Navigator.of(context).pop(); // Hide loading
+
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${_viewModel.errorMessage}'),
+          duration: const Duration(seconds: 10),
+          action: SnackBarAction(label: 'RETRY', onPressed: _handleZaloPayPayment),
         ),
       );
     }

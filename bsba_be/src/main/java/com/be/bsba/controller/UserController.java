@@ -3,6 +3,7 @@ package com.be.bsba.controller;
 import com.be.bsba.dto.UserDto;
 import com.be.bsba.dto.response.ApiResponse;
 import com.be.bsba.entity.User;
+import com.be.bsba.exception.BadRequestException;
 import com.be.bsba.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDto>> getCurrentUserProfile() {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         UserDto userDto = UserDto.builder()
                 .id(user.getId())

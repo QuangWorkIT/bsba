@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,43 +30,76 @@ class ApiClient {
 
   /// JSON headers + the bearer token when the user is logged in.
   Future<Map<String, String>> _headers() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(_tokenKey);
-    return {
-      'Content-Type': 'application/json',
-      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-    };
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString(_tokenKey);
+      final headers = {
+        'Content-Type': 'application/json',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      };
+      return headers;
+    } catch (e, stackTrace) {
+      debugPrint('[API_CLIENT] Exception in _headers: $e\n$stackTrace');
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> get(String path) async {
-    final response = await _client.get(
-      Uri.parse('$baseUrl$path'),
-      headers: await _headers(),
-    );
-    return _handleResponse(response);
+
+    try {
+      final uri = Uri.parse('$baseUrl$path');
+      final headers = await _headers();
+      final response = await _client.get(uri, headers: headers);
+
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint('[API_CLIENT] Exception in get($path): $e\n$stackTrace');
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> post(String path, dynamic body) async {
-    final response = await _client.post(
-      Uri.parse('$baseUrl$path'),
-      headers: await _headers(),
-      body: jsonEncode(body),
-    );
-    return _handleResponse(response);
+    try {
+      final uri = Uri.parse('$baseUrl$path');
+      final headers = await _headers();
+      final response = await _client.post(
+        uri,
+        headers: headers,
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint('[API_CLIENT] Exception in post($path): $e\n$stackTrace');
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> patch(String path, [dynamic body]) async {
-    final response = await _client.patch(
-      Uri.parse('$baseUrl$path'),
-      headers: await _headers(),
-      body: body != null ? jsonEncode(body) : null,
-    );
-    return _handleResponse(response);
+    try {
+      final uri = Uri.parse('$baseUrl$path');
+      final headers = await _headers();
+      final response = await _client.patch(
+        uri,
+        headers: headers,
+        body: body != null ? jsonEncode(body) : null,
+      );
+
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint('[API_CLIENT] Exception in patch($path): $e\n$stackTrace');
+      rethrow;
+    }
   }
 
   Map<String, dynamic> _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return jsonDecode(response.body);
+      try {
+        final decoded = jsonDecode(response.body);
+        return decoded;
+      } catch (e, stackTrace) {
+        debugPrint('[API_CLIENT] Exception decoding JSON: $e\n$stackTrace');
+        rethrow;
+      }
     }
 
     // Try to pull the backend's ApiResponse.message for a readable error.
@@ -75,9 +109,10 @@ class ApiClient {
       if (decoded is Map<String, dynamic> && decoded['message'] is String) {
         message = decoded['message'] as String;
       }
-    } catch (_) {
-      // Body wasn't JSON; keep the default message.
+    } catch (e) {
+      debugPrint('[API_CLIENT] Exception extracting error message: $e');
     }
+    debugPrint('[API_CLIENT] Throwing ApiException: $message');
     throw ApiException(response.statusCode, message);
   }
 }
