@@ -192,10 +192,10 @@ public class AuthService implements IAuthService {
         }
 
         System.out.println("AuthService: Fetching or creating USER role...");
-        Role userRole = roleRepository.findByName("USER")
+        Role userRole = roleRepository.findByName("CUSTOMER")
                 .orElseGet(() -> {
                     System.out.println("AuthService: USER role not found, creating new one...");
-                    return roleRepository.save(Role.builder().name("USER").build());
+                    return roleRepository.save(Role.builder().name("CUSTOMER").build());
                 });
 
         User user = User.builder()
