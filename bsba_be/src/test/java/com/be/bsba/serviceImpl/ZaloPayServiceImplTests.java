@@ -13,6 +13,9 @@ import com.be.bsba.util.HmacUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
@@ -20,23 +23,37 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class ZaloPayServiceImplTests {
 
     private static final String KEY2 = "callback-key";
+
+    private final ZaloPayProperties properties = new ZaloPayProperties();
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Mock
+    private RestClient zaloPayRestClient;
+
+    @Mock
+    private BookingRepository bookingRepository;
+
+    @Mock
     private PaymentRepository paymentRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
     private ZaloPayServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        ZaloPayProperties properties = new ZaloPayProperties();
         properties.setAppId("2553");
         properties.setKey1("key-1");
         properties.setKey2(KEY2);
@@ -44,14 +61,13 @@ class ZaloPayServiceImplTests {
         properties.setQueryOrderUrl("https://example.test/v2/query");
         properties.setCallbackUrl("https://example.test/callback");
 
-        paymentRepository = mock(PaymentRepository.class);
         service = new ZaloPayServiceImpl(
                 properties,
                 objectMapper,
-                mock(RestClient.class),
-                mock(BookingRepository.class),
+                zaloPayRestClient,
+                bookingRepository,
                 paymentRepository,
-                mock(UserRepository.class)
+                userRepository
         );
     }
 
@@ -64,12 +80,14 @@ class ZaloPayServiceImplTests {
 
         Map<String, Object> response = service.handleCallback(callbackRequest(data), "{raw-callback}");
 
-        assertEquals(1, response.get("return_code"));
-        assertEquals(PaymentStatus.SUCCESS, payment.getStatus());
-        assertEquals(BookingStatus.CONFIRMED, payment.getBooking().getStatus());
-        assertEquals("260612000000001", payment.getZpTransId());
-        assertEquals("{raw-callback}", payment.getCallbackRawData());
-        assertNotNull(payment.getCallbackReceivedAt());
+        assertAll(
+                () -> assertEquals(1, response.get("return_code")),
+                () -> assertEquals(PaymentStatus.SUCCESS, payment.getStatus()),
+                () -> assertEquals(BookingStatus.CONFIRMED, payment.getBooking().getStatus()),
+                () -> assertEquals("260612000000001", payment.getZpTransId()),
+                () -> assertEquals("{raw-callback}", payment.getCallbackRawData()),
+                () -> assertNotNull(payment.getCallbackReceivedAt())
+        );
         verify(paymentRepository).save(payment);
     }
 
@@ -96,9 +114,11 @@ class ZaloPayServiceImplTests {
 
         Map<String, Object> response = service.handleCallback(callbackRequest(data), "{raw-callback}");
 
-        assertEquals(2, response.get("return_code"));
-        assertEquals(PaymentStatus.PENDING, payment.getStatus());
-        assertEquals(BookingStatus.PENDING, payment.getBooking().getStatus());
+        assertAll(
+                () -> assertEquals(2, response.get("return_code")),
+                () -> assertEquals(PaymentStatus.PENDING, payment.getStatus()),
+                () -> assertEquals(BookingStatus.PENDING, payment.getBooking().getStatus())
+        );
         verify(paymentRepository, never()).save(payment);
     }
 

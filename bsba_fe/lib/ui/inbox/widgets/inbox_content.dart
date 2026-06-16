@@ -29,39 +29,15 @@ class _InboxView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final vm = context.watch<InboxViewModel>();
 
-    return Stack(
+    return Column(
       children: [
-        Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-              child: _SearchField(onChanged: vm.onSearchChanged),
-            ),
-            Expanded(child: _InboxBody(vm: vm)),
-          ],
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+          child: _SearchField(onChanged: vm.onSearchChanged),
         ),
-        Positioned(
-          right: 24,
-          bottom: 24,
-          child: Material(
-            color: theme.colorScheme.primary,
-            borderRadius: BorderRadius.circular(12),
-            elevation: 6,
-            shadowColor: Colors.black26,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () {},
-              child: const SizedBox(
-                width: 56,
-                height: 56,
-                child: Icon(Icons.add, color: Colors.white, size: 26),
-              ),
-            ),
-          ),
-        ),
+        Expanded(child: _InboxBody(vm: vm)),
       ],
     );
   }
