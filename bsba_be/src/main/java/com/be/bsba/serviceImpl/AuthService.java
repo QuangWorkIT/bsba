@@ -191,11 +191,11 @@ public class AuthService implements IAuthService {
             throw new AppException("Phone number or email is already registered", HttpStatus.BAD_REQUEST);
         }
 
-        System.out.println("AuthService: Fetching or creating USER role...");
-        Role userRole = roleRepository.findByName("USER")
+        System.out.println("AuthService: Fetching or creating CUSTOMER role...");
+        Role userRole = roleRepository.findByName("CUSTOMER")
                 .orElseGet(() -> {
-                    System.out.println("AuthService: USER role not found, creating new one...");
-                    return roleRepository.save(Role.builder().name("USER").build());
+                    System.out.println("AuthService: CUSTOMER role not found, creating new one...");
+                    return roleRepository.save(Role.builder().name("CUSTOMER").build());
                 });
 
         User user = User.builder()
