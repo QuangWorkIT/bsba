@@ -4,6 +4,8 @@ import 'package:project/data/repositories/chat_repository.dart';
 import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/chat_service.dart';
 import 'package:project/data/services/chat_socket_service.dart';
+import 'package:project/data/services/current_user.dart';
+import 'package:project/app/staff_home_screen.dart';
 import 'package:project/ui/shared/appbar.dart';
 import 'package:project/ui/shared/navigation.dart';
 import 'package:project/ui/explore/explore_space_screen.dart';
@@ -28,6 +30,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final role = CurrentUser.instance.role.toUpperCase();
+    final isStaff = role == 'STAFF' || role == 'ADMIN';
+
+    if (isStaff) {
+      return const StaffHomeScreen();
+    }
+
     final screens = <Widget>[
       ExploreScreen(onOpenInbox: () => _select(_inboxIndex)),
       const MapScreen(),
