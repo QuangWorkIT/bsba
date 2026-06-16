@@ -9,10 +9,10 @@ import 'package:project/data/repositories/store_repository.dart';
 class MapViewModel extends ChangeNotifier {
   MapViewModel(this._repository);
 
-  static const LatLng defaultCenter = LatLng(16.0471, 108.2068);
+  static const LatLng defaultCenter = LatLng(10.843948, 106.816394);
   static const CameraPosition initialCameraPosition = CameraPosition(
     target: defaultCenter,
-    zoom: 5.6,
+    zoom: 14.0,
   );
   static const double _defaultRadiusKm = 5;
 
@@ -51,16 +51,14 @@ class MapViewModel extends ChangeNotifier {
   List<MapStore> get searchResults => _searchResults;
   bool get showSearchSuggestions =>
       _query.trim().isNotEmpty && !_searchCommitted;
-  bool get showStoreDetails =>
-      _selectedStore != null && !showSearchSuggestions;
+  bool get showStoreDetails => _selectedStore != null && !showSearchSuggestions;
 
   List<MapStore> get stores {
     if (_query.trim().isEmpty) return _allStores;
     return _searchResults;
   }
 
-  List<LatLng> get routePoints =>
-      _isRouteVisible ? _routePoints : const [];
+  List<LatLng> get routePoints => _isRouteVisible ? _routePoints : const [];
 
   Future<void> load() async {
     _isLoading = true;
@@ -309,8 +307,7 @@ class MapViewModel extends ChangeNotifier {
 
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
-      _locationError =
-          'Location permission is required to show your position.';
+      _locationError = 'Location permission is required to show your position.';
       return null;
     }
 

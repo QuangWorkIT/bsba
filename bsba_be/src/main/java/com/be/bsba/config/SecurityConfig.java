@@ -38,13 +38,19 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/payments/zalopay/callback",
-                                "/api/v1/payment/zalopay/callback").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .authorizeHttpRequests(auth -> auth
+                                .requestMatchers("/api/v1/auth/**").permitAll()
+                                .requestMatchers("/ws/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/map/**", "/api/v1/spaces/**", "/api/v1/stores/**", "/api/v1/board-games/**").permitAll()
+                                .requestMatchers(HttpMethod.POST,
+                                        "/api/v1/payments/zalopay/callback",
+                                        "/api/v1/payment/zalopay/callback").permitAll()
+                                // Cart endpoints use X-User-Id header fallback during development
+                                .requestMatchers("/api/v1/carts/**").permitAll()
+                                // Payment/MoMo endpoints
+                                .requestMatchers("/api/v1/payments/**", "/api/v1/payment/**").permitAll()
+                                .anyRequest().authenticated()
+                        )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -55,7 +61,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token", "X-User-Id"));
         configuration.setExposedHeaders(List.of("x-auth-token"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

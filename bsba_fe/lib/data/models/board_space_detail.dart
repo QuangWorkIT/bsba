@@ -19,6 +19,13 @@ class SpaceHost {
   });
 }
 
+class SpaceSlot {
+  final String id;
+  final String startTime;
+
+  const SpaceSlot({required this.id, required this.startTime});
+}
+
 class BoardSpaceDetail {
   final String id;
   final String name;
@@ -30,7 +37,7 @@ class BoardSpaceDetail {
   final int maxPlayers;
   final int areaSqFt;
   final double pricePerHour;
-  final List<String> availableSlots;
+  final List<SpaceSlot> availableSlots;
   final List<Amenity> amenities;
   final List<BoardGame> libraryHighlights;
   final int totalGames;
@@ -70,26 +77,36 @@ class BoardSpaceDetail {
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       address: json['address'] ?? '',
-      imageUrl: json['coverImageUrl'] ?? 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=900&q=80',
+      imageUrl:
+          json['coverImageUrl'] ??
+          'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=900&q=80',
       rating: (json['ratingAvg'] as num?)?.toDouble() ?? 0.0,
       reviewCount: json['reviewCount'] ?? 0,
       maxPlayers: json['totalCapacity'] ?? 4,
       areaSqFt: 450,
       pricePerHour: 15.0,
-      availableSlots: (json['timeSlots'] as List<dynamic>?)?.map((s) {
-        final startTime = s['startTime'] as String?;
-        if (startTime != null && startTime.length >= 5) {
-          return startTime.substring(0, 5);
-        }
-        return '10:00';
-      }).toList() ?? [],
+      availableSlots:
+          (json['timeSlots'] as List<dynamic>?)
+              ?.map((s) {
+                final startTime = s['startTime'] as String? ?? '10:00';
+                return SpaceSlot(
+                  id: s['id'] ?? '',
+                  startTime: startTime.length >= 5
+                      ? startTime.substring(0, 5)
+                      : startTime,
+                );
+              })
+              .whereType<SpaceSlot>()
+              .toList() ??
+          [],
       amenities: const [
         Amenity(label: 'High-speed WiFi', iconName: 'wifi'),
         Amenity(label: 'Coffee Station', iconName: 'coffee'),
         Amenity(label: 'Mini Fridge', iconName: 'kitchen'),
         Amenity(label: 'Smart TV', iconName: 'tv'),
       ],
-      libraryHighlights: (json['boardGames'] as List<dynamic>?)
+      libraryHighlights:
+          (json['boardGames'] as List<dynamic>?)
               ?.map((g) => BoardGame.fromJson(g as Map<String, dynamic>))
               .toList() ??
           [],

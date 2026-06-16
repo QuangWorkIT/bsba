@@ -3,6 +3,7 @@ package com.be.bsba.serviceImpl;
 import com.be.bsba.dto.request.BoardGameRequest;
 import com.be.bsba.dto.response.BoardGameResponse;
 import com.be.bsba.entity.BoardGame;
+import com.be.bsba.entity.Store;
 import com.be.bsba.repository.BoardGameRepository;
 import com.be.bsba.service.BoardGameService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,11 @@ public class BoardGameServiceImpl implements BoardGameService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<BoardGameResponse> getAllBoardGames(Pageable pageable) {
+    public Page<BoardGameResponse> getAllBoardGames(UUID storeId, Pageable pageable) {
+        if (storeId != null) {
+            return boardGameRepository.findByStoreId(storeId, pageable)
+                    .map(this::mapToResponse);
+        }
         return boardGameRepository.findAll(pageable)
                 .map(this::mapToResponse);
     }
@@ -85,7 +90,7 @@ public class BoardGameServiceImpl implements BoardGameService {
     }
 
     private BoardGameResponse mapToResponse(BoardGame boardGame) {
-        return BoardGameResponse.builder()
+        BoardGameResponse.BoardGameResponseBuilder builder = BoardGameResponse.builder()
                 .id(boardGame.getId())
                 .name(boardGame.getName())
                 .description(boardGame.getDescription())
@@ -97,7 +102,16 @@ public class BoardGameServiceImpl implements BoardGameService {
                 .imageUrl(boardGame.getImageUrl())
                 .category(boardGame.getCategory())
                 .rentalPrice(boardGame.getRentalPrice())
-                .createdAt(boardGame.getCreatedAt())
-                .build();
+                .createdAt(boardGame.getCreatedAt());
+
+        if (boardGame.getStoreBoardGames() != null && !boardGame.getStoreBoardGames().isEmpty()) {
+            Store primaryStore = boardGame.getStoreBoardGames().get(0).getStore();
+            if (primaryStore != null) {
+                builder.storeName(primaryStore.getName());
+                builder.storeDescription(primaryStore.getDescription());
+            }
+        }
+
+        return builder.build();
     }
 }

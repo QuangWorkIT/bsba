@@ -25,5 +25,7 @@ public class BoardGameResponse {
     private String imageUrl;
     private String category;
     private BigDecimal rentalPrice;
+    private String storeName;
+    private String storeDescription;
     private OffsetDateTime createdAt;
 }

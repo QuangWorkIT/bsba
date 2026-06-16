@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
 
 class ReservationSummaryCard extends StatelessWidget {
-  const ReservationSummaryCard({super.key});
+  final String? storeName;
+  final String? storeImage;
+  final String? slotDate;
+  final String? startTime;
+  final String? endTime;
+
+  const ReservationSummaryCard({
+    super.key,
+    this.storeName,
+    this.storeImage,
+    this.slotDate,
+    this.startTime,
+    this.endTime,
+  });
 
   static Color _borderColor(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
@@ -51,11 +64,23 @@ class ReservationSummaryCard extends StatelessWidget {
               height: 173,
               color: _imagePlaceholderColor(context),
               alignment: Alignment.center,
-              child: Icon(
-                Icons.image_outlined,
-                size: 48,
-                color: scheme.secondary.withValues(alpha: 0.5),
-              ),
+              child: storeImage != null && storeImage!.isNotEmpty
+                  ? Image.network(
+                      storeImage!,
+                      width: double.infinity,
+                      height: 173,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.image_outlined,
+                        size: 48,
+                        color: scheme.secondary.withValues(alpha: 0.5),
+                      ),
+                    )
+                  : Icon(
+                      Icons.image_outlined,
+                      size: 48,
+                      color: scheme.secondary.withValues(alpha: 0.5),
+                    ),
             ),
           ),
           const SizedBox(height: 24),
@@ -64,7 +89,7 @@ class ReservationSummaryCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  "The Dragon's Lair -\nVIP Room",
+                  storeName ?? "Loading Store...",
                   style: TextStyle(
                     color: _titleColor(context),
                     fontSize: 24,
@@ -95,7 +120,11 @@ class ReservationSummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const _DetailGrid(),
+          _DetailGrid(
+            slotDate: slotDate,
+            startTime: startTime,
+            endTime: endTime,
+          ),
         ],
       ),
     );
@@ -103,7 +132,11 @@ class ReservationSummaryCard extends StatelessWidget {
 }
 
 class _DetailGrid extends StatelessWidget {
-  const _DetailGrid();
+  final String? slotDate;
+  final String? startTime;
+  final String? endTime;
+
+  const _DetailGrid({this.slotDate, this.startTime, this.endTime});
 
   @override
   Widget build(BuildContext context) {
@@ -120,19 +153,22 @@ class _DetailGrid extends StatelessWidget {
             Expanded(
               child: _DetailRow(
                 icon: Icons.calendar_today_outlined,
-                label: 'Sat, Oct 28',
+                label: slotDate ?? 'Select Date',
                 textStyle: textStyle,
               ),
             ),
             Expanded(
               child: _DetailRow(
                 icon: Icons.schedule_outlined,
-                label: '2:00 PM - 5:00 PM',
+                label: (startTime != null && endTime != null)
+                    ? '$startTime - $endTime'
+                    : 'Select Time',
                 textStyle: textStyle,
               ),
             ),
           ],
         ),
+        // (keeps the players/price row for now as static or needs more back-end fields)
         const SizedBox(height: 8),
         Row(
           children: [

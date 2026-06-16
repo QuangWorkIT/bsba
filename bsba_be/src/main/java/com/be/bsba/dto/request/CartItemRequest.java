@@ -19,4 +19,7 @@ public class CartItemRequest {
 
     // Optional store ID if we want to set it during first add
     private UUID storeId;
+
+    // Optional slot ID for booking time context
+    private UUID slotId;
 }

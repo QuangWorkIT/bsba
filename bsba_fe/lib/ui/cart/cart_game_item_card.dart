@@ -2,15 +2,21 @@ import 'package:flutter/material.dart';
 
 class CartGameItem {
   const CartGameItem({
+    required this.id,
+    required this.boardGameId,
     required this.name,
     required this.category,
     required this.pricePerHour,
+    required this.imageUrl,
     this.quantity = 1,
   });
 
+  final String id;
+  final String boardGameId;
   final String name;
   final String category;
   final double pricePerHour;
+  final String imageUrl;
   final int quantity;
 }
 
@@ -80,11 +86,14 @@ class CartGameItemCard extends StatelessWidget {
               width: 80,
               height: 80,
               color: _imagePlaceholderColor(context),
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.videogame_asset_outlined,
-                size: 32,
-                color: scheme.secondary.withValues(alpha: 0.5),
+              child: Image.network(
+                item.imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Icon(
+                  Icons.videogame_asset_outlined,
+                  size: 32,
+                  color: scheme.secondary.withValues(alpha: 0.5),
+                ),
               ),
             ),
           ),
@@ -114,16 +123,19 @@ class CartGameItemCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Text(
-                      '\$${item.pricePerHour.toStringAsFixed(2)} / hr',
-                      style: TextStyle(
-                        color: scheme.primary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        height: 1.5,
+                    Flexible(
+                      child: Text(
+                        '\$${item.pricePerHour.toStringAsFixed(2)} / hr',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: scheme.primary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          height: 1.5,
+                        ),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     _QuantityStepper(
                       quantity: item.quantity,
                       onDecrement: onDecrement,

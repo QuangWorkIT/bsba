@@ -15,6 +15,11 @@ public class CartResponse {
     private UUID id;
     private UUID userId;
     private UUID storeId;
+    private String storeName;
+    private String storeImage;
+    private String slotDate;
+    private String startTime;
+    private String endTime;
     private List<CartItemResponse> items;
     private Double totalPrice;
 }

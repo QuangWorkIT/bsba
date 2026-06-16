@@ -199,7 +199,7 @@ CREATE TABLE store_time_slots (
                                   end_time TIME NOT NULL,
 
                                   status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE'
-                                      CHECK (status IN ('AVAILABLE', 'CLOSED', 'CANCELLED')),
+                                      CHECK (status IN ('AVAILABLE', 'PENDING', 'CONFIRMED', 'CLOSED', 'CANCELLED')),
 
                                   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'current_user.dart';
 
 /// Thrown on a non-2xx response. [message] carries the backend's
 /// `ApiResponse.message` when present, so screens can show a friendly reason.
@@ -16,7 +17,7 @@ class ApiException implements Exception {
 }
 
 class ApiClient {
-  static const String baseUrl = 'http://10.0.2.2:8080/api/v1';
+  static const String baseUrl = 'http://192.168.101.114:8080/api/v1';
 
   // ws://<host>:<port>/ws derived from baseUrl, so there's only one place to edit.
   static final String wsUrl = baseUrl
@@ -36,6 +37,7 @@ class ApiClient {
       final headers = {
         'Content-Type': 'application/json',
         if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+        'X-User-Id': CurrentUser.instance.id,
       };
       return headers;
     } catch (e, stackTrace) {
@@ -45,7 +47,6 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> get(String path) async {
-
     try {
       final uri = Uri.parse('$baseUrl$path');
       final headers = await _headers();
@@ -91,27 +92,50 @@ class ApiClient {
     }
   }
 
+  Future<Map<String, dynamic>> delete(String path) async {
+    try {
+      final uri = Uri.parse('$baseUrl$path');
+      final headers = await _headers();
+      final response = await _client.delete(uri, headers: headers);
+
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint('[API_CLIENT] Exception in delete($path): $e\n$stackTrace');
+      rethrow;
+    }
+  }
+
   Map<String, dynamic> _handleResponse(http.Response response) {
+    final body = response.body.trim();
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (body.isEmpty) return {};
       try {
-        final decoded = jsonDecode(response.body);
-        return decoded;
+        final decoded = jsonDecode(body);
+        return decoded is Map<String, dynamic> ? decoded : {'data': decoded};
       } catch (e, stackTrace) {
         debugPrint('[API_CLIENT] Exception decoding JSON: $e\n$stackTrace');
-        rethrow;
+        return {}; // Or throw if essential
       }
     }
 
     // Try to pull the backend's ApiResponse.message for a readable error.
     String message = 'Something went wrong. Please try again.';
-    try {
-      final decoded = jsonDecode(response.body);
-      if (decoded is Map<String, dynamic> && decoded['message'] is String) {
-        message = decoded['message'] as String;
+    if (body.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(body);
+        if (decoded is Map<String, dynamic> && decoded['message'] is String) {
+          message = decoded['message'] as String;
+        }
+      } catch (e) {
+        debugPrint('[API_CLIENT] Exception extracting error message: $e');
+        // If not JSON, use a generic message or the status code
+        message = 'Error ${response.statusCode}: ${response.reasonPhrase}';
       }
-    } catch (e) {
-      debugPrint('[API_CLIENT] Exception extracting error message: $e');
+    } else {
+      message = 'Error ${response.statusCode}: Empty response from server';
     }
+
     debugPrint('[API_CLIENT] Throwing ApiException: $message');
     throw ApiException(response.statusCode, message);
   }
