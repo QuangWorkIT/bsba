@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project/ui/dashboard/widgets/staff_dashboard_tokens.dart';
+import 'package:project/data/services/api_client.dart';
+import 'package:project/data/services/boardgame_service.dart';
 
 class GameItem {
   final String title;
@@ -29,44 +31,44 @@ class StaffGamesTemplate extends StatefulWidget {
 }
 
 class _StaffGamesTemplateState extends State<StaffGamesTemplate> {
-  final List<GameItem> _games = [
-    GameItem(
-      title: 'Gloomhaven',
-      imageUrl:
-          'https://i0.wp.com/theboardgameschronicle.com/wp-content/uploads/2021/07/40_07.jpg?fit=816%2C494&ssl=1',
-      players: '1-4 Players',
-      playtime: '120 min',
-      stock: 3,
-      tag: 'Premium',
-      tagColor: StaffDashboardColors.primary,
-    ),
-    GameItem(
-      title: 'Catan',
-      imageUrl:
-          'https://www.meeplemountain.com/wp-content/uploads/2025/11/CATAN-CK-1-1200x900-cropped.jpg',
-      players: '3-4 Players',
-      playtime: '60 min',
-      stock: 8,
-      tag: 'Classic',
-      tagColor: const Color(0xFFD96B27),
-    ),
-    GameItem(
-      title: 'Wingspan',
-      imageUrl:
-          'https://www.myboardgameguides.com/wp-content/uploads/2024/05/IMG_0965-scaled.jpg',
-      players: '1-5 Players',
-      playtime: '40 min',
-      stock: 1,
-    ),
-    GameItem(
-      title: 'Scythe',
-      imageUrl:
-          'https://b1803394.smushcdn.com/1803394/wp-content/uploads/2017/09/IMG_0586-1200x900-cropped.jpg?lossy=1&strip=1&webp=1&size=1825x0',
-      players: '1-5 Players',
-      playtime: '90 min',
-      stock: 4,
-    ),
-  ];
+  List<GameItem> _games = [];
+  bool _isLoading = true;
+  String? _error;
+
+  final _boardGameService = BoardGameService(ApiClient());
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGames();
+  }
+
+  Future<void> _loadGames() async {
+    try {
+      final games = await _boardGameService.getStaffBoardGames();
+      setState(() {
+        _games = games.map((game) {
+          return GameItem(
+            title: game.name,
+            imageUrl: game.imageUrl.isNotEmpty
+                ? game.imageUrl
+                : 'https://via.placeholder.com/150', // fallback image
+            players: game.playerRange,
+            playtime: game.playDuration,
+            stock: game.stock ?? 0,
+            tag: game.category,
+            tagColor: StaffDashboardColors.primary, // You could determine color dynamically
+          );
+        }).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -173,16 +175,22 @@ class _StaffGamesTemplateState extends State<StaffGamesTemplate> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                itemCount: _games.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  final game = _games[index];
-                  return _buildGameCard(game);
-                },
-              ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? Center(child: Text(_error!))
+                      : _games.isEmpty
+                          ? const Center(child: Text('No games found'))
+                          : ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                              itemCount: _games.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 16),
+                              itemBuilder: (context, index) {
+                                final game = _games[index];
+                                return _buildGameCard(game);
+                              },
+                            ),
             ),
           ],
         ),
