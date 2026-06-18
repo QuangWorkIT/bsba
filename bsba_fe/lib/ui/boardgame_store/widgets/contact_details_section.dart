@@ -21,7 +21,7 @@ class ContactDetailsSection extends StatelessWidget {
           controller: viewModel.phoneController,
           keyboardType: TextInputType.phone,
           prefixIcon: Icons.call_outlined,
-          validator: requiredField,
+          validator: storePhoneField,
         ),
         const SizedBox(height: 14),
         StoreTextField(

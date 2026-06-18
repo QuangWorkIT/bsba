@@ -46,6 +46,7 @@ class _StoreProfileForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return Form(
       key: context.read<StoreProfileViewModel>().formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 28),
         children: const [

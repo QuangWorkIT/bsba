@@ -19,14 +19,14 @@ class BasicInformationSection extends StatelessWidget {
         StoreTextField(
           label: 'Store Name',
           controller: viewModel.storeNameController,
-          validator: requiredField,
+          validator: storeNameField,
         ),
         const SizedBox(height: 14),
         StoreTextField(
           label: 'Description',
           controller: viewModel.descriptionController,
           maxLines: 5,
-          validator: requiredField,
+          validator: storeDescriptionField,
         ),
       ],
     );
