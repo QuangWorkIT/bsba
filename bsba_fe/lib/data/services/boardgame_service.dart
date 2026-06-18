@@ -32,4 +32,29 @@ class BoardGameService {
       if (storeId != null) 'storeId': storeId,
     });
   }
+
+  Future<BoardGame> createBoardGame({
+    required String name,
+    required String description,
+    required int minPlayers,
+    required int maxPlayers,
+    required int playTimeMinutes,
+    required int ageRequirement,
+    required int quantity,
+    required String category,
+    required String imageUrl,
+  }) async {
+    final response = await _apiClient.post('/board-games', {
+      'name': name,
+      'description': description,
+      'minPlayers': minPlayers,
+      'maxPlayers': maxPlayers,
+      'playTimeMinutes': playTimeMinutes,
+      'ageRequirement': ageRequirement,
+      'quantity': quantity,
+      'category': category,
+      'imageUrl': imageUrl,
+    });
+    return BoardGame.fromJson(response['data']);
+  }
 }
