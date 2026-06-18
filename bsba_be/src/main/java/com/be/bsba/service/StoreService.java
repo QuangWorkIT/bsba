@@ -1,5 +1,6 @@
 package com.be.bsba.service;
 
+import com.be.bsba.dto.request.UpdateStoreRequest;
 import com.be.bsba.dto.response.EditStoreResponse;
 import com.be.bsba.dto.response.StoreDetailResponse;
 
@@ -22,4 +23,5 @@ public interface StoreService {
      */
     StoreDetailResponse getStoreDetail(UUID storeId, UUID currentUserId);
     EditStoreResponse getStoreDetailByStaffId(UUID staffId);
+    EditStoreResponse updateStoreByStaff(UpdateStoreRequest request);
 }

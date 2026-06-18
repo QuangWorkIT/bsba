@@ -52,12 +52,13 @@ class OperationsSection extends StatelessWidget {
           controller: viewModel.chargeController,
           keyboardType: TextInputType.number,
           prefixIcon: Icons.payments_outlined,
-          validator: requiredField,
+          validator: positiveNumber,
         ),
         const SizedBox(height: 14),
         const HelperNote(
           icon: Icons.lightbulb_outline_rounded,
-          text: 'Peak capacity helps our booking engine optimize table rotations.',
+          text:
+              'Peak capacity helps our booking engine optimize table rotations.',
         ),
       ],
     );

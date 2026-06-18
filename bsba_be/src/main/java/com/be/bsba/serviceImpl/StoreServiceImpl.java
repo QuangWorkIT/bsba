@@ -1,5 +1,6 @@
 package com.be.bsba.serviceImpl;
 
+import com.be.bsba.dto.request.UpdateStoreRequest;
 import com.be.bsba.dto.response.*;
 import com.be.bsba.entity.*;
 import com.be.bsba.exception.ResourceNotFoundException;
@@ -106,6 +107,38 @@ public class StoreServiceImpl implements StoreService, IStoreService {
             throw new ResourceNotFoundException("Staff is not assigned to any active store: " + staffId);
         }
         return storeDetail;
+    }
+
+    @Override
+    @Transactional
+    public EditStoreResponse updateStoreByStaff(UpdateStoreRequest request) {
+        UUID staffId = UUID.fromString(request.getStaffId());
+        UUID storeId = UUID.fromString(request.getStoreId());
+
+        boolean staffBelongsToStore = storeRepository.existsActiveStoreByStaffIdAndStoreId(staffId, storeId);
+        if (!staffBelongsToStore) {
+            throw new ResourceNotFoundException("Staff is not assigned to this active store: " + staffId);
+        }
+
+        int updatedRows = storeRepository.updateStoreByStaff(
+                storeId,
+                request.getStoreName(),
+                request.getDescription(),
+                request.getAddress(),
+                request.getCoverLetterUrl(),
+                request.getPhone(),
+                request.getEmail(),
+                request.getOpenTime(),
+                request.getCloseTime(),
+                request.getTotalCapacity(),
+                request.getChargeFee()
+        );
+
+        if (updatedRows == 0) {
+            throw new ResourceNotFoundException("Store not found with id: " + storeId);
+        }
+
+        return storeRepository.getStoreDetailByStaffId(staffId);
     }
 
     // ── Mapping helpers ──────────────────────────────────────────────

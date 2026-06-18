@@ -4,10 +4,12 @@ import com.be.bsba.dto.projection.NearbyStoreProjection;
 import com.be.bsba.dto.response.EditStoreResponse;
 import com.be.bsba.entity.Store;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -111,4 +113,50 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
           AND s.isActive = true
         """)
         EditStoreResponse getStoreDetailByStaffId(@Param("staffId") UUID staffId);
+
+        @Query(value = """
+        SELECT EXISTS (
+            SELECT 1
+            FROM store_staff ss
+            JOIN stores s ON s.id = ss.store_id
+            WHERE ss.user_id = :staffId
+              AND ss.store_id = :storeId
+              AND s.is_active = true
+        )
+        """, nativeQuery = true)
+        boolean existsActiveStoreByStaffIdAndStoreId(
+                @Param("staffId") UUID staffId,
+                @Param("storeId") UUID storeId
+        );
+
+        @Modifying
+        @Query(value = """
+        UPDATE stores
+        SET name = :storeName,
+            description = :description,
+            address = :address,
+            cover_image_url = :coverLetterUrl,
+            phone = :phone,
+            email = :email,
+            open_time = :openTime,
+            close_time = :closeTime,
+            total_capacity = :totalCapacity,
+            charge_fee = :chargeFee,
+            updated_at = NOW()
+        WHERE id = :storeId
+          AND is_active = true
+        """, nativeQuery = true)
+        int updateStoreByStaff(
+                @Param("storeId") UUID storeId,
+                @Param("storeName") String storeName,
+                @Param("description") String description,
+                @Param("address") String address,
+                @Param("coverLetterUrl") String coverLetterUrl,
+                @Param("phone") String phone,
+                @Param("email") String email,
+                @Param("openTime") LocalTime openTime,
+                @Param("closeTime") LocalTime closeTime,
+                @Param("totalCapacity") int totalCapacity,
+                @Param("chargeFee") double chargeFee
+        );
 }

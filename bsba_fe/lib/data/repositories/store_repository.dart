@@ -62,4 +62,12 @@ class StoreRepository {
     }
     return storeService.getStoreByStaffId(staffId);
   }
+
+  Future<StaffStore> updateStaffStore(StaffStoreUpdateRequest request) {
+    final storeService = _storeService;
+    if (storeService == null) {
+      throw StateError('StoreService is required to update a staff store.');
+    }
+    return storeService.updateStaffStore(request);
+  }
 }

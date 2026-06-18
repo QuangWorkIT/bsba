@@ -21,13 +21,21 @@ class SaveChangesButton extends StatelessWidget {
                 final saved = await context
                     .read<StoreProfileViewModel>()
                     .save();
-                if (!context.mounted || !saved) {
+                if (!context.mounted) {
+                  return;
+                }
+                final latestViewModel = context.read<StoreProfileViewModel>();
+                if (!saved) {
+                  final message = latestViewModel.errorMessage;
+                  if (message != null && message.isNotEmpty) {
+                    messenger.showSnackBar(SnackBar(content: Text(message)));
+                  }
                   return;
                 }
                 messenger.showSnackBar(
                   SnackBar(
                     content: Text(
-                      viewModel.isAddingStore
+                      latestViewModel.isAddingStore
                           ? 'Store profile ready to create'
                           : 'Store profile saved',
                     ),

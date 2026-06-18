@@ -88,12 +88,48 @@ class StoreProfileViewModel extends ChangeNotifier {
       return false;
     }
 
+    final store = _store;
+    if (store == null) {
+      _errorMessage = 'Load an existing store before saving changes.';
+      notifyListeners();
+      return false;
+    }
+
     _isSaving = true;
+    _errorMessage = null;
     notifyListeners();
-    await Future<void>.delayed(const Duration(milliseconds: 450));
-    _isSaving = false;
-    notifyListeners();
-    return true;
+
+    try {
+      final updatedStore = await repository.updateStaffStore(
+        StaffStoreUpdateRequest(
+          staffId: staffId,
+          storeId: store.id,
+          storeName: storeNameController.text.trim(),
+          description: descriptionController.text.trim(),
+          address: addressController.text.trim(),
+          coverLetterUrl: coverLetterUrl,
+          phone: phoneController.text.trim(),
+          email: emailController.text.trim(),
+          openTime: _requestTime(openTimeController.text),
+          closeTime: _requestTime(closeTimeController.text),
+          totalCapacity: int.parse(capacityController.text.trim()),
+          chargeFee: double.parse(chargeController.text.trim()),
+        ),
+      );
+      _store = updatedStore;
+      _populateForm(updatedStore);
+      _status = StoreProfileStatus.loaded;
+      return true;
+    } on ApiException catch (error) {
+      _errorMessage = error.message;
+      return false;
+    } catch (_) {
+      _errorMessage = 'Unable to save store profile. Please try again.';
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
   }
 
   void _populateForm(StaffStore store) {
@@ -137,6 +173,15 @@ class StoreProfileViewModel extends ChangeNotifier {
       return value.toStringAsFixed(0);
     }
     return value.toStringAsFixed(2);
+  }
+
+  String _requestTime(String value) {
+    final trimmed = value.trim();
+    final parts = trimmed.split(':');
+    if (parts.length == 2) {
+      return '$trimmed:00';
+    }
+    return trimmed;
   }
 
   @override
