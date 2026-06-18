@@ -8,6 +8,8 @@ class SaveChangesButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<StoreProfileViewModel>();
+    final idleLabel = viewModel.isAddingStore ? 'Create Store' : 'Save Changes';
+    final busyLabel = viewModel.isAddingStore ? 'Creating...' : 'Saving...';
 
     return SizedBox(
       height: 54,
@@ -16,12 +18,20 @@ class SaveChangesButton extends StatelessWidget {
             ? null
             : () async {
                 final messenger = ScaffoldMessenger.of(context);
-                final saved = await context.read<StoreProfileViewModel>().save();
+                final saved = await context
+                    .read<StoreProfileViewModel>()
+                    .save();
                 if (!context.mounted || !saved) {
                   return;
                 }
                 messenger.showSnackBar(
-                  const SnackBar(content: Text('Store profile saved')),
+                  SnackBar(
+                    content: Text(
+                      viewModel.isAddingStore
+                          ? 'Store profile ready to create'
+                          : 'Store profile saved',
+                    ),
+                  ),
                 );
               },
         icon: viewModel.isSaving
@@ -31,7 +41,7 @@ class SaveChangesButton extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.save_outlined, size: 18),
-        label: Text(viewModel.isSaving ? 'Saving...' : 'Save Changes'),
+        label: Text(viewModel.isSaving ? busyLabel : idleLabel),
       ),
     );
   }

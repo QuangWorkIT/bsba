@@ -1,6 +1,7 @@
 package com.be.bsba.repository;
 
 import com.be.bsba.dto.projection.NearbyStoreProjection;
+import com.be.bsba.dto.response.EditStoreResponse;
 import com.be.bsba.entity.Store;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -90,4 +91,24 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
                 @Param("address") String address
         );
 
+        @Query("""
+        SELECT new com.be.bsba.dto.response.EditStoreResponse(
+            CAST(s.id AS string),
+            s.name,
+            s.description,
+            s.address,
+            s.coverImageUrl,
+            s.phone,
+            s.email,
+            s.openTime,
+            s.closeTime,
+            s.totalCapacity,
+            s.chargeFee
+        )
+        FROM StoreStaff ss
+        JOIN ss.store s
+        WHERE ss.staff.id = :staffId
+          AND s.isActive = true
+        """)
+        EditStoreResponse getStoreDetailByStaffId(@Param("staffId") UUID staffId);
 }

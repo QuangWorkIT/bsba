@@ -98,6 +98,16 @@ public class StoreServiceImpl implements StoreService, IStoreService {
                 .build();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public EditStoreResponse getStoreDetailByStaffId(UUID staffId) {
+        EditStoreResponse storeDetail = storeRepository.getStoreDetailByStaffId(staffId);
+        if (storeDetail == null) {
+            throw new ResourceNotFoundException("Staff is not assigned to any active store: " + staffId);
+        }
+        return storeDetail;
+    }
+
     // ── Mapping helpers ──────────────────────────────────────────────
 
     private StoreImageDto toStoreImageDto(StoreImage image) {

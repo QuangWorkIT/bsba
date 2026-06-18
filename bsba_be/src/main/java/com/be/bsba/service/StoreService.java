@@ -1,5 +1,6 @@
 package com.be.bsba.service;
 
+import com.be.bsba.dto.response.EditStoreResponse;
 import com.be.bsba.dto.response.StoreDetailResponse;
 
 import java.util.UUID;
@@ -20,4 +21,5 @@ public interface StoreService {
      * @return the store detail response
      */
     StoreDetailResponse getStoreDetail(UUID storeId, UUID currentUserId);
+    EditStoreResponse getStoreDetailByStaffId(UUID staffId);
 }

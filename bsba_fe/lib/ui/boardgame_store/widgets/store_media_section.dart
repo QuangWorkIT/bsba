@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:project/ui/boardgame_store/store_viewmodel.dart';
 import 'package:project/ui/boardgame_store/widgets/media_image_card.dart';
 import 'package:project/ui/boardgame_store/widgets/section_title.dart';
 import 'package:project/ui/boardgame_store/widgets/store_feedback.dart';
@@ -9,6 +11,8 @@ class StoreMediaSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<StoreProfileViewModel>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -27,6 +31,7 @@ class StoreMediaSection extends StatelessWidget {
         MediaImageCard(
           height: 192,
           imagePath: 'assets/images/booking/booking_room_dragon.png',
+          imageUrl: viewModel.coverLetterUrl,
           overlay: FilledButton.tonalIcon(
             onPressed: () =>
                 showStoreAction(context, 'Cover photo picker opened'),

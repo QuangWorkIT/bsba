@@ -1,6 +1,7 @@
 package com.be.bsba.controller;
 
 import com.be.bsba.dto.response.ApiResponse;
+import com.be.bsba.dto.response.EditStoreResponse;
 import com.be.bsba.dto.response.StoreDetailResponse;
 import com.be.bsba.service.StoreService;
 import lombok.RequiredArgsConstructor;
@@ -23,5 +24,13 @@ public class StoreController {
     ) {
         StoreDetailResponse detail = storeService.getStoreDetail(id, userId);
         return ResponseEntity.ok(ApiResponse.success(detail, "Success"));
+    }
+
+    @GetMapping("/staff/{staffId}")
+    public ResponseEntity<ApiResponse<EditStoreResponse>> getStoreDetailByStaffId(
+            @PathVariable UUID staffId
+    ) {
+        EditStoreResponse detail = storeService.getStoreDetailByStaffId(staffId);
+        return ResponseEntity.ok(ApiResponse.success(detail, "Find store by staff id success"));
     }
 }
