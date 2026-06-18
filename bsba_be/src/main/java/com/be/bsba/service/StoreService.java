@@ -2,6 +2,7 @@ package com.be.bsba.service;
 
 import com.be.bsba.dto.response.StoreDetailResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface StoreService {
@@ -20,4 +21,6 @@ public interface StoreService {
      * @return the store detail response
      */
     StoreDetailResponse getStoreDetail(UUID storeId, UUID currentUserId);
+
+    List<com.be.bsba.dto.response.BoardGameDto> getGamesForStaffStore(UUID staffId);
 }

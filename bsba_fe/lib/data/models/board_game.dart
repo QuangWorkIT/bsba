@@ -9,6 +9,7 @@ class BoardGame {
   final double rentalPrice;
   final int? playTimeMinutes;
   final String? description;
+  final int? stock;
 
   const BoardGame({
     required this.id,
@@ -21,6 +22,7 @@ class BoardGame {
     required this.rentalPrice,
     this.playTimeMinutes,
     this.description,
+    this.stock,
   });
 
   String get playerRange => '$minPlayers–$maxPlayers players';
@@ -50,6 +52,7 @@ class BoardGame {
       rentalPrice: (json['rentalPrice'] as num?)?.toDouble() ?? 0.0,
       playTimeMinutes: json['playTimeMinutes'],
       description: json['description'],
+      stock: json['quantity'],
     );
   }
 
@@ -64,6 +67,7 @@ class BoardGame {
     double? rentalPrice,
     int? playTimeMinutes,
     String? description,
+    int? stock,
   }) {
     return BoardGame(
       id: id ?? this.id,
@@ -76,6 +80,7 @@ class BoardGame {
       rentalPrice: rentalPrice ?? this.rentalPrice,
       playTimeMinutes: playTimeMinutes ?? this.playTimeMinutes,
       description: description ?? this.description,
+      stock: stock ?? this.stock,
     );
   }
 
