@@ -3,6 +3,8 @@ import 'package:project/ui/boardgame_store/store_screen.dart';
 import 'package:project/ui/dashboard/staff_dashboard.dart';
 import 'package:project/ui/dashboard/templates/staff_chat_template.dart';
 import 'package:project/ui/dashboard/templates/staff_games_template.dart';
+import 'package:project/ui/boardgames/staff_games.dart';
+import 'package:project/ui/dashboard/templates/staff_store_template.dart';
 import 'package:project/ui/shared/staff_dashboard_header.dart';
 import 'package:project/ui/dashboard/widgets/staff_dashboard_tokens.dart';
 import 'package:project/ui/shared/staff_navigation.dart';
@@ -27,6 +29,8 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
       StaffDashboard(),
       StoreScreen(),
       StaffGamesTemplate(),
+      StaffStoreTemplate(),
+      StaffGamesScreen(),
       StaffChatTemplate(),
     ];
 

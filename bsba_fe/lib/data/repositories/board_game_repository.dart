@@ -11,6 +11,10 @@ class BoardGameRepository {
     return await _service.getAllBoardGames();
   }
 
+  Future<List<BoardGame>> fetchStaffGames() async {
+    return await _service.getStaffBoardGames();
+  }
+
   Future<BoardGame> fetchGameById(String id) async {
     return await _service.getBoardGameById(id);
   }
