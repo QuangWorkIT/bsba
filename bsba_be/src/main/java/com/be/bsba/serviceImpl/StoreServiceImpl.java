@@ -26,6 +26,7 @@ public class StoreServiceImpl implements StoreService, IStoreService {
     private final StoreTimeSlotRepository storeTimeSlotRepository;
     private final ReviewRepository reviewRepository;
     private final FavoriteStoreRepository favoriteStoreRepository;
+    private final StoreStaffRepository storeStaffRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -176,6 +177,21 @@ public class StoreServiceImpl implements StoreService, IStoreService {
             return null;
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BoardGameDto> getGamesForStaffStore(UUID staffId) {
+        List<UUID> storeIds = storeStaffRepository.findStoreIdsByStaffId(staffId);
+        if (storeIds.isEmpty()) {
+            throw new ResourceNotFoundException("No store found for staff id: " + staffId);
+        }
+        UUID storeId = storeIds.get(0); // Assuming one store per staff
+        return storeBoardGameRepository.findByStoreId(storeId).stream()
+                .map(this::toBoardGameDto)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<NearbyStoreProjection> findNearbyStores(double lat, double lng, double radiusKm) {

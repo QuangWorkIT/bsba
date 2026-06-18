@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project/ui/dashboard/staff_dashboard.dart';
 import 'package:project/ui/dashboard/templates/staff_chat_template.dart';
-import 'package:project/ui/dashboard/templates/staff_games_template.dart';
+import 'package:project/ui/boardgames/staff_games.dart';
 import 'package:project/ui/dashboard/templates/staff_store_template.dart';
 import 'package:project/ui/shared/staff_dashboard_header.dart';
 import 'package:project/ui/dashboard/widgets/staff_dashboard_tokens.dart';
@@ -26,7 +26,7 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
     const screens = <Widget>[
       StaffDashboard(),
       StaffStoreTemplate(),
-      StaffGamesTemplate(),
+      StaffGamesScreen(),
       StaffChatTemplate(),
     ];
 
