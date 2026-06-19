@@ -5,7 +5,7 @@ import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/chat_socket_service.dart';
 import 'package:project/data/services/presence_service.dart';
 import 'package:project/ui/dashboard/staff_dashboard.dart';
-import 'package:project/ui/dashboard/templates/staff_chat_template.dart';
+import 'package:project/ui/inbox/widgets/staff_chat_inbox.dart';
 import 'package:project/ui/boardgames/staff_games.dart';
 import 'package:project/ui/dashboard/templates/staff_store_template.dart';
 import 'package:project/ui/presence/presence_viewmodel.dart';
@@ -33,7 +33,7 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
       StaffDashboard(),
       StoreScreen(),
       StaffGamesScreen(),
-      StaffChatTemplate(),
+      StaffChatInbox(),
     ];
 
     return ChangeNotifierProvider(
