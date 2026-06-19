@@ -25,73 +25,67 @@ class StaffBooking {
     this.when = BookingWhen.today,
   });
 
-  /// Sample data mirroring the Figma frame, so the screen renders fully before a
-  /// real API is wired. Swap this out for a repository/service later.
-  static List<StaffBooking> sample() => const [
-        StaffBooking(
-          id: 'b1',
-          customerName: 'Jonathan Wick',
-          timeRange: '14:00 - 16:00',
-          partySize: 4,
-          tableInfo: 'Table 12 (Premium Zone)',
-          status: BookingStatus.confirmed,
-        ),
-        StaffBooking(
-          id: 'b2',
-          customerName: 'Sarah Connor',
-          timeRange: '14:30 - 15:30',
-          partySize: 2,
-          tableInfo: 'Needs Table Assignment',
-          status: BookingStatus.pending,
-        ),
-        StaffBooking(
-          id: 'b3',
-          customerName: 'Bruce Wayne',
-          timeRange: '15:00 - 18:00',
-          partySize: 8,
-          tableInfo: 'The Library (Private Room)',
-          status: BookingStatus.confirmed,
-        ),
-        StaffBooking(
-          id: 'b4',
-          customerName: 'Ellen Ripley',
-          timeRange: '16:30 - 18:30',
-          partySize: 3,
-          tableInfo: 'Table 04',
-          status: BookingStatus.confirmed,
-        ),
-        StaffBooking(
-          id: 'b5',
-          customerName: 'Peter Parker',
-          timeRange: '17:00 - 19:00',
-          partySize: 5,
-          tableInfo: 'Awaiting deposit payment',
-          status: BookingStatus.pending,
-        ),
-        StaffBooking(
-          id: 'b6',
-          customerName: 'Diana Prince',
-          timeRange: 'Tomorrow · 10:00 - 12:00',
-          partySize: 6,
-          tableInfo: 'Table 08',
-          status: BookingStatus.confirmed,
-          when: BookingWhen.upcoming,
-        ),
-        StaffBooking(
-          id: 'b7',
-          customerName: 'Clark Kent',
-          timeRange: '09:00 - 11:00',
-          partySize: 2,
-          tableInfo: 'Table 02',
-          status: BookingStatus.completed,
-        ),
-        StaffBooking(
-          id: 'b8',
-          customerName: 'Tony Stark',
-          timeRange: '12:00 - 13:00',
-          partySize: 4,
-          tableInfo: 'Table 10',
-          status: BookingStatus.cancelled,
-        ),
-      ];
+  /// Maps a backend `BookingResponse` into the UI model: builds the "14:00 -
+  /// 16:00" range from the slot times, falls back to the store name for the
+  /// "table" line, and derives today/upcoming from the slot date.
+  factory StaffBooking.fromJson(Map<String, dynamic> json) {
+    final start = _hhmm(json['startTime'] as String?);
+    final end = _hhmm(json['endTime'] as String?);
+    final timeRange =
+        (start.isEmpty && end.isEmpty) ? 'No time set' : '$start - $end';
+
+    final note = (json['note'] as String?)?.trim();
+    final storeName = (json['storeName'] as String?)?.trim();
+    final tableInfo = (note != null && note.isNotEmpty)
+        ? note
+        : (storeName != null && storeName.isNotEmpty ? storeName : '—');
+
+    final slotDate = DateTime.tryParse((json['slotDate'] as String?) ?? '');
+
+    return StaffBooking(
+      id: json['id'].toString(),
+      customerName: (json['customerName'] as String?)?.trim().isNotEmpty == true
+          ? (json['customerName'] as String).trim()
+          : 'Guest',
+      timeRange: timeRange,
+      partySize: (json['participantCount'] as num?)?.toInt() ?? 0,
+      tableInfo: tableInfo,
+      status: _parseStatus(json['status'] as String?),
+      when: _deriveWhen(slotDate),
+    );
+  }
+
+  /// "14:00:00" → "14:00"; tolerates nulls and short strings.
+  static String _hhmm(String? time) {
+    if (time == null || time.isEmpty) return '';
+    final parts = time.split(':');
+    if (parts.length < 2) return time;
+    return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
+  }
+
+  /// Backend has 6 statuses; collapse them into the 4 the UI shows.
+  static BookingStatus _parseStatus(String? raw) {
+    switch ((raw ?? '').toUpperCase()) {
+      case 'PENDING':
+        return BookingStatus.pending;
+      case 'CONFIRMED':
+      case 'CHECKED_IN':
+        return BookingStatus.confirmed;
+      case 'COMPLETED':
+        return BookingStatus.completed;
+      case 'CANCELLED':
+      case 'NO_SHOW':
+        return BookingStatus.cancelled;
+      default:
+        return BookingStatus.pending;
+    }
+  }
+
+  static BookingWhen _deriveWhen(DateTime? slotDate) {
+    if (slotDate == null) return BookingWhen.today;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(slotDate.year, slotDate.month, slotDate.day);
+    return day.isAfter(today) ? BookingWhen.upcoming : BookingWhen.today;
+  }
 }

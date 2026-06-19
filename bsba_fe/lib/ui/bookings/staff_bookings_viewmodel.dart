@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/staff_booking.dart';
+import '../../data/repositories/booking_repository.dart';
 
 /// The chips above the booking list. [all] shows everything, [upcoming] filters
 /// by time, the rest filter by [BookingStatus].
@@ -17,17 +18,39 @@ extension BookingFilterLabel on BookingFilter {
       };
 }
 
-/// Holds the (currently sample) bookings and the active filter for the staff
-/// "Manage Bookings" screen.
+/// Loads the staff's bookings from the API and holds the active filter for the
+/// "Manage Bookings" screen. Filtering is done client-side over the loaded list.
 class StaffBookingsViewModel extends ChangeNotifier {
-  StaffBookingsViewModel() {
-    _all = StaffBooking.sample();
-  }
+  final BookingRepository _repository;
+
+  StaffBookingsViewModel(this._repository);
 
   List<StaffBooking> _all = const [];
   BookingFilter _filter = BookingFilter.all;
+  bool _isLoading = false;
+  String? _error;
 
   BookingFilter get filter => _filter;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+  bool get isEmpty => !_isLoading && _error == null && bookings.isEmpty;
+
+  /// Initial REST load. Surfaces a friendly message on failure.
+  Future<void> load() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _all = await _repository.fetchBookings();
+    } catch (e) {
+      _error = 'Failed to load bookings. Make sure the backend is running.';
+      debugPrint('Error loading bookings: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   /// Bookings matching the active filter.
   List<StaffBooking> get bookings {
