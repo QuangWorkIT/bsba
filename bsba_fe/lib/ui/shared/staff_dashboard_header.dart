@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../dashboard/widgets/staff_dashboard_tokens.dart';
 
 class StaffDashboardHeader extends StatelessWidget implements PreferredSizeWidget {
-  const StaffDashboardHeader({super.key});
+  const StaffDashboardHeader({super.key, this.title = 'BoardNest'});
+
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +17,9 @@ class StaffDashboardHeader extends StatelessWidget implements PreferredSizeWidge
         onPressed: () {},
       ),
       titleSpacing: 0,
-      title: const Text(
-        'BoardNest',
-        style: TextStyle(
+      title: Text(
+        title,
+        style: const TextStyle(
           color: StaffDashboardColors.primary,
           fontSize: 24,
           fontWeight: FontWeight.w700,
