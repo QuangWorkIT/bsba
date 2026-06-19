@@ -9,6 +9,10 @@ class Conversation {
   final String? lastMessagePreview;
   final DateTime? lastMessageAt;
   final int unreadCount;
+
+  /// User ids of the store's staff — used so a customer can see the store as
+  /// online when any of its staff is connected.
+  final List<String> staffUserIds;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -23,6 +27,7 @@ class Conversation {
     this.lastMessagePreview,
     this.lastMessageAt,
     this.unreadCount = 0,
+    this.staffUserIds = const [],
     this.createdAt,
     this.updatedAt,
   });
@@ -103,6 +108,10 @@ class Conversation {
       lastMessagePreview: json['lastMessagePreview'] as String?,
       lastMessageAt: parse(json['lastMessageAt'] as String?),
       unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
+      staffUserIds: (json['staffUserIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
       createdAt: parse(json['createdAt'] as String?),
       updatedAt: parse(json['updatedAt'] as String?),
     );
@@ -120,6 +129,7 @@ class Conversation {
       lastMessagePreview: lastMessagePreview ?? this.lastMessagePreview,
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
       unreadCount: unreadCount ?? this.unreadCount,
+      staffUserIds: staffUserIds,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

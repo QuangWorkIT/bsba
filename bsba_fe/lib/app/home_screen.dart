@@ -13,6 +13,8 @@ import 'package:project/ui/map/map_screen.dart';
 import 'package:project/ui/booking/booking_screen.dart';
 import 'package:project/ui/inbox/inbox_screen.dart';
 import 'package:project/ui/inbox/unread_badge_viewmodel.dart';
+import 'package:project/ui/presence/presence_viewmodel.dart';
+import 'package:project/data/services/presence_service.dart';
 import 'package:project/ui/profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -45,11 +47,21 @@ class _HomeScreenState extends State<HomeScreen> {
       const ProfileScreen(),
     ];
 
-    return ChangeNotifierProvider(
-      create: (_) => UnreadBadgeViewModel(
-        ChatRepository(ChatService(ApiClient())),
-        ChatSocketService(),
-      )..start(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => UnreadBadgeViewModel(
+            ChatRepository(ChatService(ApiClient())),
+            ChatSocketService(),
+          )..start(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => PresenceViewModel(
+            PresenceService(ApiClient()),
+            ChatSocketService(),
+          )..start(),
+        ),
+      ],
       child: Scaffold(
         appBar: _selectedIndex == 2 ? null : const BoardNestAppBar(),
         body: IndexedStack(index: _selectedIndex, children: screens),

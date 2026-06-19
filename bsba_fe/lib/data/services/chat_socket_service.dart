@@ -82,6 +82,17 @@ class ChatSocketService {
     _client!.activate();
   }
 
+  /// Send a JSON payload to a STOMP destination (e.g. `/app/presence`).
+  /// No-op until connected. The content-type lets Spring bind the body to a
+  /// `Map`/DTO on the `@MessageMapping` handler.
+  void send(String destination, Object body) {
+    _client?.send(
+      destination: destination,
+      body: jsonEncode(body),
+      headers: {'content-type': 'application/json'},
+    );
+  }
+
   void _activate(_Subscription sub) {
     _client?.subscribe(
       destination: sub.destination,

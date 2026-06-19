@@ -8,6 +8,7 @@ import 'package:project/data/services/chat_socket_service.dart';
 import 'package:project/ui/inbox/inbox_viewmodel.dart';
 import 'package:project/ui/inbox/widgets/chat_item.dart';
 import 'package:project/ui/inbox/widgets/chat_screen.dart';
+import 'package:project/ui/presence/presence_viewmodel.dart';
 
 class InboxContent extends StatelessWidget {
   const InboxContent({super.key});
@@ -87,6 +88,8 @@ class _InboxBody extends StatelessWidget {
     }
 
     final conversations = vm.conversations;
+    // The customer sees the store as online when any of its staff is connected.
+    final presence = context.watch<PresenceViewModel>();
 
     return RefreshIndicator(
       onRefresh: vm.loadConversations,
@@ -101,12 +104,17 @@ class _InboxBody extends StatelessWidget {
             draft: vm.draftFor(c.id),
             time: c.relativeLabel,
             unreadCount: c.unreadCount,
+            isOnline: presence.anyOnline(c.staffUserIds),
             onTap: () async {
               await Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => ChatScreen(
-                    conversationId: c.id,
-                    name: c.displayNameFor(vm.role),
+                  builder: (_) => ChangeNotifierProvider<PresenceViewModel>.value(
+                    value: context.read<PresenceViewModel>(),
+                    child: ChatScreen(
+                      conversationId: c.id,
+                      name: c.displayNameFor(vm.role),
+                      presenceUserIds: c.staffUserIds,
+                    ),
                   ),
                 ),
               );

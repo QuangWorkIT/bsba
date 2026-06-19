@@ -9,6 +9,7 @@ import 'package:project/data/services/chat_socket_service.dart';
 import 'package:project/ui/dashboard/widgets/staff_dashboard_tokens.dart';
 import 'package:project/ui/inbox/inbox_viewmodel.dart';
 import 'package:project/ui/inbox/widgets/chat_screen.dart';
+import 'package:project/ui/presence/presence_viewmodel.dart';
 
 /// Staff-facing conversation inbox: a search field over a list of conversation
 /// cards (avatar + last message + unread badge). Reuses [InboxViewModel], so it
@@ -108,9 +109,15 @@ class _StaffChatBody extends StatelessWidget {
             onTap: () async {
               await Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => ChatScreen(
-                    conversationId: c.id,
-                    name: c.displayNameFor(vm.role),
+                  builder: (_) => ChangeNotifierProvider<PresenceViewModel>.value(
+                    value: context.read<PresenceViewModel>(),
+                    child: ChatScreen(
+                      conversationId: c.id,
+                      name: c.displayNameFor(vm.role),
+                      presenceUserIds: [
+                        if (c.customerId != null) c.customerId!,
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -139,6 +146,13 @@ class _ConversationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUnread = conversation.hasUnread;
     final name = conversation.displayNameFor(role);
+
+    // Staff watch the customer's presence; a customer would watch the store's staff.
+    final presence = context.watch<PresenceViewModel>();
+    final isStaffView = role == 'STAFF' || role == 'ADMIN';
+    final isOnline = isStaffView
+        ? presence.isOnline(conversation.customerId)
+        : presence.anyOnline(conversation.staffUserIds);
 
     return Material(
       color: Colors.white,
@@ -173,7 +187,7 @@ class _ConversationCard extends StatelessWidget {
                           _ConversationAvatar(
                             name: name,
                             imageUrl: conversation.avatarUrlFor(role),
-                            showOnlineDot: isUnread,
+                            isOnline: isOnline,
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -259,12 +273,12 @@ class _ConversationAvatar extends StatelessWidget {
   const _ConversationAvatar({
     required this.name,
     required this.imageUrl,
-    this.showOnlineDot = false,
+    this.isOnline = false,
   });
 
   final String name;
   final String imageUrl;
-  final bool showOnlineDot;
+  final bool isOnline;
 
   @override
   Widget build(BuildContext context) {
@@ -286,10 +300,7 @@ class _ConversationAvatar extends StatelessWidget {
             ),
     );
 
-    if (!showOnlineDot) return avatar;
-
-    // Decorative presence dot — there is no real online status in the data yet,
-    // so it simply flags threads that still have unread messages.
+    // Always show the dot: green when the other party is connected, grey when not.
     return Stack(
       children: [
         avatar,
@@ -300,7 +311,9 @@ class _ConversationAvatar extends StatelessWidget {
             width: 14,
             height: 14,
             decoration: BoxDecoration(
-              color: const Color(0xFF22C55E),
+              color: isOnline
+                  ? const Color(0xFF22C55E)
+                  : const Color(0xFF9CA3AF),
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 2),
             ),

@@ -11,18 +11,22 @@ import 'package:project/ui/inbox/widgets/chat/chat_header.dart';
 import 'package:project/ui/inbox/widgets/chat/chat_input_area.dart';
 import 'package:project/ui/inbox/widgets/chat/chat_staff_message.dart';
 import 'package:project/ui/inbox/widgets/chat/chat_user_message.dart';
+import 'package:project/ui/presence/presence_viewmodel.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({
     super.key,
     required this.conversationId,
     required this.name,
-    this.subtitle = 'Online',
+    this.presenceUserIds = const [],
   });
 
   final String conversationId;
   final String name;
-  final String subtitle;
+
+  /// The other party's user id(s); the header shows them online/offline.
+  /// Staff pass the customer's id; a customer passes the store's staff ids.
+  final List<String> presenceUserIds;
 
   @override
   Widget build(BuildContext context) {
@@ -32,25 +36,40 @@ class ChatScreen extends StatelessWidget {
         ChatSocketService(),
         conversationId: conversationId,
       )..start(),
-      child: _ChatView(name: name, subtitle: subtitle),
+      child: _ChatView(name: name, presenceUserIds: presenceUserIds),
     );
   }
 }
 
 class _ChatView extends StatelessWidget {
-  const _ChatView({required this.name, required this.subtitle});
+  const _ChatView({required this.name, required this.presenceUserIds});
 
   final String name;
-  final String subtitle;
+  final List<String> presenceUserIds;
 
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<ChatViewModel>();
-    final statusSubtitle = vm.isLive ? subtitle : 'Connecting…';
+
+    // Presence is provided by the inbox/home above this route; tolerate its
+    // absence so the chat still opens if a caller didn't supply it.
+    PresenceViewModel? presence;
+    try {
+      presence = context.watch<PresenceViewModel>();
+    } catch (_) {
+      presence = null;
+    }
+    final isOnline = presence?.anyOnline(presenceUserIds) ?? false;
+    final statusSubtitle =
+        !vm.isLive ? 'Connecting…' : (isOnline ? 'Online' : 'Offline');
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F3FC),
-      appBar: ChatHeader(name: name, subtitle: statusSubtitle),
+      appBar: ChatHeader(
+        name: name,
+        subtitle: statusSubtitle,
+        isOnline: isOnline,
+      ),
       body: Column(
         children: [
           Expanded(child: _MessageList(vm: vm)),
