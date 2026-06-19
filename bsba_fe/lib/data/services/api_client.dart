@@ -17,7 +17,7 @@ class ApiException implements Exception {
 }
 
 class ApiClient {
-  static const String baseUrl = 'http://192.168.101.114:8080/api/v1';
+  static const String baseUrl = 'http://172.23.208.114:8080/api/v1';
 
   // ws://<host>:<port>/ws derived from baseUrl, so there's only one place to edit.
   static final String wsUrl = baseUrl
