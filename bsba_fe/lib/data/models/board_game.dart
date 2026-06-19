@@ -14,6 +14,7 @@ class BoardGame {
   final int? quantity; // total stock at store
   final int? availableQuantity;
   final bool? isAvailable;
+  final int? stock;
 
   const BoardGame({
     required this.id,
@@ -31,6 +32,7 @@ class BoardGame {
     this.quantity,
     this.availableQuantity,
     this.isAvailable,
+    this.stock,
   });
 
   String get playerRange => '$minPlayers–$maxPlayers players';
@@ -65,6 +67,7 @@ class BoardGame {
       quantity: json['quantity'] as int?,
       availableQuantity: json['availableQuantity'] as int?,
       isAvailable: json['isAvailable'] as bool?,
+      stock: json['quantity'],
     );
   }
 
@@ -84,6 +87,7 @@ class BoardGame {
     int? quantity,
     int? availableQuantity,
     bool? isAvailable,
+    int? stock,
   }) {
     return BoardGame(
       id: id ?? this.id,
@@ -101,6 +105,7 @@ class BoardGame {
       quantity: quantity ?? this.quantity,
       availableQuantity: availableQuantity ?? this.availableQuantity,
       isAvailable: isAvailable ?? this.isAvailable,
+      stock: stock ?? this.stock,
     );
   }
 
