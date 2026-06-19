@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/ui/boardgame_store/store_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/chat_socket_service.dart';
@@ -30,7 +31,7 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
   Widget build(BuildContext context) {
     const screens = <Widget>[
       StaffDashboard(),
-      StaffStoreTemplate(),
+      StoreScreen(),
       StaffGamesScreen(),
       StaffChatTemplate(),
     ];

@@ -35,11 +35,11 @@ INSERT INTO stores (
     id, name, description, address, latitude, longitude,
     phone, email, cover_image_url,
     open_time, close_time,
-    total_capacity, rating_avg, is_active
+    total_capacity, charge_fee, rating_avg, is_active
 ) VALUES
-      ('b0000000-0000-0000-0000-000000000001', 'BoardNest Cau Giay', 'Cozy board-game cafe near the university with 40+ titles and great coffee.', '123 Cau Giay, Ha Noi', 21.0313000, 105.7964000, '0241111001', 'caugiay@boardnest.com', 'https://picsum.photos/seed/store1/800/400', '08:00:00', '22:00:00', 60, 4.50, TRUE),
-      ('b0000000-0000-0000-0000-000000000002', 'BoardNest District 1', 'Spacious downtown venue, perfect for big groups and tournaments.', '45 Le Loi, District 1, HCMC', 10.7725000, 106.6980000, '0282222002', 'd1@boardnest.com', 'https://picsum.photos/seed/store2/800/400', '09:00:00', '23:00:00', 80, 4.20, TRUE),
-      ('b0000000-0000-0000-0000-000000000003', 'BoardNest Da Nang', 'Beachside game lounge with a quiet strategy room and a party zone.', '88 Bach Dang, Da Nang', 16.0678000, 108.2208000, '0236333003', 'danang@boardnest.com', 'https://picsum.photos/seed/store3/800/400', '10:00:00', '22:00:00', 50, 4.80, TRUE)
+      ('b0000000-0000-0000-0000-000000000001', 'BoardNest Cau Giay', 'Cozy board-game cafe near the university with 40+ titles and great coffee.', '123 Cau Giay, Ha Noi', 21.0313000, 105.7964000, '0241111001', 'caugiay@boardnest.com', 'https://picsum.photos/seed/store1/800/400', '08:00:00', '22:00:00', 60, 30000.0, 4.50, TRUE),
+      ('b0000000-0000-0000-0000-000000000002', 'BoardNest District 1', 'Spacious downtown venue, perfect for big groups and tournaments.', '45 Le Loi, District 1, HCMC', 10.7725000, 106.6980000, '0282222002', 'd1@boardnest.com', 'https://picsum.photos/seed/store2/800/400', '09:00:00', '23:00:00', 80, 45000.0, 4.20, TRUE),
+      ('b0000000-0000-0000-0000-000000000003', 'BoardNest Da Nang', 'Beachside game lounge with a quiet strategy room and a party zone.', '88 Bach Dang, Da Nang', 16.0678000, 108.2208000, '0236333003', 'danang@boardnest.com', 'https://picsum.photos/seed/store3/800/400', '10:00:00', '22:00:00', 50, 35000.0, 4.80, TRUE)
     ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------

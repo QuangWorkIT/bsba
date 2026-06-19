@@ -68,7 +68,7 @@ CREATE TABLE stores (
 
                         total_capacity INTEGER NOT NULL
                             CHECK (total_capacity > 0),
-
+                        charge_fee DOUBLE PRECISION DEFAULT 0.0,
                         rating_avg NUMERIC(3,2)
                                             DEFAULT 0
                             CHECK (rating_avg >= 0 AND rating_avg <= 5),

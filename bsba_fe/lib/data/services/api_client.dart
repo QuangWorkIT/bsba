@@ -73,6 +73,22 @@ class ApiClient {
     }
   }
 
+  Future<Map<String, dynamic>> put(String path, dynamic body) async {
+    try {
+      final uri = Uri.parse('$baseUrl$path');
+      final headers = await _headers();
+      final response = await _client.put(
+        uri,
+        headers: headers,
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint('[API_CLIENT] Exception in put($path): $e\n$stackTrace');
+      rethrow;
+    }
+  }
+
   Future<Map<String, dynamic>> patch(String path, [dynamic body]) async {
     try {
       final uri = Uri.parse('$baseUrl$path');
