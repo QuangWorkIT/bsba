@@ -99,7 +99,7 @@ class _InboxBody extends StatelessWidget {
             name: c.displayNameFor(vm.role),
             message: c.preview,
             draft: vm.draftFor(c.id),
-            time: c.timeLabel,
+            time: c.relativeLabel,
             unreadCount: c.unreadCount,
             onTap: () async {
               await Navigator.of(context).push(
@@ -131,10 +131,13 @@ class _SearchField extends StatelessWidget {
     return TextField(
       onChanged: onChanged,
       decoration: InputDecoration(
-        hintText: 'Search messages...',
+        hintText: 'Search',
         hintStyle: const TextStyle(color: Color(0xFFC1C6D5), fontSize: 14),
-        prefixIcon:
-            const Icon(Icons.search, color: Color(0xFF717785), size: 20),
+        prefixIcon: const Icon(
+          Icons.search,
+          color: Color(0xFF717785),
+          size: 20,
+        ),
         filled: true,
         fillColor: const Color(0xFFF1F3FC),
         isDense: true,
