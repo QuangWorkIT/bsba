@@ -57,6 +57,7 @@ class _StaffGamesScreenState extends State<StaffGamesScreen> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                     child: TextField(
+                      onChanged: _vm.setSearchQuery,
                       decoration: InputDecoration(
                         prefixIcon: const Icon(
                           Icons.search,
@@ -91,19 +92,21 @@ class _StaffGamesScreenState extends State<StaffGamesScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () {},
+                            onPressed: () => _showCategoryDialog(context),
                             icon: const Icon(
                               Icons.sort,
                               size: 18,
                               color: StaffDashboardColors.text,
                             ),
-                            label: const Text(
-                              'Category',
-                              style: TextStyle(
+                            label: Text(
+                              _vm.selectedCategory ?? 'Category',
+                              style: const TextStyle(
                                 color: StaffDashboardColors.text,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             style: OutlinedButton.styleFrom(
                               backgroundColor: const Color(0xFFF0F2F5),
@@ -120,7 +123,7 @@ class _StaffGamesScreenState extends State<StaffGamesScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () {},
+                            onPressed: () => _showSortDialog(context),
                             icon: const Icon(
                               Icons.filter_list,
                               size: 18,
@@ -155,15 +158,15 @@ class _StaffGamesScreenState extends State<StaffGamesScreen> {
                         ? const Center(child: CircularProgressIndicator())
                         : _vm.error != null
                             ? Center(child: Text(_vm.error!))
-                            : _vm.games.isEmpty
+                            : _vm.filteredAndSortedGames.isEmpty
                                 ? const Center(child: Text('No games found'))
                                 : ListView.separated(
                                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                                    itemCount: _vm.games.length,
+                                    itemCount: _vm.filteredAndSortedGames.length,
                                     separatorBuilder: (context, index) =>
                                         const SizedBox(height: 16),
                                     itemBuilder: (context, index) {
-                                      final game = _vm.games[index];
+                                      final game = _vm.filteredAndSortedGames[index];
                                       return _buildGameCard(game);
                                     },
                                   ),
@@ -173,6 +176,111 @@ class _StaffGamesScreenState extends State<StaffGamesScreen> {
             ),
           ),
         );
+      },
+    );
+  }
+
+  void _showCategoryDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return ListenableBuilder(
+          listenable: _vm,
+          builder: (context, _) {
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Filter by Category',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('All Categories'),
+                    trailing: _vm.selectedCategory == null
+                        ? const Icon(Icons.check, color: StaffDashboardColors.primary)
+                        : null,
+                    onTap: () {
+                      _vm.setCategory(null);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ..._vm.availableCategories.map((category) {
+                    return ListTile(
+                      title: Text(category),
+                      trailing: _vm.selectedCategory == category
+                          ? const Icon(Icons.check, color: StaffDashboardColors.primary)
+                          : null,
+                      onTap: () {
+                        _vm.setCategory(category);
+                        Navigator.pop(context);
+                      },
+                    );
+                  }),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showSortDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return ListenableBuilder(
+          listenable: _vm,
+          builder: (context, _) {
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Sort by',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  _buildSortOption(context, 'Name (A-Z)', SortOption.nameAsc),
+                  _buildSortOption(context, 'Name (Z-A)', SortOption.nameDesc),
+                  _buildSortOption(context, 'Stock (Low to High)', SortOption.stockAsc),
+                  _buildSortOption(context, 'Stock (High to Low)', SortOption.stockDesc),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSortOption(BuildContext context, String title, SortOption option) {
+    return ListTile(
+      title: Text(title),
+      trailing: _vm.sortOption == option
+          ? const Icon(Icons.check, color: StaffDashboardColors.primary)
+          : null,
+      onTap: () {
+        _vm.setSortOption(option);
+        Navigator.pop(context);
       },
     );
   }

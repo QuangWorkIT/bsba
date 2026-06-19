@@ -1,27 +1,28 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:project/data/models/map_store.dart';
+import 'package:project/data/models/staff_store.dart';
 import 'package:project/data/services/directions_service.dart';
 import 'package:project/data/services/map_service.dart';
+import 'package:project/data/services/store_service.dart';
 
 class StoreRepository {
   final MapService _service;
   final DirectionsService _directionsService;
+  final StoreService? _storeService;
 
   StoreRepository(
     this._service, [
     DirectionsService? directionsService,
-  ]) : _directionsService = directionsService ?? DirectionsService();
+    StoreService? storeService,
+  ]) : _directionsService = directionsService ?? DirectionsService(),
+       _storeService = storeService;
 
   Future<List<MapStore>> fetchNearbyStores({
     required double lat,
     required double lng,
     double radiusKm = 5,
   }) {
-    return _service.getNearbyStores(
-      lat: lat,
-      lng: lng,
-      radiusKm: radiusKm,
-    );
+    return _service.getNearbyStores(lat: lat, lng: lng, radiusKm: radiusKm);
   }
 
   Future<List<MapStore>> searchStores(String query) async {
@@ -41,8 +42,7 @@ class StoreRepository {
       }
     }
 
-    return byId.values.toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+    return byId.values.toList()..sort((a, b) => a.name.compareTo(b.name));
   }
 
   Future<List<LatLng>> fetchDrivingRoute({
@@ -53,5 +53,21 @@ class StoreRepository {
       origin: origin,
       destination: destination,
     );
+  }
+
+  Future<StaffStore> fetchStoreByStaffId(String staffId) {
+    final storeService = _storeService;
+    if (storeService == null) {
+      throw StateError('StoreService is required to fetch a staff store.');
+    }
+    return storeService.getStoreByStaffId(staffId);
+  }
+
+  Future<StaffStore> updateStaffStore(StaffStoreUpdateRequest request) {
+    final storeService = _storeService;
+    if (storeService == null) {
+      throw StateError('StoreService is required to update a staff store.');
+    }
+    return storeService.updateStaffStore(request);
   }
 }

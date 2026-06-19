@@ -17,4 +17,6 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT b FROM Booking b JOIN FETCH b.user WHERE b.id = :id")
     Optional<Booking> findByIdForUpdate(@Param("id") UUID id);
+
+    java.util.List<Booking> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
 }

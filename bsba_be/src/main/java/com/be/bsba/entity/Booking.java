@@ -49,4 +49,7 @@ public class Booking {
 
     @UpdateTimestamp
     private OffsetDateTime updatedAt;
+
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
+    private java.util.List<BookingGame> games;
 }

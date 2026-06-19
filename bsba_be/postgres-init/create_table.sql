@@ -68,7 +68,7 @@ CREATE TABLE stores (
 
                         total_capacity INTEGER NOT NULL
                             CHECK (total_capacity > 0),
-
+                        charge_fee DOUBLE PRECISION DEFAULT 0.0,
                         rating_avg NUMERIC(3,2)
                                             DEFAULT 0
                             CHECK (rating_avg >= 0 AND rating_avg <= 5),
@@ -199,7 +199,7 @@ CREATE TABLE store_time_slots (
                                   end_time TIME NOT NULL,
 
                                   status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE'
-                                      CHECK (status IN ('AVAILABLE', 'CLOSED', 'CANCELLED')),
+                                      CHECK (status IN ('AVAILABLE', 'PENDING', 'CONFIRMED', 'CLOSED', 'CANCELLED')),
 
                                   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 

@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface BoardGameService {
-    Page<BoardGameResponse> getAllBoardGames(Pageable pageable);
+    Page<BoardGameResponse> getAllBoardGames(UUID storeId, Pageable pageable);
     BoardGameResponse getBoardGameById(UUID id);
     BoardGameResponse createBoardGame(BoardGameRequest request);
     BoardGameResponse updateBoardGame(UUID id, BoardGameRequest request);

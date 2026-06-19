@@ -23,8 +23,10 @@ public class BoardGameController {
     private final com.be.bsba.repository.StoreStaffRepository storeStaffRepository;
 
     @GetMapping
-    public ApiResponse<Page<BoardGameResponse>> getAllBoardGames(Pageable pageable) {
-        Page<BoardGameResponse> games = boardGameService.getAllBoardGames(pageable);
+    public ApiResponse<Page<BoardGameResponse>> getAllBoardGames(
+            @RequestParam(required = false) UUID storeId,
+            Pageable pageable) {
+        Page<BoardGameResponse> games = boardGameService.getAllBoardGames(storeId, pageable);
         return ApiResponse.success(games, "Board games retrieved successfully");
     }
 
