@@ -41,14 +41,9 @@ public class SecurityConfig {
                         .authorizeHttpRequests(auth -> auth
                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                 .requestMatchers("/ws/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/map/**", "/api/v1/spaces/**", "/api/v1/stores/**", "/api/v1/board-games/**").permitAll()
                                 .requestMatchers(HttpMethod.POST,
                                         "/api/v1/payments/zalopay/callback",
                                         "/api/v1/payment/zalopay/callback").permitAll()
-                                // Cart and Booking endpoints use X-User-Id header fallback during development
-                                .requestMatchers("/api/v1/carts/**", "/api/v1/bookings/**").permitAll()
-                                // Payment/MoMo endpoints
-                                .requestMatchers("/api/v1/payments/**", "/api/v1/payment/**").permitAll()
                                 .anyRequest().authenticated()
                         )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
