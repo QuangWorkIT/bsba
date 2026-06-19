@@ -7,7 +7,6 @@ import 'package:project/data/services/presence_service.dart';
 import 'package:project/ui/dashboard/staff_dashboard.dart';
 import 'package:project/ui/inbox/widgets/staff_chat_inbox.dart';
 import 'package:project/ui/boardgames/staff_games.dart';
-import 'package:project/ui/dashboard/templates/staff_store_template.dart';
 import 'package:project/ui/presence/presence_viewmodel.dart';
 import 'package:project/ui/shared/staff_dashboard_header.dart';
 import 'package:project/ui/dashboard/widgets/staff_dashboard_tokens.dart';
