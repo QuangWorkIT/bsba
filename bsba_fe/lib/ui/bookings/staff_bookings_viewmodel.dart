@@ -42,7 +42,7 @@ class StaffBookingsViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _all = await _repository.fetchBookings();
+      _all = await _repository.fetchStaffBookings();
     } catch (e) {
       _error = 'Failed to load bookings. Make sure the backend is running.';
       debugPrint('Error loading bookings: $e');

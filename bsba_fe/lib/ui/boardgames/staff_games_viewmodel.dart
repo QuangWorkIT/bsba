@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:project/data/repositories/board_game_repository.dart';
 import 'package:project/ui/dashboard/widgets/staff_dashboard_tokens.dart';
 
+enum SortOption {
+  nameAsc,
+  nameDesc,
+  stockAsc,
+  stockDesc,
+}
+
 class GameItem {
   final String title;
   final String imageUrl;
@@ -49,11 +56,50 @@ class StaffGamesViewModel extends ChangeNotifier {
   bool _isLoading = true;
   String? _error;
 
+  String _searchQuery = '';
+  String? _selectedCategory;
+  SortOption _sortOption = SortOption.nameAsc;
+
   StaffGamesViewModel(this._repository);
 
   List<GameItem> get games => _games;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  String get searchQuery => _searchQuery;
+  String? get selectedCategory => _selectedCategory;
+  SortOption get sortOption => _sortOption;
+
+  List<String> get availableCategories {
+    final categories = _games.map((g) => g.tag).whereType<String>().toSet().toList();
+    categories.sort();
+    return categories;
+  }
+
+  List<GameItem> get filteredAndSortedGames {
+    var result = _games.where((game) {
+      final matchesSearch = game.title.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesCategory = _selectedCategory == null || game.tag == _selectedCategory;
+      return matchesSearch && matchesCategory;
+    }).toList();
+
+    switch (_sortOption) {
+      case SortOption.nameAsc:
+        result.sort((a, b) => a.title.compareTo(b.title));
+        break;
+      case SortOption.nameDesc:
+        result.sort((a, b) => b.title.compareTo(a.title));
+        break;
+      case SortOption.stockAsc:
+        result.sort((a, b) => a.stock.compareTo(b.stock));
+        break;
+      case SortOption.stockDesc:
+        result.sort((a, b) => b.stock.compareTo(a.stock));
+        break;
+    }
+
+    return result;
+  }
 
   Future<void> loadGames() async {
     _isLoading = true;
@@ -94,5 +140,20 @@ class StaffGamesViewModel extends ChangeNotifier {
       // Depending on backend, you would also call repository to update stock
       notifyListeners();
     }
+  }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  void setCategory(String? category) {
+    _selectedCategory = category;
+    notifyListeners();
+  }
+
+  void setSortOption(SortOption option) {
+    _sortOption = option;
+    notifyListeners();
   }
 }

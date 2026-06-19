@@ -7,21 +7,27 @@ import '../../data/services/boardgame_service.dart';
 import 'game_library_viewmodel.dart';
 
 class GameLibraryScreen extends StatelessWidget {
-  const GameLibraryScreen({super.key});
+  final String? storeId;
+  final String? slotId;
+
+  const GameLibraryScreen({super.key, this.storeId, this.slotId});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => GameLibraryViewModel(
         BoardGameRepository(BoardGameService(ApiClient())),
-      )..loadGames(),
-      child: const _GameLibraryView(),
+      )..loadGames(storeId: storeId),
+      child: _GameLibraryView(storeId: storeId, slotId: slotId),
     );
   }
 }
 
 class _GameLibraryView extends StatefulWidget {
-  const _GameLibraryView();
+  final String? storeId;
+  final String? slotId;
+
+  const _GameLibraryView({this.storeId, this.slotId});
 
   @override
   State<_GameLibraryView> createState() => _GameLibraryViewState();
@@ -133,8 +139,28 @@ class _GameLibraryViewState extends State<_GameLibraryView> {
   }
 
   void _onAddToCart(BuildContext context, BoardGame game) async {
+    if (widget.storeId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a space first to start a booking'),
+        ),
+      );
+      return;
+    }
+
+    if (widget.slotId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a booking time first')),
+      );
+      return;
+    }
+
     final vm = context.read<GameLibraryViewModel>();
-    final success = await vm.addToCart(game);
+    final success = await vm.addToCart(
+      game,
+      storeId: widget.storeId,
+      slotId: widget.slotId,
+    );
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -228,8 +254,24 @@ class _GameLibraryCard extends StatelessWidget {
           ),
           ListTile(
             title: Text(game.name),
-            subtitle: Text(
-              '${game.category} • ${game.minPlayers}-${game.maxPlayers} players',
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${game.category} • ${game.minPlayers}-${game.maxPlayers} players',
+                ),
+                if (game.storeDescription != null &&
+                    game.storeDescription!.isNotEmpty)
+                  Text(
+                    game.storeDescription!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
             ),
             trailing: Text(
               '\$${game.rentalPrice}/hr',

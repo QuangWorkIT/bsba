@@ -21,8 +21,10 @@ public class BoardGameController {
     private final BoardGameService boardGameService;
 
     @GetMapping
-    public ApiResponse<Page<BoardGameResponse>> getAllBoardGames(Pageable pageable) {
-        Page<BoardGameResponse> games = boardGameService.getAllBoardGames(pageable);
+    public ApiResponse<Page<BoardGameResponse>> getAllBoardGames(
+            @RequestParam(required = false) UUID storeId,
+            Pageable pageable) {
+        Page<BoardGameResponse> games = boardGameService.getAllBoardGames(storeId, pageable);
         return ApiResponse.success(games, "Board games retrieved successfully");
     }
 

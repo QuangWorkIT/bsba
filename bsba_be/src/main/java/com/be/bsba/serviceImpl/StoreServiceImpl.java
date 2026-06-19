@@ -171,8 +171,12 @@ public class StoreServiceImpl implements StoreService, IStoreService {
                     .playTimeMinutes(game.getPlayTimeMinutes())
                     .ageRequirement(game.getAgeRequirement())
                     .difficultyLevel(game.getDifficultyLevel())
+                    .category(game.getCategory())
                     .imageUrl(game.getImageUrl())
                     .quantity(sbg.getQuantity())
+                    .availableQuantity(sbg.getQuantity()) // Default to total stock if no specific slot is queried here
+                    .isAvailable(!"OUT_OF_STOCK".equals(sbg.getStatus()))
+                    .rentalPrice(sbg.getRentalPrice() != null ? sbg.getRentalPrice() : game.getRentalPrice())
                     .build();
         } catch (Exception e) {
             return null;
