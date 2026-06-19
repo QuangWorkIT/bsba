@@ -75,6 +75,20 @@ class Conversation {
     }
   }
 
+  /// A short "time since" label for the staff inbox card (e.g. "2m ago",
+  /// "15m ago", "1h ago", "3d ago"); falls back to [timeLabel] for older rows.
+  String get relativeLabel {
+    final dt = lastMessageAt;
+    if (dt == null) return '';
+
+    final diff = DateTime.now().difference(dt.toLocal());
+    if (diff.inMinutes < 1) return 'now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    return timeLabel;
+  }
+
   factory Conversation.fromJson(Map<String, dynamic> json) {
     DateTime? parse(String? v) => v == null ? null : DateTime.tryParse(v);
 
