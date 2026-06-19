@@ -83,11 +83,10 @@ class LoginViewModel extends ChangeNotifier {
     // Demo bypass: "test" / "test" navigates straight into the app
     // without hitting the backend.
     if (_email.trim() == 'test' && _password == 'test') {
+      CurrentUser.instance.clear();
       setLoading(false);
       if (context.mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
+        _navigateToHome(context);
       }
       return true;
     }
@@ -104,27 +103,10 @@ class LoginViewModel extends ChangeNotifier {
       setLoading(false);
 
       if (context.mounted) {
-        final name = session.user.fullName?.isNotEmpty == true
-            ? session.user.fullName!
-            : session.user.email;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle_outline, color: Colors.white),
-                const SizedBox(width: 8),
-                Expanded(child: Text('Welcome back, $name!')),
-              ],
-            ),
-            backgroundColor: const Color(0xFF0056C6),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        _showWelcomeAndNavigate(
+          context,
+          session.user.fullName,
+          session.user.email,
         );
       }
       return true;
@@ -186,27 +168,10 @@ class LoginViewModel extends ChangeNotifier {
         setLoading(false);
 
         if (context.mounted) {
-          final name = session.user.fullName?.isNotEmpty == true
-              ? session.user.fullName!
-              : session.user.email;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.check_circle_outline, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text('Welcome back, $name!')),
-                ],
-              ),
-              backgroundColor: const Color(0xFF0056C6),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          _showWelcomeAndNavigate(
+            context,
+            session.user.fullName,
+            session.user.email,
           );
         }
         return true;
@@ -248,5 +213,36 @@ class LoginViewModel extends ChangeNotifier {
       );
     }
     return true;
+  }
+
+  void _showWelcomeAndNavigate(
+    BuildContext context,
+    String? fullName,
+    String email,
+  ) {
+    final name = fullName?.isNotEmpty == true ? fullName! : email;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text('Welcome back, $name!')),
+          ],
+        ),
+        backgroundColor: const Color(0xFF0056C6),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+    _navigateToHome(context);
+  }
+
+  void _navigateToHome(BuildContext context) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
   }
 }

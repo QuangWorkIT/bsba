@@ -1,7 +1,10 @@
 package com.be.bsba.service;
 
+import com.be.bsba.dto.request.UpdateStoreRequest;
+import com.be.bsba.dto.response.EditStoreResponse;
 import com.be.bsba.dto.response.StoreDetailResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface StoreService {
@@ -20,4 +23,8 @@ public interface StoreService {
      * @return the store detail response
      */
     StoreDetailResponse getStoreDetail(UUID storeId, UUID currentUserId);
+    EditStoreResponse getStoreDetailByStaffId(UUID staffId);
+    EditStoreResponse updateStoreByStaff(UpdateStoreRequest request);
+
+    List<com.be.bsba.dto.response.BoardGameDto> getGamesForStaffStore(UUID staffId);
 }
