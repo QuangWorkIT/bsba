@@ -6,8 +6,9 @@ class BoardGameService {
 
   BoardGameService(this._apiClient);
 
-  Future<List<BoardGame>> getAllBoardGames() async {
-    final response = await _apiClient.get('/board-games');
+  Future<List<BoardGame>> getAllBoardGames({String? storeId}) async {
+    final queryParams = storeId != null ? '?storeId=$storeId' : '';
+    final response = await _apiClient.get('/board-games$queryParams');
 
     // The backend uses a Page wrapper inside ApiResponse
     // Structure: { success: true, data: { content: [...] }, ... }
@@ -32,11 +33,13 @@ class BoardGameService {
     String gameId, {
     int quantity = 1,
     String? storeId,
+    String? slotId,
   }) async {
     await _apiClient.post('/carts/items', {
       'boardGameId': gameId,
       'quantity': quantity,
       if (storeId != null) 'storeId': storeId,
+      if (slotId != null) 'slotId': slotId,
     });
   }
 }

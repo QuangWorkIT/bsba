@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/ui/cart/cart_screen.dart';
 
 class BookingHeader extends StatelessWidget {
   const BookingHeader({super.key});
@@ -33,20 +34,20 @@ class BookingHeader extends StatelessWidget {
               ),
             ),
           ),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: scheme.primaryContainer,
-              border: Border.all(color: scheme.outlineVariant),
+          IconButton(
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const CartScreen()));
+            },
+            icon: Icon(
+              Icons.shopping_cart_outlined,
+              size: 28,
+              color: scheme.primary,
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Image.asset(
-              'assets/images/booking/profile.png',
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) =>
-                  Icon(Icons.person, color: scheme.onPrimaryContainer),
+            style: IconButton.styleFrom(
+              backgroundColor: scheme.primaryContainer,
+              padding: const EdgeInsets.all(8),
             ),
           ),
         ],

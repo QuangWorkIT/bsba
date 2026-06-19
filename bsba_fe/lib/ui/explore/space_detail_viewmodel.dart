@@ -12,18 +12,18 @@ class SpaceDetailViewModel extends ChangeNotifier {
   BoardSpaceDetail? _space;
   bool _isLoading = false;
   String? _error;
-  String? _selectedSlot;
+  SpaceSlot? _selectedSlot;
 
   // ── Getters ────────────────────────────────────────────────────────────────
 
   BoardSpaceDetail? get space => _space;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  String? get selectedSlot => _selectedSlot;
+  SpaceSlot? get selectedSlot => _selectedSlot;
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
-  void selectSlot(String slot) {
+  void selectSlot(SpaceSlot slot) {
     _selectedSlot = slot;
     notifyListeners();
   }

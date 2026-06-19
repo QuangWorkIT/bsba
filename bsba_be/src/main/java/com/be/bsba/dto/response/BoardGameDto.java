@@ -20,5 +20,9 @@ public class BoardGameDto {
     private Integer ageRequirement;
     private Integer difficultyLevel;
     private String imageUrl;
-    private Integer quantity; // quantity available at this store
+    private String category;
+    private Integer quantity; // total quantity at the store
+    private Integer availableQuantity; 
+    private Boolean isAvailable;
+    private java.math.BigDecimal rentalPrice;
 }

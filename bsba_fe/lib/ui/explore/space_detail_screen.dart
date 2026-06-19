@@ -3,6 +3,8 @@ import '../../data/models/board_game.dart';
 import '../../data/models/board_space_detail.dart';
 import '../../data/repositories/board_space_repository.dart';
 import '../../data/services/api_client.dart';
+import '../../data/services/boardgame_service.dart';
+import '../cart/cart_screen.dart';
 import 'game_card.dart';
 import 'game_library_screen.dart';
 import 'space_detail_viewmodel.dart';
@@ -69,9 +71,7 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
         }
 
         if (_vm.space == null) {
-          return const Scaffold(
-            body: Center(child: Text('Space not found.')),
-          );
+          return const Scaffold(body: Center(child: Text('Space not found.')));
         }
 
         final space = _vm.space!;
@@ -100,6 +100,17 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
                     _LibrarySection(
                       games: space.libraryHighlights,
                       totalGames: space.totalGames,
+                      onAddToCart: (game) => _addGameToCart(context, game),
+                      onSeeAll: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => GameLibraryScreen(
+                              storeId: space.id,
+                              slotId: _vm.selectedSlot?.id,
+                            ),
+                          ),
+                        );
+                      },
                     ),
 
                     // Pricing + booking CTA
@@ -121,6 +132,42 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
     );
   }
 
+  void _addGameToCart(BuildContext context, BoardGame game) async {
+    if (_vm.selectedSlot == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a booking time first')),
+      );
+      return;
+    }
+
+    try {
+      await BoardGameService(ApiClient()).addToCart(
+        game.id,
+        storeId: _vm.space?.id,
+        slotId: _vm.selectedSlot?.id,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${game.name} added to cart'),
+          action: SnackBarAction(
+            label: 'View Cart',
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const CartScreen()));
+            },
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to add to cart: $e')));
+    }
+  }
+
   void _showSlotPicker(BuildContext context, BoardSpaceDetail space) {
     showModalBottomSheet(
       context: context,
@@ -134,7 +181,14 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
         onSlotSelected: (slot) {
           _vm.selectSlot(slot);
           Navigator.pop(context);
-          // TODO: Navigate to booking confirmation screen.
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Time slot ${slot.startTime} selected. You can now add games to your booking.',
+              ),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            ),
+          );
         },
       ),
     );
@@ -462,7 +516,15 @@ class _AmenityItem extends StatelessWidget {
 class _LibrarySection extends StatelessWidget {
   final List<BoardGame> games;
   final int totalGames;
-  const _LibrarySection({required this.games, required this.totalGames});
+  final ValueChanged<BoardGame> onAddToCart;
+  final VoidCallback onSeeAll;
+
+  const _LibrarySection({
+    required this.games,
+    required this.totalGames,
+    required this.onAddToCart,
+    required this.onSeeAll,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -473,7 +535,6 @@ class _LibrarySection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -481,19 +542,20 @@ class _LibrarySection extends StatelessWidget {
               children: [
                 const _SectionTitle('Library Highlights'),
                 GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const GameLibraryScreen(),
+                  onTap: onSeeAll,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 8,
+                    ),
+                    child: Text(
+                      'See all $totalGames+',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: cs.primary,
+                        fontWeight: FontWeight.w600,
                       ),
-                    );
-                  },
-                  child: Text(
-                    'See all $totalGames+',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      color: cs.primary,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -501,10 +563,8 @@ class _LibrarySection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-
-          // Horizontal scroll
           SizedBox(
-            height: 190,
+            height: 230,
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
@@ -512,9 +572,8 @@ class _LibrarySection extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(width: 12),
               itemBuilder: (context, index) => GameCard(
                 game: games[index],
-                onTap: () {
-                  // TODO: Navigate to game detail
-                },
+                showAvailability: true,
+                onAddToCart: () => onAddToCart(games[index]),
               ),
             ),
           ),
@@ -601,9 +660,9 @@ class _BookingBar extends StatelessWidget {
 // ── Slot Picker Bottom Sheet ───────────────────────────────────────────────────
 
 class _SlotPickerSheet extends StatelessWidget {
-  final List<String> slots;
-  final String? selectedSlot;
-  final ValueChanged<String> onSlotSelected;
+  final List<SpaceSlot> slots;
+  final SpaceSlot? selectedSlot;
+  final ValueChanged<SpaceSlot> onSlotSelected;
 
   const _SlotPickerSheet({
     required this.slots,
@@ -650,7 +709,7 @@ class _SlotPickerSheet extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: slots.map((slot) {
-              final selected = slot == selectedSlot;
+              final selected = slot.id == selectedSlot?.id;
               return GestureDetector(
                 onTap: () => onSlotSelected(slot),
                 child: AnimatedContainer(
@@ -668,7 +727,7 @@ class _SlotPickerSheet extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    slot,
+                    slot.startTime,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -809,8 +868,6 @@ class _LocationSection extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Text(
                                           'Today',
@@ -819,13 +876,17 @@ class _LocationSection extends StatelessWidget {
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                        Text(
-                                          space.openHours,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: cs.onSurface.withValues(
-                                              alpha: 0.6,
+                                        const Spacer(),
+                                        Flexible(
+                                          child: Text(
+                                            space.openHours,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: cs.onSurface.withValues(
+                                                alpha: 0.6,
+                                              ),
                                             ),
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ],

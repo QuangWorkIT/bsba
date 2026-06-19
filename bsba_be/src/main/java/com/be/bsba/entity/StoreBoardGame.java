@@ -32,4 +32,8 @@ public class StoreBoardGame {
 
     @Column(nullable = false)
     private Integer quantity;
+
+    private java.math.BigDecimal rentalPrice;
+
+    private String status;
 }

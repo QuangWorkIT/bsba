@@ -45,13 +45,13 @@ class GameLibraryViewModel extends ChangeNotifier {
   }
 
   // ── Actions ────────────────────────────────────────────────────────────────
-  Future<void> loadGames() async {
+  Future<void> loadGames({String? storeId}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _allGames = await _repository.fetchAllGames();
+      _allGames = await _repository.fetchAllGames(storeId: storeId);
     } catch (e) {
       _error = 'Failed to load games. Make sure the backend is running.';
       debugPrint('Error loading games: $e');
@@ -71,10 +71,14 @@ class GameLibraryViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> addToCart(BoardGame game) async {
+  Future<bool> addToCart(
+    BoardGame game, {
+    String? storeId,
+    String? slotId,
+  }) async {
     // We could add a separate _isAddingToCart state if we wanted specific per-item loading
     try {
-      await _repository.addToCart(game.id);
+      await _repository.addToCart(game.id, storeId: storeId, slotId: slotId);
       return true;
     } catch (e) {
       debugPrint('Error adding to cart: $e');

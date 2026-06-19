@@ -9,6 +9,11 @@ class BoardGame {
   final double rentalPrice;
   final int? playTimeMinutes;
   final String? description;
+  final String? storeName;
+  final String? storeDescription;
+  final int? quantity; // total stock at store
+  final int? availableQuantity;
+  final bool? isAvailable;
   final int? stock;
 
   const BoardGame({
@@ -22,6 +27,11 @@ class BoardGame {
     required this.rentalPrice,
     this.playTimeMinutes,
     this.description,
+    this.storeName,
+    this.storeDescription,
+    this.quantity,
+    this.availableQuantity,
+    this.isAvailable,
     this.stock,
   });
 
@@ -52,6 +62,11 @@ class BoardGame {
       rentalPrice: (json['rentalPrice'] as num?)?.toDouble() ?? 0.0,
       playTimeMinutes: json['playTimeMinutes'],
       description: json['description'],
+      storeName: json['storeName'],
+      storeDescription: json['storeDescription'],
+      quantity: json['quantity'] as int?,
+      availableQuantity: json['availableQuantity'] as int?,
+      isAvailable: json['isAvailable'] as bool?,
       stock: json['quantity'],
     );
   }
@@ -67,6 +82,11 @@ class BoardGame {
     double? rentalPrice,
     int? playTimeMinutes,
     String? description,
+    String? storeName,
+    String? storeDescription,
+    int? quantity,
+    int? availableQuantity,
+    bool? isAvailable,
     int? stock,
   }) {
     return BoardGame(
@@ -80,6 +100,11 @@ class BoardGame {
       rentalPrice: rentalPrice ?? this.rentalPrice,
       playTimeMinutes: playTimeMinutes ?? this.playTimeMinutes,
       description: description ?? this.description,
+      storeName: storeName ?? this.storeName,
+      storeDescription: storeDescription ?? this.storeDescription,
+      quantity: quantity ?? this.quantity,
+      availableQuantity: availableQuantity ?? this.availableQuantity,
+      isAvailable: isAvailable ?? this.isAvailable,
       stock: stock ?? this.stock,
     );
   }
