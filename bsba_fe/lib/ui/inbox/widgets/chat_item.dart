@@ -8,6 +8,7 @@ class ChatItem extends StatelessWidget {
     required this.time,
     this.draft,
     this.unreadCount = 0,
+    this.isOnline = false,
     this.icon,
     this.onTap,
   });
@@ -15,6 +16,9 @@ class ChatItem extends StatelessWidget {
   final String name;
   final String message;
   final String time;
+
+  /// Whether the other party is currently connected (drives the green dot).
+  final bool isOnline;
 
   /// Unsent draft for this thread; when set, it replaces [message] in the
   /// preview with a "Chưa gửi" marker.
@@ -38,7 +42,7 @@ class ChatItem extends StatelessWidget {
         ),
         child: Row(
         children: [
-          _Avatar(name: name, icon: icon),
+          _Avatar(name: name, icon: icon, isOnline: isOnline),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -146,35 +150,60 @@ class ChatItem extends StatelessWidget {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.name, this.icon});
+  const _Avatar({required this.name, this.icon, this.isOnline = false});
 
   final String name;
   final IconData? icon;
+  final bool isOnline;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final Widget avatar;
     if (icon != null) {
-      return CircleAvatar(
+      avatar = CircleAvatar(
         radius: 28,
         backgroundColor: const Color(0xFFB6D0FF),
         child: Icon(icon, color: const Color(0xFF3F5881)),
       );
+    } else {
+      final initial =
+          name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?';
+      avatar = CircleAvatar(
+        radius: 28,
+        backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+        child: Text(
+          initial,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.primary,
+          ),
+        ),
+      );
     }
 
-    final initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?';
-    return CircleAvatar(
-      radius: 28,
-      backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-      child: Text(
-        initial,
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: theme.colorScheme.primary,
+    // Always show the dot: green when connected, grey when offline.
+    return Stack(
+      children: [
+        avatar,
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: Container(
+            width: 15,
+            height: 15,
+            decoration: BoxDecoration(
+              color: isOnline
+                  ? const Color(0xFF22C55E)
+                  : const Color(0xFF9CA3AF),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

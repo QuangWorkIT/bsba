@@ -8,6 +8,7 @@ import 'package:project/data/services/chat_socket_service.dart';
 import 'package:project/ui/inbox/inbox_viewmodel.dart';
 import 'package:project/ui/inbox/widgets/chat_item.dart';
 import 'package:project/ui/inbox/widgets/chat_screen.dart';
+import 'package:project/ui/presence/presence_viewmodel.dart';
 
 class InboxContent extends StatelessWidget {
   const InboxContent({super.key});
@@ -87,6 +88,8 @@ class _InboxBody extends StatelessWidget {
     }
 
     final conversations = vm.conversations;
+    // The customer sees the store as online when any of its staff is connected.
+    final presence = context.watch<PresenceViewModel>();
 
     return RefreshIndicator(
       onRefresh: vm.loadConversations,
@@ -99,14 +102,19 @@ class _InboxBody extends StatelessWidget {
             name: c.displayNameFor(vm.role),
             message: c.preview,
             draft: vm.draftFor(c.id),
-            time: c.timeLabel,
+            time: c.relativeLabel,
             unreadCount: c.unreadCount,
+            isOnline: presence.anyOnline(c.staffUserIds),
             onTap: () async {
               await Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => ChatScreen(
-                    conversationId: c.id,
-                    name: c.displayNameFor(vm.role),
+                  builder: (_) => ChangeNotifierProvider<PresenceViewModel>.value(
+                    value: context.read<PresenceViewModel>(),
+                    child: ChatScreen(
+                      conversationId: c.id,
+                      name: c.displayNameFor(vm.role),
+                      presenceUserIds: c.staffUserIds,
+                    ),
                   ),
                 ),
               );
@@ -131,10 +139,13 @@ class _SearchField extends StatelessWidget {
     return TextField(
       onChanged: onChanged,
       decoration: InputDecoration(
-        hintText: 'Search messages...',
+        hintText: 'Search',
         hintStyle: const TextStyle(color: Color(0xFFC1C6D5), fontSize: 14),
-        prefixIcon:
-            const Icon(Icons.search, color: Color(0xFF717785), size: 20),
+        prefixIcon: const Icon(
+          Icons.search,
+          color: Color(0xFF717785),
+          size: 20,
+        ),
         filled: true,
         fillColor: const Color(0xFFF1F3FC),
         isDense: true,

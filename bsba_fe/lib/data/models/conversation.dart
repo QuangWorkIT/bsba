@@ -9,6 +9,10 @@ class Conversation {
   final String? lastMessagePreview;
   final DateTime? lastMessageAt;
   final int unreadCount;
+
+  /// User ids of the store's staff — used so a customer can see the store as
+  /// online when any of its staff is connected.
+  final List<String> staffUserIds;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -23,6 +27,7 @@ class Conversation {
     this.lastMessagePreview,
     this.lastMessageAt,
     this.unreadCount = 0,
+    this.staffUserIds = const [],
     this.createdAt,
     this.updatedAt,
   });
@@ -75,6 +80,20 @@ class Conversation {
     }
   }
 
+  /// A short "time since" label for the staff inbox card (e.g. "2m ago",
+  /// "15m ago", "1h ago", "3d ago"); falls back to [timeLabel] for older rows.
+  String get relativeLabel {
+    final dt = lastMessageAt;
+    if (dt == null) return '';
+
+    final diff = DateTime.now().difference(dt.toLocal());
+    if (diff.inMinutes < 1) return 'now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    return timeLabel;
+  }
+
   factory Conversation.fromJson(Map<String, dynamic> json) {
     DateTime? parse(String? v) => v == null ? null : DateTime.tryParse(v);
 
@@ -89,6 +108,10 @@ class Conversation {
       lastMessagePreview: json['lastMessagePreview'] as String?,
       lastMessageAt: parse(json['lastMessageAt'] as String?),
       unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
+      staffUserIds: (json['staffUserIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
       createdAt: parse(json['createdAt'] as String?),
       updatedAt: parse(json['updatedAt'] as String?),
     );
@@ -106,6 +129,7 @@ class Conversation {
       lastMessagePreview: lastMessagePreview ?? this.lastMessagePreview,
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
       unreadCount: unreadCount ?? this.unreadCount,
+      staffUserIds: staffUserIds,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

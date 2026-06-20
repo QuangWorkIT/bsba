@@ -27,14 +27,53 @@ class ChatInputArea extends StatefulWidget {
 }
 
 class _ChatInputAreaState extends State<ChatInputArea> {
+  /// Height of the text field. The buttons are kept smaller so the composer is
+  /// dominated by the field, not the controls.
+  static const double _fieldHeight = 44;
+  static const double _buttonSize = 38;
+  static const double _fieldHPadding = 12;
+  static const TextStyle _fieldTextStyle =
+      TextStyle(color: Color(0xFF181C22), fontSize: 14);
+
   final TextEditingController _controller = TextEditingController();
   Timer? _saveDebounce;
+
+  /// True once the typed text wraps to a second line; the send/attach buttons
+  /// jump to the top instead of staying vertically centred.
+  bool _isMultiline = false;
+  double _contentWidth = 0;
 
   @override
   void initState() {
     super.initState();
     _restoreDraft();
     _controller.addListener(_scheduleSave);
+    _controller.addListener(_updateMultiline);
+  }
+
+  /// Capture the field's content width during layout, then re-evaluate the
+  /// line count once the frame settles (can't setState mid-build).
+  void _syncContentWidth(double width) {
+    if (width == _contentWidth || width <= 0) return;
+    _contentWidth = width;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _updateMultiline();
+    });
+  }
+
+  /// Measure the current text against the field's content width and flip
+  /// [_isMultiline] when it spans more than one line.
+  void _updateMultiline() {
+    if (_contentWidth <= 0) return;
+    final painter = TextPainter(
+      text: TextSpan(text: _controller.text, style: _fieldTextStyle),
+      maxLines: null,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: _contentWidth);
+    final next = painter.computeLineMetrics().length > 1;
+    if (next != _isMultiline) {
+      setState(() => _isMultiline = next);
+    }
   }
 
   Future<void> _restoreDraft() async {
@@ -62,6 +101,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     // Flush the latest draft immediately so backing out never loses it.
     widget.onDraftChanged?.call(_controller.text);
     _controller.removeListener(_scheduleSave);
+    _controller.removeListener(_updateMultiline);
     _controller.dispose();
     super.dispose();
   }
@@ -87,50 +127,72 @@ class _ChatInputAreaState extends State<ChatInputArea> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            // Single line → buttons centred on the field. Once the text wraps to
+            // a second line the buttons jump to the top.
+            crossAxisAlignment:
+                _isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
             children: [
-              IconButton(
-                icon: const Icon(Icons.attach_file,
-                    size: 20, color: Color(0xFF717785)),
-                onPressed: () {},
+              SizedBox(
+                width: _buttonSize,
+                height: _buttonSize,
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(Icons.attach_file,
+                      size: 20, color: Color(0xFF717785)),
+                  onPressed: () {},
+                ),
               ),
+              const SizedBox(width: 4),
               Expanded(
                 child: Container(
+                  constraints: const BoxConstraints(minHeight: _fieldHeight),
+                  alignment: Alignment.centerLeft,
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F3FC),
                     border: Border.all(color: const Color(0xFFE0E2EB)),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: TextField(
-                    controller: _controller,
-                    minLines: 1,
-                    maxLines: 4,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _handleSend(),
-                    decoration: const InputDecoration(
-                      isCollapsed: true,
-                      border: InputBorder.none,
-                      hintText: 'Type your message...',
-                      hintStyle:
-                          TextStyle(color: Color(0xFF717785), fontSize: 14),
-                      contentPadding: EdgeInsets.symmetric(vertical: 12),
-                    ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: _fieldHPadding),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // The width text actually gets to fill before wrapping.
+                      _syncContentWidth(constraints.maxWidth);
+                      return TextField(
+                        controller: _controller,
+                        minLines: 1,
+                        maxLines: 4,
+                        style: _fieldTextStyle,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _handleSend(),
+                        decoration: const InputDecoration(
+                          isCollapsed: true,
+                          border: InputBorder.none,
+                          hintText: 'Type your message...',
+                          hintStyle:
+                              TextStyle(color: Color(0xFF717785), fontSize: 14),
+                          contentPadding: EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Material(
                 color: primary,
                 borderRadius: BorderRadius.circular(8),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8),
                   onTap: _handleSend,
-                  child: const Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.send, size: 18, color: Colors.white),
+                  child: const SizedBox(
+                    width: _buttonSize,
+                    height: _buttonSize,
+                    child: Center(
+                      child: Icon(Icons.send, size: 18, color: Colors.white),
+                    ),
                   ),
                 ),
               ),
