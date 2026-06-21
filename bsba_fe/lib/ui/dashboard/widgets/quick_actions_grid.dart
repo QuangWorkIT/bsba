@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/ui/bookings/staff_bookings_screen.dart';
 import 'package:project/ui/boardgames/widgets/add_game_screen.dart';
 import 'dashboard_card.dart';
 import 'staff_dashboard_tokens.dart';
@@ -42,7 +43,9 @@ class QuickActionsGrid extends StatelessWidget {
         _ActionTile(
           icon: Icons.receipt_long_outlined,
           label: 'Bookings',
-          onTap: () {},
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const StaffBookingsScreen()),
+          ),
         ),
       ],
     );
