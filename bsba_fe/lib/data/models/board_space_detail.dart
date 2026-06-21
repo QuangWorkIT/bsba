@@ -72,6 +72,14 @@ class BoardSpaceDetail {
   });
 
   factory BoardSpaceDetail.fromJson(Map<String, dynamic> json) {
+    final pricePerHour = _readDouble(json, [
+      'pricePerHour',
+      'hourlyRate',
+      'basePrice',
+      'price',
+      'totalPrice',
+    ]);
+
     return BoardSpaceDetail(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
@@ -84,7 +92,7 @@ class BoardSpaceDetail {
       reviewCount: json['reviewCount'] ?? 0,
       maxPlayers: json['totalCapacity'] ?? 4,
       areaSqFt: 450,
-      pricePerHour: 15.0,
+      pricePerHour: pricePerHour ?? 100000,
       availableSlots:
           (json['timeSlots'] as List<dynamic>?)
               ?.map((s) {
@@ -122,5 +130,17 @@ class BoardSpaceDetail {
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
     );
+  }
+
+  static double? _readDouble(Map<String, dynamic> json, List<String> keys) {
+    for (final key in keys) {
+      final value = json[key];
+      if (value is num) return value.toDouble();
+      if (value is String) {
+        final parsed = double.tryParse(value);
+        if (parsed != null) return parsed;
+      }
+    }
+    return null;
   }
 }

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../data/models/board_game.dart';
 import '../../data/models/board_space_detail.dart';
 import '../../data/repositories/board_space_repository.dart';
+import '../../data/repositories/booking_repository.dart';
 import '../../data/services/api_client.dart';
 import '../../data/services/boardgame_service.dart';
+import '../../data/services/booking_service.dart';
 import '../cart/cart_screen.dart';
 import 'game_card.dart';
 import 'game_library_screen.dart';
@@ -28,7 +30,11 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _vm = SpaceDetailViewModel(BoardSpaceRepository(ApiClient()));
+    final apiClient = ApiClient();
+    _vm = SpaceDetailViewModel(
+      BoardSpaceRepository(apiClient),
+      BookingRepository(BookingService(apiClient)),
+    );
     _vm.loadSpace(widget.spaceId);
   }
 
@@ -178,20 +184,44 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
       builder: (_) => _SlotPickerSheet(
         slots: space.availableSlots,
         selectedSlot: _vm.selectedSlot,
-        onSlotSelected: (slot) {
-          _vm.selectSlot(slot);
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Time slot ${slot.startTime} selected. You can now add games to your booking.',
-              ),
-              backgroundColor: Theme.of(context).colorScheme.primary,
-            ),
-          );
-        },
+        onSlotSelected: (slot) => _createBookingForSlot(context, slot),
       ),
     );
+  }
+
+  Future<void> _createBookingForSlot(
+    BuildContext context,
+    SpaceSlot slot,
+  ) async {
+    Navigator.pop(context);
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final booking = await _vm.createPendingBooking(slot);
+      if (!context.mounted) return;
+
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${booking.title} booking is pending for ${booking.time}.',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create booking: $e')),
+      );
+    }
   }
 }
 
