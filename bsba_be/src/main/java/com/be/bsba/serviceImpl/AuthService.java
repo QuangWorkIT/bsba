@@ -28,6 +28,7 @@ public class AuthService implements IAuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final org.springframework.mail.javamail.JavaMailSender mailSender;
 
     private final Map<String, OtpDetails> otpCache = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -242,6 +243,19 @@ public class AuthService implements IAuthService {
         System.out.println("--- GMAIL REGISTRATION OTP FOR " + email + " ---");
         System.out.println("                 CODE: " + otpCode);
         System.out.println("==================================================");
+
+        try {
+            org.springframework.mail.SimpleMailMessage message = new org.springframework.mail.SimpleMailMessage();
+            message.setTo(email);
+            message.setSubject("BoardNest Verification Code");
+            message.setText("Dear User,\n\nYour 6-digit verification code is: " + otpCode + 
+                            "\nThis code is valid for 5 minutes.\n\nThank you for choosing BoardNest!");
+            mailSender.send(message);
+            System.out.println("AuthService: Verification email successfully sent to " + email);
+        } catch (Exception e) {
+            System.err.println("AuthService: Failed to send email to " + email + ". Error: " + e.getMessage());
+            throw new AppException("Failed to send OTP email: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     private UserDto mapToUserDto(User user) {

@@ -19,6 +19,8 @@ import java.util.UUID;
 public class BoardGameServiceImpl implements BoardGameService {
 
     private final BoardGameRepository boardGameRepository;
+    private final com.be.bsba.repository.StoreRepository storeRepository;
+    private final com.be.bsba.repository.StoreBoardGameRepository storeBoardGameRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -49,13 +51,25 @@ public class BoardGameServiceImpl implements BoardGameService {
                 .maxPlayers(request.getMaxPlayers())
                 .playTimeMinutes(request.getPlayTimeMinutes())
                 .ageRequirement(request.getAgeRequirement())
-                .difficultyLevel(request.getDifficultyLevel())
+                .difficultyLevel(request.getDifficultyLevel() != null ? request.getDifficultyLevel() : 3)
                 .imageUrl(request.getImageUrl())
-                .category(request.getCategory())
-                .rentalPrice(request.getRentalPrice())
+                .category(request.getCategory() != null ? request.getCategory() : "General")
+                .rentalPrice(request.getRentalPrice() != null ? request.getRentalPrice() : java.math.BigDecimal.ZERO)
                 .build();
         
         BoardGame savedGame = boardGameRepository.save(boardGame);
+
+        if (request.getStoreId() != null) {
+            com.be.bsba.entity.Store store = storeRepository.findById(request.getStoreId())
+                    .orElseThrow(() -> new RuntimeException("Store not found with id: " + request.getStoreId()));
+            com.be.bsba.entity.StoreBoardGame storeBoardGame = com.be.bsba.entity.StoreBoardGame.builder()
+                    .store(store)
+                    .boardGame(savedGame)
+                    .quantity(request.getQuantity() != null ? request.getQuantity() : 1)
+                    .build();
+            storeBoardGameRepository.save(storeBoardGame);
+        }
+
         return mapToResponse(savedGame);
     }
 
