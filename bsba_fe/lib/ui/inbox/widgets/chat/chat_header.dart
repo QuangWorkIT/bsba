@@ -2,10 +2,18 @@ import 'package:flutter/material.dart';
 
 /// AppBar for the chat screen showing the contact avatar, name and status.
 class ChatHeader extends StatelessWidget implements PreferredSizeWidget {
-  const ChatHeader({super.key, required this.name, required this.subtitle});
+  const ChatHeader({
+    super.key,
+    required this.name,
+    required this.subtitle,
+    this.isOnline = false,
+  });
 
   final String name;
   final String subtitle;
+
+  /// Whether the other party currently has a live connection (green vs grey dot).
+  final bool isOnline;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +32,7 @@ class ChatHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
       title: Row(
         children: [
-          const _AvatarWithStatus(),
+          _AvatarWithStatus(name: name, isOnline: isOnline),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -74,11 +82,15 @@ class ChatHeader extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class _AvatarWithStatus extends StatelessWidget {
-  const _AvatarWithStatus();
+  const _AvatarWithStatus({required this.name, required this.isOnline});
+
+  final String name;
+  final bool isOnline;
 
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?';
 
     return SizedBox(
       width: 40,
@@ -89,7 +101,7 @@ class _AvatarWithStatus extends StatelessWidget {
             radius: 20,
             backgroundColor: primary.withValues(alpha: 0.12),
             child: Text(
-              'S',
+              initial,
               style: TextStyle(
                 color: primary,
                 fontWeight: FontWeight.w600,
@@ -104,7 +116,10 @@ class _AvatarWithStatus extends StatelessWidget {
               width: 12,
               height: 12,
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981),
+                // Green when the other party is connected, grey when offline.
+                color: isOnline
+                    ? const Color(0xFF22C55E)
+                    : const Color(0xFF9CA3AF),
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
               ),

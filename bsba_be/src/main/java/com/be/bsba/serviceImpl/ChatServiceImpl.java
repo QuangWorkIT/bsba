@@ -252,6 +252,10 @@ public class ChatServiceImpl implements ChatService {
         Store store = conversation.getStore();
         User customer = conversation.getUser();
 
+        List<UUID> staffUserIds = store != null
+                ? storeStaffRepository.findStaffIdsByStoreId(store.getId())
+                : List.of();
+
         return ConversationResponse.builder()
                 .id(conversation.getId())
                 .storeId(store != null ? store.getId() : null)
@@ -263,6 +267,7 @@ public class ChatServiceImpl implements ChatService {
                 .lastMessagePreview(conversation.getLastMessagePreview())
                 .lastMessageAt(conversation.getLastMessageAt())
                 .unreadCount(unreadCount)
+                .staffUserIds(staffUserIds)
                 .createdAt(conversation.getCreatedAt())
                 .updatedAt(conversation.getUpdatedAt())
                 .build();
