@@ -4,7 +4,7 @@ import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/boardgame_service.dart';
 import 'package:project/ui/boardgames/staff_games_viewmodel.dart';
 import 'package:project/ui/dashboard/widgets/staff_dashboard_tokens.dart';
-import 'package:project/ui/dashboard/add_game_screen.dart';
+import 'package:project/ui/boardgames/widgets/add_game_screen.dart';
 
 
 class StaffGamesScreen extends StatefulWidget {

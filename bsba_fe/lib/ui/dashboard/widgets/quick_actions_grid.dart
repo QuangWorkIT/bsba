@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../add_game_screen.dart';
+import 'package:project/ui/boardgames/widgets/add_game_screen.dart';
 import 'dashboard_card.dart';
 import 'staff_dashboard_tokens.dart';
 
