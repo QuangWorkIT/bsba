@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,8 +31,6 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final StoreRepository storeRepository;
     private final StoreTimeSlotRepository storeTimeSlotRepository;
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("EEE, MMM dd");
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mm a");
 
     @Override
     @Transactional(readOnly = true)
@@ -53,6 +50,7 @@ public class BookingServiceImpl implements BookingService {
         StoreTimeSlot slot = storeTimeSlotRepository.findById(UUID.fromString(request.getSlotId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Store time slot not found with id: " + request.getSlotId()));
 
+        validateUserHasNotBookedSlot(user, slot);
         validateTimeSlotForBooking(slot, store);
 
         Booking booking = Booking.builder()
@@ -69,6 +67,12 @@ public class BookingServiceImpl implements BookingService {
         return mapToResponse(savedBooking);
     }
 
+    private void validateUserHasNotBookedSlot(User user, StoreTimeSlot slot) {
+        if (bookingRepository.existsByUserIdAndSlotId(user.getId(), slot.getId())) {
+            throw new BadRequestException("User already booked this slot.");
+        }
+    }
+
     private void validateTimeSlotForBooking(StoreTimeSlot slot, Store store) {
         if (slot.getStore() == null || !store.getId().equals(slot.getStore().getId())) {
             throw new BadRequestException("Store time slot does not belong to store with id: " + store.getId());
@@ -80,21 +84,15 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private BookingResponse mapToResponse(Booking booking) {
-        String dateStr = "N/A";
-        String timeStr = "N/A";
-
-        if (booking.getSlot() != null) {
-            dateStr = booking.getSlot().getSlotDate().format(DATE_FORMATTER);
-            timeStr = booking.getSlot().getStartTime().format(TIME_FORMATTER) + " - " +
-                      booking.getSlot().getEndTime().format(TIME_FORMATTER);
-        }
+        StoreTimeSlot slot = booking.getSlot();
 
         return BookingResponse.builder()
                 .id(booking.getId())
                 .storeName(booking.getStore() != null ? booking.getStore().getName() : "Unknown Store")
                 .storeLocation(booking.getStore() != null ? booking.getStore().getAddress() : "Unknown Location")
-                .date(dateStr)
-                .time(timeStr)
+                .slotDate(slot != null ? slot.getSlotDate() : null)
+                .startTime(slot != null ? slot.getStartTime() : null)
+                .endTime(slot != null ? slot.getEndTime() : null)
                 .participants(booking.getParticipantCount())
                 .total(booking.getTotalPrice())
                 .imageAsset("") // Default empty, UI can handle or we can add store image URL later

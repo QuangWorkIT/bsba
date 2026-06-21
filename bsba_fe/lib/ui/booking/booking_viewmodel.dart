@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:project/data/models/booking_summary.dart';
 import 'package:project/data/repositories/booking_repository.dart';
 
-enum BookingTab { upcoming, completed, cancelled }
+enum BookingTab { completed, pending, cancelled }
 
 enum BookingLoadState { loading, loaded, error }
 
@@ -13,7 +13,7 @@ class BookingViewModel extends ChangeNotifier {
     fetchBookings();
   }
 
-  BookingTab _selectedTab = BookingTab.upcoming;
+  BookingTab _selectedTab = BookingTab.completed;
   BookingLoadState _state = BookingLoadState.loading;
   String? _errorMessage;
   List<BookingSummary> _bookings = [];
@@ -26,8 +26,8 @@ class BookingViewModel extends ChangeNotifier {
     return _bookings
         .where((booking) {
           return switch (_selectedTab) {
-            BookingTab.upcoming => booking.status == BookingStatus.confirmed,
             BookingTab.completed => booking.status == BookingStatus.completed,
+            BookingTab.pending => booking.status == BookingStatus.pending,
             BookingTab.cancelled => booking.status == BookingStatus.cancelled,
           };
         })
@@ -55,9 +55,7 @@ class BookingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void retry() {
-    _state = BookingLoadState.loaded;
-    _errorMessage = null;
-    notifyListeners();
+  Future<void> retry() {
+    return fetchBookings();
   }
 }

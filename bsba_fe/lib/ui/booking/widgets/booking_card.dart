@@ -64,37 +64,43 @@ class _BookingImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return SizedBox(
       height: 192,
       child: Stack(
         fit: StackFit.expand,
         children: [
           Image.asset(booking.imageAsset, fit: BoxFit.cover),
-          Positioned(
-            top: 11,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: scheme.primary.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Text(
-                'Confirmed',
-                style: TextStyle(
-                  color: scheme.onPrimaryContainer,
-                  fontSize: 12,
-                  height: 16 / 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
+          Positioned(top: 11, right: 16, child: _BookingBadge(booking)),
         ],
+      ),
+    );
+  }
+}
+
+class _BookingBadge extends StatelessWidget {
+  const _BookingBadge(this.booking);
+
+  final BookingSummary booking;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        booking.badgeLabel(),
+        style: TextStyle(
+          color: scheme.onPrimaryContainer,
+          fontSize: 12,
+          height: 16 / 12,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

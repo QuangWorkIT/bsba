@@ -24,7 +24,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const int _inboxIndex = 3;
+  static const int _bookingIndex = 2;
   int _selectedIndex = 0;
+  int _bookingRefreshTrigger = 0;
 
   void _select(int index) => setState(() => _selectedIndex = index);
 
@@ -40,7 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final screens = <Widget>[
       ExploreScreen(onOpenInbox: () => _select(_inboxIndex)),
       const MapScreen(),
-      const BookingScreen(),
+      BookingScreen(
+        active: _selectedIndex == _bookingIndex,
+        refreshTrigger: _bookingRefreshTrigger,
+      ),
       const InboxScreen(),
       const ProfileScreen(),
     ];
@@ -59,6 +64,9 @@ class _HomeScreenState extends State<HomeScreen> {
             inboxBadgeCount: badge.count,
             onDestinationSelected: (index) {
               setState(() {
+                if (index == _bookingIndex) {
+                  _bookingRefreshTrigger++;
+                }
                 _selectedIndex = index;
               });
             },

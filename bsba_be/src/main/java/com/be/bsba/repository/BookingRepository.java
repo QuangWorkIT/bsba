@@ -19,4 +19,6 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     Optional<Booking> findByIdForUpdate(@Param("id") UUID id);
 
     java.util.List<Booking> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
+
+    boolean existsByUserIdAndSlotId(UUID userId, UUID slotId);
 }
