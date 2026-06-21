@@ -109,16 +109,6 @@ INSERT INTO bookings (id, user_id, store_id, slot_id, participant_count, total_p
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------
--- BOOKING GAMES (games chosen per booking)
--- ------------------------------------------
-INSERT INTO booking_games (booking_id, board_game_id, quantity) VALUES
-    ('f0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 1),
-    ('f0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000006', 1),
-    ('f0000000-0000-0000-0000-000000000002', 'd0000000-0000-0000-0000-000000000007', 1),
-    ('f0000000-0000-0000-0000-000000000003', 'd0000000-0000-0000-0000-000000000006', 1),
-    ('f0000000-0000-0000-0000-000000000004', 'd0000000-0000-0000-0000-000000000003', 1);
-
--- ------------------------------------------
 -- PAYMENTS
 -- ------------------------------------------
 INSERT INTO payments (
@@ -195,14 +185,11 @@ ON CONFLICT (id) DO NOTHING;
 -- ------------------------------------------
 -- BOOKING CARTS (active cart per user)
 -- ------------------------------------------
-INSERT INTO booking_carts (id, user_id, store_id, slot_id, participant_count, note) VALUES
-    ('40000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000005', 4, 'Planning a Wingspan session.')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO booking_carts (id, booking_id, note) VALUES
+('40000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'Planning a Wingspan session.') ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO booking_cart_games (cart_id, board_game_id, quantity) VALUES
-    ('40000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000005', 1),
-    ('40000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000007', 1)
-ON CONFLICT (cart_id, board_game_id) DO NOTHING;
+('40000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000005', 1), ('40000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000007', 1) ON CONFLICT (cart_id, board_game_id) DO NOTHING;
 
 -- ------------------------------------------
 -- CONVERSATIONS (user <-> store chat)

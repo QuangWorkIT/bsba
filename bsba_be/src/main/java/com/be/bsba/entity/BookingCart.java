@@ -20,17 +20,9 @@ public class BookingCart {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "user_id", nullable = false, unique = true)
-    private UUID userId;
-
-    @Column(name = "store_id", nullable = false)
-    private UUID storeId;
-
-    @Column(name = "slot_id")
-    private UUID slotId;
-
-    @Column(name = "participant_count", nullable = false)
-    private Integer participantCount = 1;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booking_id", nullable = false, unique = true)
+    private Booking booking;
 
     @Column(name = "note")
     private String note;
@@ -40,10 +32,6 @@ public class BookingCart {
 
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<BookingCartGame> items = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

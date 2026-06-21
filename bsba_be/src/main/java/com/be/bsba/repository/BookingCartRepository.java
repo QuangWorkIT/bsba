@@ -8,5 +8,10 @@ import java.util.UUID;
 
 public interface BookingCartRepository extends JpaRepository<BookingCart, UUID> {
     @EntityGraph(attributePaths = {"items", "items.boardGame"})
-    Optional<BookingCart> findByUserId(UUID userId);
+    Optional<BookingCart> findByBookingUserId(UUID userId);
+
+    @EntityGraph(attributePaths = {"items", "items.boardGame"})
+    Optional<BookingCart> findByBookingId(UUID bookingId);
+
+    boolean existsByBookingId(UUID bookingId);
 }
