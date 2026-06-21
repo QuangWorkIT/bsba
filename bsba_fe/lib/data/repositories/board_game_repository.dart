@@ -26,4 +26,28 @@ class BoardGameRepository {
   }) async {
     await _service.addToCart(gameId, storeId: storeId, slotId: slotId);
   }
+
+  Future<BoardGame> createGame({
+    required String name,
+    required String description,
+    required int minPlayers,
+    required int maxPlayers,
+    required int playTimeMinutes,
+    required int ageRequirement,
+    required int quantity,
+    required String category,
+    required String imageUrl,
+  }) async {
+    return await _service.createBoardGame(
+      name: name,
+      description: description,
+      minPlayers: minPlayers,
+      maxPlayers: maxPlayers,
+      playTimeMinutes: playTimeMinutes,
+      ageRequirement: ageRequirement,
+      quantity: quantity,
+      category: category,
+      imageUrl: imageUrl,
+    );
+  }
 }
