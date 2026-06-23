@@ -1,5 +1,6 @@
 import '../models/booking_summary.dart';
 import '../models/booking.dart';
+import '../models/pending_booking_lookup.dart';
 import '../services/booking_service.dart';
 
 class BookingRepository {
@@ -13,5 +14,12 @@ class BookingRepository {
 
   Future<BookingSummary> createBooking(Booking request) async {
     return await _service.createBooking(request);
+  }
+
+  Future<PendingBookingLookup?> lookupPendingBooking({
+    required String userId,
+    required String storeId,
+  }) async {
+    return await _service.lookupPendingBooking(userId: userId, storeId: storeId);
   }
 }

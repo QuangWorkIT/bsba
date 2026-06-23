@@ -19,6 +19,7 @@ import java.util.UUID;
 @Builder
 public class BookingResponse {
     private UUID id;
+    private UUID slotId;
     private String storeName;
     private String storeLocation;
     @JsonProperty("slot_date")

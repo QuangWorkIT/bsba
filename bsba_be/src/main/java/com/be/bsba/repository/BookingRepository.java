@@ -1,5 +1,6 @@
 package com.be.bsba.repository;
 
+import com.be.bsba.constant.BookingStatus;
 import com.be.bsba.entity.Booking;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,6 +20,11 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     Optional<Booking> findByIdForUpdate(@Param("id") UUID id);
 
     java.util.List<Booking> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
+
+    Optional<Booking> findFirstByUserIdAndStoreIdAndStatusOrderByCreatedAtDesc(
+            UUID userId,
+            UUID storeId,
+            BookingStatus status);
 
     boolean existsByUserIdAndSlotId(UUID userId, UUID slotId);
 }

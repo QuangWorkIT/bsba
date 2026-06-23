@@ -5,7 +5,6 @@ import '../../data/repositories/board_space_repository.dart';
 import '../../data/repositories/booking_repository.dart';
 import '../../data/repositories/cart_repository.dart';
 import '../../data/services/api_client.dart';
-import '../../data/services/boardgame_service.dart';
 import '../../data/services/booking_service.dart';
 import '../../data/services/cart_service.dart';
 import '../cart/cart_screen.dart';
@@ -142,29 +141,28 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
   }
 
   void _addGameToCart(BuildContext context, BoardGame game) async {
-    if (_vm.selectedSlot == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a booking time first')),
-      );
-      return;
-    }
-
     try {
-      await BoardGameService(ApiClient()).addToCart(
-        game.id,
-        storeId: _vm.space?.id,
-        slotId: _vm.selectedSlot?.id,
-      );
+      final error = await _vm.addGameToCart(game);
       if (!context.mounted) return;
+
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+        return;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${game.name} added to cart'),
           action: SnackBarAction(
             label: 'View Cart',
             onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const CartScreen()));
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => CartScreen(bookingId: _vm.pendingBookingId),
+                ),
+              );
             },
           ),
         ),

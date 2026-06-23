@@ -3,13 +3,16 @@ package com.be.bsba.serviceImpl;
 import com.be.bsba.constant.BookingStatus;
 import com.be.bsba.constant.TimeSlotStatus;
 import com.be.bsba.dto.request.CreateBookingRequest;
+import com.be.bsba.dto.response.BookingLookupResponse;
 import com.be.bsba.dto.response.BookingResponse;
 import com.be.bsba.entity.Booking;
+import com.be.bsba.entity.BookingCart;
 import com.be.bsba.entity.Store;
 import com.be.bsba.entity.StoreTimeSlot;
 import com.be.bsba.entity.User;
 import com.be.bsba.exception.BadRequestException;
 import com.be.bsba.exception.ResourceNotFoundException;
+import com.be.bsba.repository.BookingCartRepository;
 import com.be.bsba.repository.BookingRepository;
 import com.be.bsba.repository.StoreRepository;
 import com.be.bsba.repository.StoreTimeSlotRepository;
@@ -28,6 +31,7 @@ import java.util.stream.Collectors;
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
+    private final BookingCartRepository bookingCartRepository;
     private final UserRepository userRepository;
     private final StoreRepository storeRepository;
     private final StoreTimeSlotRepository storeTimeSlotRepository;
@@ -38,6 +42,20 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> bookings = bookingRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
 
         return bookings.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BookingLookupResponse getPendingBookingByUserAndStore(String userIdValue, String storeIdValue) {
+        UUID userId = parseUuid(userIdValue, "User ID");
+        UUID storeId = parseUuid(storeIdValue, "Store ID");
+
+        return bookingRepository.findFirstByUserIdAndStoreIdAndStatusOrderByCreatedAtDesc(
+                        userId,
+                        storeId,
+                        BookingStatus.PENDING)
+                .map(this::mapToLookupResponse)
+                .orElse(null);
     }
 
     @Override
@@ -73,6 +91,14 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    private UUID parseUuid(String value, String fieldName) {
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException ex) {
+            throw new BadRequestException(fieldName + " must be a valid UUID");
+        }
+    }
+
     private void validateTimeSlotForBooking(StoreTimeSlot slot, Store store) {
         if (slot.getStore() == null || !store.getId().equals(slot.getStore().getId())) {
             throw new BadRequestException("Store time slot does not belong to store with id: " + store.getId());
@@ -83,11 +109,24 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    private BookingLookupResponse mapToLookupResponse(Booking booking) {
+        UUID cartId = bookingCartRepository.findByBookingId(booking.getId())
+                .map(BookingCart::getId)
+                .orElse(null);
+
+        return BookingLookupResponse.builder()
+                .bookingId(booking.getId())
+                .cartId(cartId)
+                .slotId(booking.getSlot() != null ? booking.getSlot().getId() : null)
+                .build();
+    }
+
     private BookingResponse mapToResponse(Booking booking) {
         StoreTimeSlot slot = booking.getSlot();
 
         return BookingResponse.builder()
                 .id(booking.getId())
+                .slotId(booking.getSlot() != null ? booking.getSlot().getId() : null)
                 .storeName(booking.getStore() != null ? booking.getStore().getName() : "Unknown Store")
                 .storeLocation(booking.getStore() != null ? booking.getStore().getAddress() : "Unknown Location")
                 .slotDate(slot != null ? slot.getSlotDate() : null)

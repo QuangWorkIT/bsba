@@ -34,6 +34,25 @@ class CartService {
     }
   }
 
+  Future<void> addItemToCart({
+    required String bookingCartId,
+    required String boardGameId,
+    required int quantity,
+  }) async {
+    final response = await _apiClient.post('/carts/items', {
+      'bookingCartId': bookingCartId,
+      'boardGameId': boardGameId,
+      'quantity': quantity,
+    });
+
+    if (response['success'] == false) {
+      throw ApiException(
+        400,
+        response['message'] as String? ?? 'Unable to add game to cart.',
+      );
+    }
+  }
+
   Future<void> updateItemQuantity(String gameId, int quantity) async {
     await _apiClient.patch('/carts/items/$gameId', {'quantity': quantity});
   }

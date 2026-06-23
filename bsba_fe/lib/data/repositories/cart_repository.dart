@@ -13,6 +13,18 @@ class CartRepository {
     await _service.createEmptyCart(bookingId);
   }
 
+  Future<void> addItemToCart({
+    required String bookingCartId,
+    required String boardGameId,
+    required int quantity,
+  }) async {
+    await _service.addItemToCart(
+      bookingCartId: bookingCartId,
+      boardGameId: boardGameId,
+      quantity: quantity,
+    );
+  }
+
   Future<void> updateItemQuantity(String gameId, int quantity) async {
     await _service.updateItemQuantity(gameId, quantity);
   }
