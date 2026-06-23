@@ -3,10 +3,13 @@ package com.be.bsba.serviceImpl;
 import com.be.bsba.constant.BookingStatus;
 import com.be.bsba.dto.request.AddItemCartRequest;
 import com.be.bsba.dto.request.CreateCartRequest;
+import com.be.bsba.dto.request.DeleteItemCartRequest;
+import com.be.bsba.dto.request.UpdateItemCartQuantityRequest;
 import com.be.bsba.dto.response.BoardGameResponse;
 import com.be.bsba.dto.response.CartDetailResponse;
 import com.be.bsba.dto.response.CartItemResponse;
 import com.be.bsba.dto.response.CartResponse;
+import com.be.bsba.dto.response.ModifyCartItemResponse;
 import com.be.bsba.entity.BoardGame;
 import com.be.bsba.entity.Booking;
 import com.be.bsba.entity.BookingCart;
@@ -91,6 +94,54 @@ public class CartServiceImpl implements ICartService {
 
         BookingCartGame savedCartGame = bookingCartGameRepository.save(cartGame);
         return mapToCartItemResponse(savedCartGame);
+    }
+
+    @Override
+    @Transactional
+    public ModifyCartItemResponse deleteItemFromCart(DeleteItemCartRequest request) {
+        BookingCart cart = bookingCartRepository.findById(request.getCartId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id: " + request.getCartId()));
+
+        BoardGame boardGame = boardGameRepository.findById(request.getBoardGameId())
+                .orElseThrow(() -> new ResourceNotFoundException("Board game not found with id: " + request.getBoardGameId()));
+
+        BookingCartGame cartGame = bookingCartGameRepository
+                .findByCartIdAndBoardGameId(cart.getId(), boardGame.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Board game not found in cart. cart id: " + cart.getId() + ", board game id: " + boardGame.getId()));
+
+        ModifyCartItemResponse response = ModifyCartItemResponse.builder()
+                .bookingCartGameId(cartGame.getId())
+                .cartId(cart.getId())
+                .boardGameId(boardGame.getId())
+                .build();
+
+        bookingCartGameRepository.delete(cartGame);
+        return response;
+    }
+
+    @Override
+    @Transactional
+    public ModifyCartItemResponse updateItemQuantityInCart(UpdateItemCartQuantityRequest request) {
+        BookingCart cart = bookingCartRepository.findById(request.getCartId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id: " + request.getCartId()));
+
+        BoardGame boardGame = boardGameRepository.findById(request.getBoardGameId())
+                .orElseThrow(() -> new ResourceNotFoundException("Board game not found with id: " + request.getBoardGameId()));
+
+        BookingCartGame cartGame = bookingCartGameRepository
+                .findByCartIdAndBoardGameId(cart.getId(), boardGame.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Board game not found in cart. cart id: " + cart.getId() + ", board game id: " + boardGame.getId()));
+
+        cartGame.setQuantity(request.getQuantity());
+        BookingCartGame savedCartGame = bookingCartGameRepository.save(cartGame);
+
+        return ModifyCartItemResponse.builder()
+                .bookingCartGameId(savedCartGame.getId())
+                .cartId(cart.getId())
+                .boardGameId(boardGame.getId())
+                .build();
     }
 
     @Override

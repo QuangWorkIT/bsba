@@ -49,6 +49,7 @@ class CartViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  String? _cartId;
   String? _storeName;
   String? _storeImage;
   String? _slotDate;
@@ -63,6 +64,7 @@ class CartViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  String? get cartId => _cartId;
   String? get storeName => _storeName;
   String? get storeImage => _storeImage;
   String? get slotDate => _slotDate;
@@ -83,6 +85,7 @@ class CartViewModel extends ChangeNotifier {
         _chargeFee = 0.0;
         _retailPrice = 0.0;
         _totalPrice = 0.0;
+        _cartId = null;
         _storeName = null;
         _storeImage = null;
         _slotDate = null;
@@ -101,6 +104,7 @@ class CartViewModel extends ChangeNotifier {
       _retailPrice = (data['retailPrice'] as num?)?.toDouble() ?? 0.0;
       _totalPrice = (data['totalPrice'] as num?)?.toDouble() ?? 0.0;
 
+      _cartId = data['id']?.toString();
       _storeName = data['storeName']?.toString();
       _storeImage = data['storeImage']?.toString();
       _slotDate = data['slotDate']?.toString();
@@ -115,8 +119,18 @@ class CartViewModel extends ChangeNotifier {
   }
 
   Future<void> updateQuantity(String gameId, int quantity) async {
+    final cartId = _cartId;
+    if (cartId == null || cartId.isEmpty) {
+      debugPrint('Error updating quantity: Cart id is missing.');
+      return;
+    }
+
     try {
-      await _repository.updateItemQuantity(gameId, quantity);
+      await _repository.updateItemQuantity(
+        cartId: cartId,
+        boardGameId: gameId,
+        quantity: quantity,
+      );
       await fetchCart();
     } catch (e) {
       debugPrint('Error updating quantity: $e');
@@ -124,8 +138,14 @@ class CartViewModel extends ChangeNotifier {
   }
 
   Future<void> removeItem(String gameId) async {
+    final cartId = _cartId;
+    if (cartId == null || cartId.isEmpty) {
+      debugPrint('Error removing item: Cart id is missing.');
+      return;
+    }
+
     try {
-      await _repository.removeItem(gameId);
+      await _repository.removeItem(cartId: cartId, boardGameId: gameId);
       await fetchCart();
     } catch (e) {
       debugPrint('Error removing item: $e');

@@ -25,11 +25,22 @@ class CartRepository {
     );
   }
 
-  Future<void> updateItemQuantity(String gameId, int quantity) async {
-    await _service.updateItemQuantity(gameId, quantity);
+  Future<void> updateItemQuantity({
+    required String cartId,
+    required String boardGameId,
+    required int quantity,
+  }) async {
+    await _service.updateItemQuantity(
+      cartId: cartId,
+      boardGameId: boardGameId,
+      quantity: quantity,
+    );
   }
 
-  Future<void> removeItem(String gameId) async {
-    await _service.removeItem(gameId);
+  Future<void> removeItem({
+    required String cartId,
+    required String boardGameId,
+  }) async {
+    await _service.removeItem(cartId: cartId, boardGameId: boardGameId);
   }
 }

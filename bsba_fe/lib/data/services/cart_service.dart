@@ -53,11 +53,39 @@ class CartService {
     }
   }
 
-  Future<void> updateItemQuantity(String gameId, int quantity) async {
-    await _apiClient.patch('/carts/items/$gameId', {'quantity': quantity});
+  Future<void> updateItemQuantity({
+    required String cartId,
+    required String boardGameId,
+    required int quantity,
+  }) async {
+    final response = await _apiClient.patch('/carts/items/quantity', {
+      'cartId': cartId,
+      'boardgameId': boardGameId,
+      'quantity': quantity,
+    });
+
+    if (response['success'] == false) {
+      throw ApiException(
+        400,
+        response['message'] as String? ?? 'Unable to update item quantity.',
+      );
+    }
   }
 
-  Future<void> removeItem(String gameId) async {
-    await _apiClient.delete('/carts/items/$gameId');
+  Future<void> removeItem({
+    required String cartId,
+    required String boardGameId,
+  }) async {
+    final response = await _apiClient.delete('/carts/items', {
+      'cartId': cartId,
+      'boardgameId': boardGameId,
+    });
+
+    if (response['success'] == false) {
+      throw ApiException(
+        400,
+        response['message'] as String? ?? 'Unable to remove game from cart.',
+      );
+    }
   }
 }

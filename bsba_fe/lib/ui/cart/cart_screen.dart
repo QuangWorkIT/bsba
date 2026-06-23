@@ -109,13 +109,17 @@ class _CartView extends StatelessWidget {
                               item.boardGameId,
                               item.quantity - 1,
                             );
+                          } else {
+                            vm.removeItem(item.boardGameId);
                           }
                         },
                         onIncrement: () {
-                          vm.updateQuantity(
-                            item.boardGameId,
-                            item.quantity + 1,
-                          );
+                          if (item.quantity < 100) {
+                            vm.updateQuantity(
+                              item.boardGameId,
+                              item.quantity + 1,
+                            );
+                          }
                         },
                       ),
                     );
