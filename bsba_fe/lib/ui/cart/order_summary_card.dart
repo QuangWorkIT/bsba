@@ -10,6 +10,7 @@ class OrderSummaryCard extends StatelessWidget {
     required this.totalAmount,
     this.itemCount,
     this.showCheckout = true,
+    this.checkoutButtonLabel = 'Proceed to Checkout',
   });
 
   final double roomTotal;
@@ -19,6 +20,7 @@ class OrderSummaryCard extends StatelessWidget {
   final double totalAmount;
   final int? itemCount;
   final bool showCheckout;
+  final String checkoutButtonLabel;
 
   static Color _borderColor(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
@@ -123,18 +125,18 @@ class OrderSummaryCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Proceed to Checkout',
-                      style: TextStyle(
+                      checkoutButtonLabel,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, size: 16),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.arrow_forward, size: 16),
                   ],
                 ),
               ),

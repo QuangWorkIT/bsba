@@ -6,9 +6,11 @@ class CartService {
   CartService(this._apiClient);
 
   Future<Map<String, dynamic>?> fetchCart({String? bookingId}) async {
-    final path = bookingId == null || bookingId.isEmpty
-        ? '/carts'
-        : '/carts/$bookingId';
+    if (bookingId == null || bookingId.isEmpty) {
+      throw ApiException(400, 'A booking id is required to fetch a cart.');
+    }
+
+    final path = '/carts/$bookingId';
     final response = await _apiClient.get(path);
 
     if (response['success'] == false) {

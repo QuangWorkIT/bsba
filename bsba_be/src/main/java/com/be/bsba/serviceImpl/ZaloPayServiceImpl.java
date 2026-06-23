@@ -74,7 +74,6 @@ public class ZaloPayServiceImpl implements ZaloPayService {
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
 
         validateBookingForPayment(booking, user);
-        long zaloPayAmount = toZaloPayAmount(booking.getTotalPrice());
         String appTransId = generateUniqueAppTransId();
 
         Payment payment = Payment.builder()
@@ -82,14 +81,14 @@ public class ZaloPayServiceImpl implements ZaloPayService {
                 .user(user)
                 .provider(PaymentProvider.ZALOPAY)
                 .appTransId(appTransId)
-                .amount(booking.getTotalPrice())
+                .amount(request.getTotalPrice())
                 .status(PaymentStatus.PENDING)
                 .build();
         paymentRepository.saveAndFlush(payment);
 
         long appTime = System.currentTimeMillis();
         String appUser = user.getId().toString();
-        String amount = Long.toString(zaloPayAmount);
+        String amount = request.getTotalPrice().toString();
         String embedData = toJson(Map.of(
                 "booking_id", booking.getId().toString(),
                 "user_id", user.getId().toString()
@@ -97,7 +96,7 @@ public class ZaloPayServiceImpl implements ZaloPayService {
         String item = toJson(List.of(Map.of(
                 "itemid", booking.getId().toString(),
                 "itemname", "BoardNest booking",
-                "itemprice", zaloPayAmount,
+                "itemprice", request.getTotalPrice(),
                 "itemquantity", 1
         )));
 

@@ -1,16 +1,24 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:project/ui/checkout/checkout_viewmodel.dart';
+import 'package:project/data/repositories/cart_repository.dart';
+import 'package:project/data/services/api_client.dart';
+import 'package:project/data/services/cart_service.dart';
+import 'package:project/data/services/current_user.dart';
+import 'package:project/data/services/user_service.dart';
+import 'package:project/ui/cart/cart_viewmodel.dart';
+import 'package:project/ui/cart/order_summary_card.dart';
 import 'package:project/ui/checkout/billing_details_section.dart';
 import 'package:project/ui/checkout/checkout_app_bar.dart';
-import 'package:project/ui/checkout/checkout_order_summary.dart';
+import 'package:project/ui/checkout/checkout_viewmodel.dart';
 import 'package:project/ui/checkout/payment_method_section.dart';
-import 'package:project/data/services/api_client.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  const CheckoutScreen({super.key, required this.bookingId});
+
+  final String bookingId;
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -21,11 +29,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   static const _titleColor = Color(0xFF181C22);
 
   late final CheckoutViewModel _viewModel;
+  late final CartViewModel _cartViewModel;
 
-  final _nameController = TextEditingController(text: 'Alex Rivers');
-  final _emailController = TextEditingController(
-    text: 'alex.rivers@example.com',
-  );
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _cardNumberController = TextEditingController();
   final _expiryController = TextEditingController();
@@ -37,11 +44,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void initState() {
     super.initState();
     _viewModel = CheckoutViewModel();
+    _cartViewModel = CartViewModel(
+      CartRepository(CartService(ApiClient())),
+      bookingId: widget.bookingId,
+    )
+      ..fetchCart();
+    _fillBillingDetailsFromCurrentUser();
+    _refreshBillingDetails();
   }
 
   @override
   void dispose() {
     _viewModel.dispose();
+    _cartViewModel.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
@@ -49,6 +64,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _expiryController.dispose();
     _cvcController.dispose();
     super.dispose();
+  }
+
+  void _fillBillingDetailsFromCurrentUser() {
+    final user = CurrentUser.instance;
+    _nameController.text = user.fullName;
+    _emailController.text = user.email;
+    _phoneController.text = user.phone;
+  }
+
+  Future<void> _refreshBillingDetails() async {
+    try {
+      final user = await UserService(ApiClient()).fetchUserProfile();
+      CurrentUser.instance.setFrom(user);
+      if (!mounted) return;
+      setState(_fillBillingDetailsFromCurrentUser);
+    } catch (e) {
+      debugPrint('[Checkout] Unable to refresh billing details: $e');
+    }
   }
 
   Future<void> _onConfirmBooking() async {
@@ -115,8 +148,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } catch (e) {
       debugPrint('[MoMo] Error: $e');
       if (!mounted) return;
-      if (Navigator.canPop(context))
+      if (Navigator.canPop(context)) {
         Navigator.of(context).pop(); // Hide loading
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
@@ -128,6 +162,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _handleZaloPayPayment() async {
+    if (_cartViewModel.totalPrice <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to create payment without total price.')),
+      );
+      return;
+    }
+
     // Show loading indicator
     showDialog(
       context: context,
@@ -135,7 +176,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
-    final success = await _viewModel.handleZaloPayPayment();
+    final success = await _viewModel.handleZaloPayPayment(
+      bookingId: widget.bookingId,
+      totalPrice: _cartViewModel.totalPrice,
+    );
 
     if (!mounted) return;
     Navigator.of(context).pop(); // Hide loading
@@ -145,7 +189,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         SnackBar(
           content: Text('Error: ${_viewModel.errorMessage}'),
           duration: const Duration(seconds: 10),
-          action: SnackBarAction(label: 'RETRY', onPressed: _handleZaloPayPayment),
+          action: SnackBarAction(
+            label: 'RETRY',
+            onPressed: _handleZaloPayPayment,
+          ),
         ),
       );
     }
@@ -227,7 +274,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               cvcController: _cvcController,
             ),
             const SizedBox(height: 24),
-            CheckoutOrderSummary(onConfirm: _onConfirmBooking),
+            AnimatedBuilder(
+              animation: _cartViewModel,
+              builder: (context, _) {
+                if (_cartViewModel.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (_cartViewModel.error != null) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        _cartViewModel.error!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _cartViewModel.fetchCart,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  );
+                }
+
+                return OrderSummaryCard(
+                  roomTotal: _cartViewModel.chargeFee,
+                  gamesTotal: _cartViewModel.retailPrice,
+                  serviceFee: 0,
+                  totalAmount: _cartViewModel.totalPrice,
+                  itemCount: _cartViewModel.items.length,
+                  checkoutButtonLabel: 'Confirm Booking',
+                  onCheckout: _onConfirmBooking,
+                );
+              },
+            ),
           ],
         ),
       ),

@@ -22,10 +22,16 @@ class CartScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) {
         final apiClient = ApiClient();
-        return CartViewModel(
+        final viewModel = CartViewModel(
           CartRepository(CartService(apiClient)),
           bookingId: bookingId,
-        )..fetchCart();
+        );
+
+        if (bookingId != null && bookingId!.isNotEmpty) {
+          viewModel.fetchCart();
+        }
+
+        return viewModel;
       },
       child: _CartView(showCheckout: _canCheckout),
     );
@@ -135,7 +141,9 @@ class _CartView extends StatelessWidget {
                     onCheckout: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) => const CheckoutScreen(),
+                          builder: (_) => CheckoutScreen(
+                            bookingId: vm.bookingId!,
+                          ),
                         ),
                       );
                     },
