@@ -9,6 +9,7 @@ class CheckoutFormField extends StatelessWidget {
     this.keyboardType,
     this.obscureText = false,
     this.prefixIcon,
+    this.enabled = true,
   });
 
   final String label;
@@ -17,6 +18,7 @@ class CheckoutFormField extends StatelessWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
   final Widget? prefixIcon;
+  final bool enabled;
 
   static const _labelColor = Color(0xFF414753);
   static const _borderColor = Color(0xFFC1C6D5);
@@ -39,6 +41,7 @@ class CheckoutFormField extends StatelessWidget {
         const SizedBox(height: 4),
         TextField(
           controller: controller,
+          enabled: enabled,
           keyboardType: keyboardType,
           obscureText: obscureText,
           style: const TextStyle(

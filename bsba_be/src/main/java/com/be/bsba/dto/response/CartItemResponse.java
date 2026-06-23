@@ -14,6 +14,7 @@ public class CartItemResponse {
     private Long id;
     private UUID boardGameId;
     private String boardGameName;
+    private String category;
     private String imageUrl;
     private Double rentalPrice;
     private Integer quantity;

@@ -19,10 +19,14 @@ import java.util.UUID;
 public class BoardGameController {
 
     private final BoardGameService boardGameService;
+    private final com.be.bsba.repository.UserRepository userRepository;
+    private final com.be.bsba.repository.StoreStaffRepository storeStaffRepository;
 
     @GetMapping
-    public ApiResponse<Page<BoardGameResponse>> getAllBoardGames(Pageable pageable) {
-        Page<BoardGameResponse> games = boardGameService.getAllBoardGames(pageable);
+    public ApiResponse<Page<BoardGameResponse>> getAllBoardGames(
+            @RequestParam(required = false) UUID storeId,
+            Pageable pageable) {
+        Page<BoardGameResponse> games = boardGameService.getAllBoardGames(storeId, pageable);
         return ApiResponse.success(games, "Board games retrieved successfully");
     }
 
@@ -35,6 +39,17 @@ public class BoardGameController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<BoardGameResponse> createBoardGame(@Valid @RequestBody BoardGameRequest request) {
+        if (request.getStoreId() == null) {
+            String email = (String) org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            com.be.bsba.entity.User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new com.be.bsba.exception.BadRequestException("User not found"));
+            java.util.List<UUID> storeIds = storeStaffRepository.findStoreIdsByStaffId(user.getId());
+            if (!storeIds.isEmpty()) {
+                request.setStoreId(storeIds.get(0));
+            } else {
+                throw new com.be.bsba.exception.BadRequestException("Staff user is not associated with any store");
+            }
+        }
         BoardGameResponse game = boardGameService.createBoardGame(request);
         return ApiResponse.success(game, "Board game created successfully");
     }

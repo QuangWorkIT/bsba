@@ -30,11 +30,18 @@ class Navigation extends StatelessWidget {
             : const Color(0xFFB6D0FF),
         elevation: 0,
         destinations: [
-          const NavigationDestination(icon: Icon(Icons.search), label: 'Explore'),
-          const NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Map'),
           const NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined),
-            label: 'Cart',
+            icon: Icon(Icons.search),
+            label: 'Explore',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.map_outlined),
+            label: 'Map',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: 'Bookings',
           ),
           NavigationDestination(
             icon: inboxBadgeCount > 0

@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import '../../data/models/board_game.dart';
 import '../../data/models/board_space_detail.dart';
 import '../../data/repositories/board_space_repository.dart';
+import '../../data/repositories/booking_repository.dart';
+import '../../data/repositories/cart_repository.dart';
 import '../../data/services/api_client.dart';
+import '../../data/services/booking_service.dart';
+import '../../data/services/cart_service.dart';
+import '../cart/cart_screen.dart';
 import 'game_card.dart';
 import 'game_library_screen.dart';
 import 'space_detail_viewmodel.dart';
@@ -26,7 +31,12 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _vm = SpaceDetailViewModel(BoardSpaceRepository(ApiClient()));
+    final apiClient = ApiClient();
+    _vm = SpaceDetailViewModel(
+      BoardSpaceRepository(apiClient),
+      BookingRepository(BookingService(apiClient)),
+      CartRepository(CartService(apiClient)),
+    );
     _vm.loadSpace(widget.spaceId);
   }
 
@@ -69,9 +79,7 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
         }
 
         if (_vm.space == null) {
-          return const Scaffold(
-            body: Center(child: Text('Space not found.')),
-          );
+          return const Scaffold(body: Center(child: Text('Space not found.')));
         }
 
         final space = _vm.space!;
@@ -100,6 +108,17 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
                     _LibrarySection(
                       games: space.libraryHighlights,
                       totalGames: space.totalGames,
+                      onAddToCart: (game) => _addGameToCart(context, game),
+                      onSeeAll: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => GameLibraryScreen(
+                              storeId: space.id,
+                              slotId: _vm.selectedSlot?.id,
+                            ),
+                          ),
+                        );
+                      },
                     ),
 
                     // Pricing + booking CTA
@@ -121,6 +140,41 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
     );
   }
 
+  void _addGameToCart(BuildContext context, BoardGame game) async {
+    try {
+      final error = await _vm.addGameToCart(game);
+      if (!context.mounted) return;
+
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${game.name} added to cart'),
+          action: SnackBarAction(
+            label: 'View Cart',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => CartScreen(bookingId: _vm.pendingBookingId),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to add to cart: $e')));
+    }
+  }
+
   void _showSlotPicker(BuildContext context, BoardSpaceDetail space) {
     showModalBottomSheet(
       context: context,
@@ -131,13 +185,44 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
       builder: (_) => _SlotPickerSheet(
         slots: space.availableSlots,
         selectedSlot: _vm.selectedSlot,
-        onSlotSelected: (slot) {
-          _vm.selectSlot(slot);
-          Navigator.pop(context);
-          // TODO: Navigate to booking confirmation screen.
-        },
+        onSlotSelected: (slot) => _createBookingForSlot(context, slot),
       ),
     );
+  }
+
+  Future<void> _createBookingForSlot(
+    BuildContext context,
+    SpaceSlot slot,
+  ) async {
+    Navigator.pop(context);
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final booking = await _vm.createPendingBooking(slot);
+      if (!context.mounted) return;
+
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${booking.title} booking is pending for ${booking.time}.',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create booking: $e')),
+      );
+    }
   }
 }
 
@@ -462,7 +547,15 @@ class _AmenityItem extends StatelessWidget {
 class _LibrarySection extends StatelessWidget {
   final List<BoardGame> games;
   final int totalGames;
-  const _LibrarySection({required this.games, required this.totalGames});
+  final ValueChanged<BoardGame> onAddToCart;
+  final VoidCallback onSeeAll;
+
+  const _LibrarySection({
+    required this.games,
+    required this.totalGames,
+    required this.onAddToCart,
+    required this.onSeeAll,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -473,7 +566,6 @@ class _LibrarySection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -481,19 +573,20 @@ class _LibrarySection extends StatelessWidget {
               children: [
                 const _SectionTitle('Library Highlights'),
                 GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const GameLibraryScreen(),
+                  onTap: onSeeAll,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 8,
+                    ),
+                    child: Text(
+                      'See all $totalGames+',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: cs.primary,
+                        fontWeight: FontWeight.w600,
                       ),
-                    );
-                  },
-                  child: Text(
-                    'See all $totalGames+',
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      color: cs.primary,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -501,10 +594,8 @@ class _LibrarySection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-
-          // Horizontal scroll
           SizedBox(
-            height: 190,
+            height: 230,
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
@@ -512,9 +603,8 @@ class _LibrarySection extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(width: 12),
               itemBuilder: (context, index) => GameCard(
                 game: games[index],
-                onTap: () {
-                  // TODO: Navigate to game detail
-                },
+                showAvailability: true,
+                onAddToCart: () => onAddToCart(games[index]),
               ),
             ),
           ),
@@ -601,9 +691,9 @@ class _BookingBar extends StatelessWidget {
 // ── Slot Picker Bottom Sheet ───────────────────────────────────────────────────
 
 class _SlotPickerSheet extends StatelessWidget {
-  final List<String> slots;
-  final String? selectedSlot;
-  final ValueChanged<String> onSlotSelected;
+  final List<SpaceSlot> slots;
+  final SpaceSlot? selectedSlot;
+  final ValueChanged<SpaceSlot> onSlotSelected;
 
   const _SlotPickerSheet({
     required this.slots,
@@ -650,7 +740,7 @@ class _SlotPickerSheet extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: slots.map((slot) {
-              final selected = slot == selectedSlot;
+              final selected = slot.id == selectedSlot?.id;
               return GestureDetector(
                 onTap: () => onSlotSelected(slot),
                 child: AnimatedContainer(
@@ -668,7 +758,7 @@ class _SlotPickerSheet extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    slot,
+                    slot.startTime,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -809,8 +899,6 @@ class _LocationSection extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Text(
                                           'Today',
@@ -819,13 +907,17 @@ class _LocationSection extends StatelessWidget {
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                        Text(
-                                          space.openHours,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: cs.onSurface.withValues(
-                                              alpha: 0.6,
+                                        const Spacer(),
+                                        Flexible(
+                                          child: Text(
+                                            space.openHours,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: cs.onSurface.withValues(
+                                                alpha: 0.6,
+                                              ),
                                             ),
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ],

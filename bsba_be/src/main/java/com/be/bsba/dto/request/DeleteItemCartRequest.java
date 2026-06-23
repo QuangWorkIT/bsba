@@ -1,22 +1,21 @@
 package com.be.bsba.dto.request;
 
-import jakarta.validation.constraints.Min;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.util.UUID;
 
-@Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class CartItemRequest {
+@NoArgsConstructor
+@Data
+public class DeleteItemCartRequest {
+    @NotNull(message = "Cart ID is required")
+    private UUID cartId;
+
+    @JsonAlias("boardgameId")
     @NotNull(message = "Board game ID is required")
     private UUID boardGameId;
-
-    @Min(value = 1, message = "Quantity must be at least 1")
-    private Integer quantity = 1;
-
-    // Optional store ID if we want to set it during first add
-    private UUID storeId;
 }

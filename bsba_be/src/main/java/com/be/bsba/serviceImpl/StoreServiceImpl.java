@@ -1,5 +1,6 @@
 package com.be.bsba.serviceImpl;
 
+import com.be.bsba.dto.request.UpdateStoreRequest;
 import com.be.bsba.dto.response.*;
 import com.be.bsba.entity.*;
 import com.be.bsba.exception.ResourceNotFoundException;
@@ -26,6 +27,7 @@ public class StoreServiceImpl implements StoreService, IStoreService {
     private final StoreTimeSlotRepository storeTimeSlotRepository;
     private final ReviewRepository reviewRepository;
     private final FavoriteStoreRepository favoriteStoreRepository;
+    private final StoreStaffRepository storeStaffRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -92,10 +94,53 @@ public class StoreServiceImpl implements StoreService, IStoreService {
                 .reviewCount(reviewCount)
                 .isFavorited(isFavorited)
                 .images(images)
+                .chargeFee(store.getChargeFee())
                 .boardGames(boardGames)
                 .timeSlots(timeSlots)
                 .reviews(reviews)
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EditStoreResponse getStoreDetailByStaffId(UUID staffId) {
+        EditStoreResponse storeDetail = storeRepository.getStoreDetailByStaffId(staffId);
+        if (storeDetail == null) {
+            throw new ResourceNotFoundException("Staff is not assigned to any active store: " + staffId);
+        }
+        return storeDetail;
+    }
+
+    @Override
+    @Transactional
+    public EditStoreResponse updateStoreByStaff(UpdateStoreRequest request) {
+        UUID staffId = UUID.fromString(request.getStaffId());
+        UUID storeId = UUID.fromString(request.getStoreId());
+
+        boolean staffBelongsToStore = storeRepository.existsActiveStoreByStaffIdAndStoreId(staffId, storeId);
+        if (!staffBelongsToStore) {
+            throw new ResourceNotFoundException("Staff is not assigned to this active store: " + staffId);
+        }
+
+        int updatedRows = storeRepository.updateStoreByStaff(
+                storeId,
+                request.getStoreName(),
+                request.getDescription(),
+                request.getAddress(),
+                request.getCoverLetterUrl(),
+                request.getPhone(),
+                request.getEmail(),
+                request.getOpenTime(),
+                request.getCloseTime(),
+                request.getTotalCapacity(),
+                request.getChargeFee()
+        );
+
+        if (updatedRows == 0) {
+            throw new ResourceNotFoundException("Store not found with id: " + storeId);
+        }
+
+        return storeRepository.getStoreDetailByStaffId(staffId);
     }
 
     // ── Mapping helpers ──────────────────────────────────────────────
@@ -127,8 +172,12 @@ public class StoreServiceImpl implements StoreService, IStoreService {
                     .playTimeMinutes(game.getPlayTimeMinutes())
                     .ageRequirement(game.getAgeRequirement())
                     .difficultyLevel(game.getDifficultyLevel())
+                    .category(game.getCategory())
                     .imageUrl(game.getImageUrl())
                     .quantity(sbg.getQuantity())
+                    .availableQuantity(sbg.getQuantity()) // Default to total stock if no specific slot is queried here
+                    .isAvailable(!"OUT_OF_STOCK".equals(sbg.getStatus()))
+                    .rentalPrice(sbg.getRentalPrice() != null ? sbg.getRentalPrice() : game.getRentalPrice())
                     .build();
         } catch (Exception e) {
             return null;
@@ -176,6 +225,21 @@ public class StoreServiceImpl implements StoreService, IStoreService {
             return null;
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BoardGameDto> getGamesForStaffStore(UUID staffId) {
+        List<UUID> storeIds = storeStaffRepository.findStoreIdsByStaffId(staffId);
+        if (storeIds.isEmpty()) {
+            throw new ResourceNotFoundException("No store found for staff id: " + staffId);
+        }
+        UUID storeId = storeIds.get(0); // Assuming one store per staff
+        return storeBoardGameRepository.findByStoreId(storeId).stream()
+                .map(this::toBoardGameDto)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<NearbyStoreProjection> findNearbyStores(double lat, double lng, double radiusKm) {

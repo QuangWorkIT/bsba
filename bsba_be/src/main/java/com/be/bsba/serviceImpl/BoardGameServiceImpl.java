@@ -3,6 +3,7 @@ package com.be.bsba.serviceImpl;
 import com.be.bsba.dto.request.BoardGameRequest;
 import com.be.bsba.dto.response.BoardGameResponse;
 import com.be.bsba.entity.BoardGame;
+import com.be.bsba.entity.Store;
 import com.be.bsba.repository.BoardGameRepository;
 import com.be.bsba.service.BoardGameService;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +19,16 @@ import java.util.UUID;
 public class BoardGameServiceImpl implements BoardGameService {
 
     private final BoardGameRepository boardGameRepository;
+    private final com.be.bsba.repository.StoreRepository storeRepository;
+    private final com.be.bsba.repository.StoreBoardGameRepository storeBoardGameRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public Page<BoardGameResponse> getAllBoardGames(Pageable pageable) {
+    public Page<BoardGameResponse> getAllBoardGames(UUID storeId, Pageable pageable) {
+        if (storeId != null) {
+            return boardGameRepository.findByStoreId(storeId, pageable)
+                    .map(this::mapToResponse);
+        }
         return boardGameRepository.findAll(pageable)
                 .map(this::mapToResponse);
     }
@@ -44,13 +51,25 @@ public class BoardGameServiceImpl implements BoardGameService {
                 .maxPlayers(request.getMaxPlayers())
                 .playTimeMinutes(request.getPlayTimeMinutes())
                 .ageRequirement(request.getAgeRequirement())
-                .difficultyLevel(request.getDifficultyLevel())
+                .difficultyLevel(request.getDifficultyLevel() != null ? request.getDifficultyLevel() : 3)
                 .imageUrl(request.getImageUrl())
-                .category(request.getCategory())
-                .rentalPrice(request.getRentalPrice())
+                .category(request.getCategory() != null ? request.getCategory() : "General")
+                .rentalPrice(request.getRentalPrice() != null ? request.getRentalPrice() : java.math.BigDecimal.ZERO)
                 .build();
         
         BoardGame savedGame = boardGameRepository.save(boardGame);
+
+        if (request.getStoreId() != null) {
+            com.be.bsba.entity.Store store = storeRepository.findById(request.getStoreId())
+                    .orElseThrow(() -> new RuntimeException("Store not found with id: " + request.getStoreId()));
+            com.be.bsba.entity.StoreBoardGame storeBoardGame = com.be.bsba.entity.StoreBoardGame.builder()
+                    .store(store)
+                    .boardGame(savedGame)
+                    .quantity(request.getQuantity() != null ? request.getQuantity() : 1)
+                    .build();
+            storeBoardGameRepository.save(storeBoardGame);
+        }
+
         return mapToResponse(savedGame);
     }
 
@@ -85,7 +104,7 @@ public class BoardGameServiceImpl implements BoardGameService {
     }
 
     private BoardGameResponse mapToResponse(BoardGame boardGame) {
-        return BoardGameResponse.builder()
+        BoardGameResponse.BoardGameResponseBuilder builder = BoardGameResponse.builder()
                 .id(boardGame.getId())
                 .name(boardGame.getName())
                 .description(boardGame.getDescription())
@@ -97,7 +116,16 @@ public class BoardGameServiceImpl implements BoardGameService {
                 .imageUrl(boardGame.getImageUrl())
                 .category(boardGame.getCategory())
                 .rentalPrice(boardGame.getRentalPrice())
-                .createdAt(boardGame.getCreatedAt())
-                .build();
+                .createdAt(boardGame.getCreatedAt());
+
+        if (boardGame.getStoreBoardGames() != null && !boardGame.getStoreBoardGames().isEmpty()) {
+            Store primaryStore = boardGame.getStoreBoardGames().get(0).getStore();
+            if (primaryStore != null) {
+                builder.storeName(primaryStore.getName());
+                builder.storeDescription(primaryStore.getDescription());
+            }
+        }
+
+        return builder.build();
     }
 }

@@ -1,31 +1,93 @@
 import 'package:flutter/foundation.dart';
+import '../../data/models/board_game.dart';
+import '../../data/models/booking_summary.dart';
 import '../../data/models/board_space_detail.dart';
+import '../../data/models/booking.dart';
 import '../../data/repositories/board_space_repository.dart';
+import '../../data/repositories/booking_repository.dart';
+import '../../data/repositories/cart_repository.dart';
+import '../../data/services/current_user.dart';
 
 class SpaceDetailViewModel extends ChangeNotifier {
-  final BoardSpaceRepository _repository;
+  static const int defaultParticipantCount = 2;
+  static const String defaultBookingNote = 'Optional note';
 
-  SpaceDetailViewModel(this._repository);
+  final BoardSpaceRepository _spaceRepository;
+  final BookingRepository _bookingRepository;
+  final CartRepository _cartRepository;
+
+  SpaceDetailViewModel(
+    this._spaceRepository,
+    this._bookingRepository,
+    this._cartRepository,
+  );
 
   // ── State ──────────────────────────────────────────────────────────────────
 
   BoardSpaceDetail? _space;
   bool _isLoading = false;
+  bool _isCreatingBooking = false;
   String? _error;
-  String? _selectedSlot;
+  String? _bookingError;
+  SpaceSlot? _selectedSlot;
+  String? _pendingBookingId;
+  String? _pendingCartId;
 
   // ── Getters ────────────────────────────────────────────────────────────────
 
   BoardSpaceDetail? get space => _space;
   bool get isLoading => _isLoading;
+  bool get isCreatingBooking => _isCreatingBooking;
   String? get error => _error;
-  String? get selectedSlot => _selectedSlot;
+  String? get bookingError => _bookingError;
+  SpaceSlot? get selectedSlot => _selectedSlot;
+  String? get pendingBookingId => _pendingBookingId;
+  String? get pendingCartId => _pendingCartId;
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
-  void selectSlot(String slot) {
+  void selectSlot(SpaceSlot slot) {
     _selectedSlot = slot;
     notifyListeners();
+  }
+
+  Future<BookingSummary> createPendingBooking(SpaceSlot slot) async {
+    final space = _space;
+    if (space == null) {
+      throw StateError('Space detail is not loaded.');
+    }
+
+    _isCreatingBooking = true;
+    _bookingError = null;
+    notifyListeners();
+
+    try {
+      final booking = await _bookingRepository.createBooking(
+        Booking(
+          userId: CurrentUser.instance.id,
+          storeId: space.id,
+          slotId: slot.id,
+          participantCount: defaultParticipantCount,
+          totalPrice: _bookingTotalFor(space),
+          note: defaultBookingNote,
+        ),
+      );
+      if (booking.id.isEmpty) {
+        throw StateError('Created booking response did not include an id.');
+      }
+
+      await _cartRepository.createEmptyCartForBooking(booking.id);
+      _selectedSlot = slot;
+      _pendingBookingId = booking.id;
+      await _lookupPendingBooking(space);
+      return booking;
+    } catch (e) {
+      _bookingError = e.toString();
+      rethrow;
+    } finally {
+      _isCreatingBooking = false;
+      notifyListeners();
+    }
   }
 
   Future<void> loadSpace(String spaceId) async {
@@ -34,12 +96,58 @@ class SpaceDetailViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _space = await _repository.fetchSpaceById(spaceId);
+      final space = await _spaceRepository.fetchSpaceById(spaceId);
+      _space = space;
+      await _lookupPendingBooking(space);
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  int _bookingTotalFor(BoardSpaceDetail space) {
+    return space.pricePerHour.round();
+  }
+
+  Future<String?> addGameToCart(BoardGame game, {int quantity = 1}) async {
+    final cartId = _pendingCartId;
+    if (cartId == null || cartId.isEmpty) {
+      return 'Please select a booking time first';
+    }
+
+    await _cartRepository.addItemToCart(
+      bookingCartId: cartId,
+      boardGameId: game.id,
+      quantity: quantity,
+    );
+    return null;
+  }
+
+  Future<void> _lookupPendingBooking(BoardSpaceDetail space) async {
+    final pendingBooking = await _bookingRepository.lookupPendingBooking(
+      userId: CurrentUser.instance.id,
+      storeId: space.id,
+    );
+
+    if (pendingBooking == null) {
+      _pendingBookingId = null;
+      _pendingCartId = null;
+      _selectedSlot = null;
+      return;
+    }
+
+    _pendingBookingId = pendingBooking.bookingId;
+    _pendingCartId = pendingBooking.cartId;
+    _selectedSlot = _findSlotById(space.availableSlots, pendingBooking.slotId);
+  }
+
+  SpaceSlot? _findSlotById(List<SpaceSlot> slots, String slotId) {
+    for (final slot in slots) {
+      if (slot.id == slotId) return slot;
+    }
+
+    return null;
   }
 }

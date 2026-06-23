@@ -10,14 +10,23 @@ class CurrentUser {
 
   String id = 'a0000000-0000-0000-0000-000000000002'; // demo customer fallback
   String role = 'CUSTOMER';
+  String email = '';
+  String fullName = '';
+  String phone = '';
 
   void setFrom(AuthUser user) {
     id = user.id;
     role = (user.role == null || user.role!.isEmpty) ? 'CUSTOMER' : user.role!;
+    email = user.email;
+    fullName = user.fullName ?? '';
+    phone = user.phone ?? '';
   }
 
   void clear() {
     id = 'a0000000-0000-0000-0000-000000000002';
     role = 'CUSTOMER';
+    email = '';
+    fullName = '';
+    phone = '';
   }
 }

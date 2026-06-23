@@ -35,11 +35,11 @@ INSERT INTO stores (
     id, name, description, address, latitude, longitude,
     phone, email, cover_image_url,
     open_time, close_time,
-    total_capacity, rating_avg, is_active
+    total_capacity, charge_fee, rating_avg, is_active
 ) VALUES
-      ('b0000000-0000-0000-0000-000000000001', 'BoardNest Cau Giay', 'Cozy board-game cafe near the university with 40+ titles and great coffee.', '123 Cau Giay, Ha Noi', 21.0313000, 105.7964000, '0241111001', 'caugiay@boardnest.com', 'https://picsum.photos/seed/store1/800/400', '08:00:00', '22:00:00', 60, 4.50, TRUE),
-      ('b0000000-0000-0000-0000-000000000002', 'BoardNest District 1', 'Spacious downtown venue, perfect for big groups and tournaments.', '45 Le Loi, District 1, HCMC', 10.7725000, 106.6980000, '0282222002', 'd1@boardnest.com', 'https://picsum.photos/seed/store2/800/400', '09:00:00', '23:00:00', 80, 4.20, TRUE),
-      ('b0000000-0000-0000-0000-000000000003', 'BoardNest Da Nang', 'Beachside game lounge with a quiet strategy room and a party zone.', '88 Bach Dang, Da Nang', 16.0678000, 108.2208000, '0236333003', 'danang@boardnest.com', 'https://picsum.photos/seed/store3/800/400', '10:00:00', '22:00:00', 50, 4.80, TRUE)
+      ('b0000000-0000-0000-0000-000000000001', 'BoardNest Cau Giay', 'Cozy board-game cafe near the university with 40+ titles and great coffee.', '123 Cau Giay, Ha Noi', 21.0313000, 105.7964000, '0241111001', 'caugiay@boardnest.com', 'https://picsum.photos/seed/store1/800/400', '08:00:00', '22:00:00', 60, 30000.0, 4.50, TRUE),
+      ('b0000000-0000-0000-0000-000000000002', 'BoardNest District 1', 'Spacious downtown venue, perfect for big groups and tournaments.', '45 Le Loi, District 1, HCMC', 10.7725000, 106.6980000, '0282222002', 'd1@boardnest.com', 'https://picsum.photos/seed/store2/800/400', '09:00:00', '23:00:00', 80, 45000.0, 4.20, TRUE),
+      ('b0000000-0000-0000-0000-000000000003', 'BoardNest Da Nang', 'Beachside game lounge with a quiet strategy room and a party zone.', '88 Bach Dang, Da Nang', 16.0678000, 108.2208000, '0236333003', 'danang@boardnest.com', 'https://picsum.photos/seed/store3/800/400', '10:00:00', '22:00:00', 50, 35000.0, 4.80, TRUE)
     ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------
@@ -107,16 +107,6 @@ INSERT INTO bookings (id, user_id, store_id, slot_id, participant_count, total_p
     ('f0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000003', 'e0000000-0000-0000-0000-000000000007', 6, 15000.00, 'Party night with friends.',              'PENDING'),
     ('f0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000002', 3, 28000.00, NULL,                                     'CANCELLED')
 ON CONFLICT (id) DO NOTHING;
-
--- ------------------------------------------
--- BOOKING GAMES (games chosen per booking)
--- ------------------------------------------
-INSERT INTO booking_games (booking_id, board_game_id, quantity) VALUES
-    ('f0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 1),
-    ('f0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000006', 1),
-    ('f0000000-0000-0000-0000-000000000002', 'd0000000-0000-0000-0000-000000000007', 1),
-    ('f0000000-0000-0000-0000-000000000003', 'd0000000-0000-0000-0000-000000000006', 1),
-    ('f0000000-0000-0000-0000-000000000004', 'd0000000-0000-0000-0000-000000000003', 1);
 
 -- ------------------------------------------
 -- PAYMENTS
@@ -195,14 +185,11 @@ ON CONFLICT (id) DO NOTHING;
 -- ------------------------------------------
 -- BOOKING CARTS (active cart per user)
 -- ------------------------------------------
-INSERT INTO booking_carts (id, user_id, store_id, slot_id, participant_count, note) VALUES
-    ('40000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000005', 4, 'Planning a Wingspan session.')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO booking_carts (id, booking_id, note) VALUES
+('40000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'Planning a Wingspan session.') ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO booking_cart_games (cart_id, board_game_id, quantity) VALUES
-    ('40000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000005', 1),
-    ('40000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000007', 1)
-ON CONFLICT (cart_id, board_game_id) DO NOTHING;
+('40000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000005', 1), ('40000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000007', 1) ON CONFLICT (cart_id, board_game_id) DO NOTHING;
 
 -- ------------------------------------------
 -- CONVERSATIONS (user <-> store chat)
@@ -229,3 +216,5 @@ INSERT INTO store_staff (id, created_at, user_id, store_id) VALUES
     (1, now(), 'a0000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001'),
     (2, now(), 'a0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001')
 ON CONFLICT (store_id, user_id) DO NOTHING;
+
+SELECT setval(pg_get_serial_sequence('store_staff', 'id'), (SELECT MAX(id) FROM store_staff));
