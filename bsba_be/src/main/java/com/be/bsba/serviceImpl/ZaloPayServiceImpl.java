@@ -74,6 +74,10 @@ public class ZaloPayServiceImpl implements ZaloPayService {
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
 
         validateBookingForPayment(booking, user);
+
+        BigDecimal paymentAmount = request.getTotalPrice();
+        long zaloPayAmount = toZaloPayAmount(paymentAmount);
+        String amount = Long.toString(zaloPayAmount);
         String appTransId = generateUniqueAppTransId();
 
         Payment payment = Payment.builder()
@@ -81,14 +85,13 @@ public class ZaloPayServiceImpl implements ZaloPayService {
                 .user(user)
                 .provider(PaymentProvider.ZALOPAY)
                 .appTransId(appTransId)
-                .amount(request.getTotalPrice())
+                .amount(paymentAmount)
                 .status(PaymentStatus.PENDING)
                 .build();
         paymentRepository.saveAndFlush(payment);
 
         long appTime = System.currentTimeMillis();
         String appUser = user.getId().toString();
-        String amount = request.getTotalPrice().toString();
         String embedData = toJson(Map.of(
                 "booking_id", booking.getId().toString(),
                 "user_id", user.getId().toString()
@@ -96,7 +99,7 @@ public class ZaloPayServiceImpl implements ZaloPayService {
         String item = toJson(List.of(Map.of(
                 "itemid", booking.getId().toString(),
                 "itemname", "BoardNest booking",
-                "itemprice", request.getTotalPrice(),
+                "itemprice", zaloPayAmount,
                 "itemquantity", 1
         )));
 
@@ -231,8 +234,8 @@ public class ZaloPayServiceImpl implements ZaloPayService {
             payment.getBooking().setStatus(BookingStatus.CONFIRMED);
             paymentRepository.save(payment);
 
-            log.info("[ZaloPay] Callback applied: appTransId={}, zpTransId={}, serverTime={}",
-                    appTransId, zpTransId, serverTime);
+            log.info("[ZaloPay] Callback applied: appTransId={}, zpTransId={}, serverTime={}, bookingId={}",
+                    appTransId, zpTransId, serverTime, payment.getBooking().getId().toString());
             return callbackSuccess();
         } catch (IllegalArgumentException exception) {
             log.warn("[ZaloPay] Invalid callback fields: {}", exception.getMessage());

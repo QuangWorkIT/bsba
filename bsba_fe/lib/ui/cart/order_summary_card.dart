@@ -11,6 +11,7 @@ class OrderSummaryCard extends StatelessWidget {
     this.itemCount,
     this.showCheckout = true,
     this.checkoutButtonLabel = 'Proceed to Checkout',
+    this.paymentSuccess = false,
   });
 
   final double roomTotal;
@@ -21,6 +22,7 @@ class OrderSummaryCard extends StatelessWidget {
   final int? itemCount;
   final bool showCheckout;
   final String checkoutButtonLabel;
+  final bool paymentSuccess;
 
   static Color _borderColor(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
@@ -42,6 +44,8 @@ class OrderSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final buttonLabel = paymentSuccess ? 'Payment success' : checkoutButtonLabel;
+    final buttonColor = paymentSuccess ? Colors.green : scheme.primary;
 
     return Container(
       decoration: BoxDecoration(
@@ -113,10 +117,12 @@ class OrderSummaryCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: onCheckout,
+                onPressed: paymentSuccess ? null : onCheckout,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: scheme.primary,
+                  backgroundColor: buttonColor,
+                  disabledBackgroundColor: buttonColor,
                   foregroundColor: scheme.onPrimary,
+                  disabledForegroundColor: scheme.onPrimary,
                   padding: const EdgeInsets.symmetric(
                     vertical: 12,
                     horizontal: 24,
@@ -129,14 +135,17 @@ class OrderSummaryCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      checkoutButtonLabel,
+                      buttonLabel,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(Icons.arrow_forward, size: 16),
+                    Icon(
+                      paymentSuccess ? Icons.check_circle_outline : Icons.arrow_forward,
+                      size: 16,
+                    ),
                   ],
                 ),
               ),

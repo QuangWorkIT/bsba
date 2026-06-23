@@ -13,10 +13,12 @@ class BookingScreen extends StatefulWidget {
     super.key,
     this.active = true,
     this.refreshTrigger = 0,
+    this.initialTab = BookingTab.completed,
   });
 
   final bool active;
   final int refreshTrigger;
+  final BookingTab initialTab;
 
   @override
   State<BookingScreen> createState() => _BookingScreenState();
@@ -30,6 +32,7 @@ class _BookingScreenState extends State<BookingScreen> {
     super.initState();
     _viewModel = BookingViewModel(
       BookingRepository(BookingService(ApiClient())),
+      initialTab: widget.initialTab,
     );
   }
 

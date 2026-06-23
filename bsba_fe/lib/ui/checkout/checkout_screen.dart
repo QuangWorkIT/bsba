@@ -39,6 +39,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _cvcController = TextEditingController();
 
   PaymentMethod _paymentMethod = PaymentMethod.card;
+  bool _paymentSuccess = false;
 
   @override
   void initState() {
@@ -184,7 +185,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (!mounted) return;
     Navigator.of(context).pop(); // Hide loading
 
-    if (!success) {
+    if (success) {
+      setState(() => _paymentSuccess = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('success payment')),
+      );
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: ${_viewModel.errorMessage}'),
@@ -233,7 +239,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CheckoutAppBar(),
+      appBar: CheckoutAppBar(paymentSuccess: _paymentSuccess),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
         child: Column(
@@ -262,6 +268,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               nameController: _nameController,
               emailController: _emailController,
               phoneController: _phoneController,
+              enabled: !_paymentSuccess,
             ),
             const SizedBox(height: 24),
             PaymentMethodSection(
@@ -272,6 +279,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               cardNumberController: _cardNumberController,
               expiryController: _expiryController,
               cvcController: _cvcController,
+              enabled: !_paymentSuccess,
             ),
             const SizedBox(height: 24),
             AnimatedBuilder(
@@ -305,6 +313,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   totalAmount: _cartViewModel.totalPrice,
                   itemCount: _cartViewModel.items.length,
                   checkoutButtonLabel: 'Confirm Booking',
+                  paymentSuccess: _paymentSuccess,
                   onCheckout: _onConfirmBooking,
                 );
               },

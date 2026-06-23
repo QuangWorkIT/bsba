@@ -11,12 +11,20 @@ import 'package:project/ui/shared/navigation.dart';
 import 'package:project/ui/explore/explore_space_screen.dart';
 import 'package:project/ui/map/map_screen.dart';
 import 'package:project/ui/booking/booking_screen.dart';
+import 'package:project/ui/booking/booking_viewmodel.dart';
 import 'package:project/ui/inbox/inbox_screen.dart';
 import 'package:project/ui/inbox/unread_badge_viewmodel.dart';
 import 'package:project/ui/profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    super.key,
+    this.initialIndex = 0,
+    this.initialBookingTab = BookingTab.completed,
+  });
+
+  final int initialIndex;
+  final BookingTab initialBookingTab;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -25,8 +33,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const int _inboxIndex = 3;
   static const int _bookingIndex = 2;
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   int _bookingRefreshTrigger = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+  }
 
   void _select(int index) => setState(() => _selectedIndex = index);
 
@@ -45,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
       BookingScreen(
         active: _selectedIndex == _bookingIndex,
         refreshTrigger: _bookingRefreshTrigger,
+        initialTab: widget.initialBookingTab,
       ),
       const InboxScreen(),
       const ProfileScreen(),
