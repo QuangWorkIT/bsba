@@ -20,6 +20,18 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: ${spring.mail.host:smtp.gmail.com}
+    port: ${spring.mail.port:587}
+    username: ${spring.mail.username:}
+    password: ${spring.mail.password:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 
 app:
   jwt:

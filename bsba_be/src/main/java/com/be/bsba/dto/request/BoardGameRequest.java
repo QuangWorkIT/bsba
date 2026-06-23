@@ -38,4 +38,8 @@ public class BoardGameRequest {
     private String category;
 
     private BigDecimal rentalPrice;
+
+    private java.util.UUID storeId;
+
+    private Integer quantity;
 }

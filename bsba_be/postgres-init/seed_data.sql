@@ -216,3 +216,5 @@ INSERT INTO store_staff (id, created_at, user_id, store_id) VALUES
     (1, now(), 'a0000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001'),
     (2, now(), 'a0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001')
 ON CONFLICT (store_id, user_id) DO NOTHING;
+
+SELECT setval(pg_get_serial_sequence('store_staff', 'id'), (SELECT MAX(id) FROM store_staff));

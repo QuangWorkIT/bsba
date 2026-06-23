@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../data/models/board_space.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/repositories/space_repository.dart';
@@ -8,6 +9,7 @@ import '../../data/services/current_user.dart';
 import '../../data/services/location_service.dart';
 import '../../data/services/space_service.dart';
 import '../inbox/widgets/chat_screen.dart';
+import '../presence/presence_viewmodel.dart';
 import 'space_card.dart';
 import 'explore_space_filter.dart';
 import 'explore_space_viewmodel.dart';
@@ -145,6 +147,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     // Customer: open (or create) the thread with this specific store.
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+    final presence = context.read<PresenceViewModel>();
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -160,9 +163,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
       navigator.pop(); // close the loading dialog
       navigator.push(
         MaterialPageRoute(
-          builder: (_) => ChatScreen(
-            conversationId: conversation.id,
-            name: space.name,
+          builder: (_) => ChangeNotifierProvider<PresenceViewModel>.value(
+            value: presence,
+            child: ChatScreen(
+              conversationId: conversation.id,
+              name: space.name,
+              presenceUserIds: conversation.staffUserIds,
+            ),
           ),
         ),
       );
