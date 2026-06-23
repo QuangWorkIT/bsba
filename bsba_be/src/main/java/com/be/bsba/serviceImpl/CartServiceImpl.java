@@ -1,8 +1,11 @@
 package com.be.bsba.serviceImpl;
 
+import com.be.bsba.constant.BookingStatus;
+import com.be.bsba.dto.request.AddItemCartRequest;
 import com.be.bsba.dto.request.CreateCartRequest;
 import com.be.bsba.dto.response.BoardGameResponse;
 import com.be.bsba.dto.response.CartDetailResponse;
+import com.be.bsba.dto.response.CartItemResponse;
 import com.be.bsba.dto.response.CartResponse;
 import com.be.bsba.entity.BoardGame;
 import com.be.bsba.entity.Booking;
@@ -12,6 +15,7 @@ import com.be.bsba.entity.Store;
 import com.be.bsba.entity.StoreTimeSlot;
 import com.be.bsba.exception.BadRequestException;
 import com.be.bsba.exception.ResourceNotFoundException;
+import com.be.bsba.repository.BoardGameRepository;
 import com.be.bsba.repository.BookingCartRepository;
 import com.be.bsba.repository.BookingCartGameRepository;
 import com.be.bsba.repository.BookingRepository;
@@ -29,6 +33,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CartServiceImpl implements ICartService {
     private final BookingRepository bookingRepository;
+    private final BoardGameRepository boardGameRepository;
     private final BookingCartRepository bookingCartRepository;
     private final BookingCartGameRepository bookingCartGameRepository;
 
@@ -51,6 +56,41 @@ public class CartServiceImpl implements ICartService {
 
         BookingCart savedCart = bookingCartRepository.save(cart);
         return mapToResponse(savedCart);
+    }
+
+    @Override
+    @Transactional
+    public CartItemResponse addItemToCart(AddItemCartRequest request) {
+        BookingCart cart = bookingCartRepository.findById(request.getBookingCartId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id: " + request.getBookingCartId()));
+
+        Booking booking = cart.getBooking();
+        if (booking == null) {
+            throw new ResourceNotFoundException("Booking not found for cart id: " + cart.getId());
+        }
+
+        if (!BookingStatus.PENDING.equals(booking.getStatus())) {
+            throw new BadRequestException("Only pending bookings can be updated");
+        }
+
+        BoardGame boardGame = boardGameRepository.findById(request.getBoardGameId())
+                .orElseThrow(() -> new ResourceNotFoundException("Board game not found with id: " + request.getBoardGameId()));
+
+        BookingCartGame cartGame = bookingCartGameRepository
+                .findByCartIdAndBoardGameId(cart.getId(), boardGame.getId())
+                .map(existingCartGame -> {
+                    int currentQuantity = existingCartGame.getQuantity() != null ? existingCartGame.getQuantity() : 0;
+                    existingCartGame.setQuantity(currentQuantity + request.getQuantity());
+                    return existingCartGame;
+                })
+                .orElseGet(() -> BookingCartGame.builder()
+                        .cart(cart)
+                        .boardGame(boardGame)
+                        .quantity(request.getQuantity())
+                        .build());
+
+        BookingCartGame savedCartGame = bookingCartGameRepository.save(cartGame);
+        return mapToCartItemResponse(savedCartGame);
     }
 
     @Override
@@ -100,7 +140,6 @@ public class CartServiceImpl implements ICartService {
         List<BoardGameResponse> boardGames = cartGames.isEmpty()
                 ? Collections.emptyList()
                 : cartGames.stream()
-                .map(BookingCartGame::getBoardGame)
                 .map(this::mapToBoardGameResponse)
                 .toList();
 
@@ -144,7 +183,9 @@ public class CartServiceImpl implements ICartService {
         return rentalPrice != null ? rentalPrice.doubleValue() * quantity : 0.0;
     }
 
-    private BoardGameResponse mapToBoardGameResponse(BoardGame boardGame) {
+    private BoardGameResponse mapToBoardGameResponse(BookingCartGame cartGame) {
+        BoardGame boardGame = cartGame.getBoardGame();
+
         return BoardGameResponse.builder()
                 .id(boardGame.getId())
                 .name(boardGame.getName())
@@ -157,7 +198,24 @@ public class CartServiceImpl implements ICartService {
                 .imageUrl(boardGame.getImageUrl())
                 .category(boardGame.getCategory())
                 .rentalPrice(boardGame.getRentalPrice())
+                .quantity(cartGame.getQuantity())
                 .createdAt(boardGame.getCreatedAt())
+                .build();
+    }
+
+    private CartItemResponse mapToCartItemResponse(BookingCartGame cartGame) {
+        BoardGame boardGame = cartGame.getBoardGame();
+
+        return CartItemResponse.builder()
+                .id(cartGame.getId())
+                .boardGameId(boardGame != null ? boardGame.getId() : null)
+                .boardGameName(boardGame != null ? boardGame.getName() : null)
+                .category(boardGame != null ? boardGame.getCategory() : null)
+                .imageUrl(boardGame != null ? boardGame.getImageUrl() : null)
+                .rentalPrice(boardGame != null && boardGame.getRentalPrice() != null
+                        ? boardGame.getRentalPrice().doubleValue()
+                        : null)
+                .quantity(cartGame.getQuantity())
                 .build();
     }
 }

@@ -95,7 +95,7 @@ public class BookingServiceImpl implements BookingService {
                 .endTime(slot != null ? slot.getEndTime() : null)
                 .participants(booking.getParticipantCount())
                 .total(booking.getTotalPrice())
-                .imageAsset("") // Default empty, UI can handle or we can add store image URL later
+                .imageAsset(booking.getStore().getCoverImageUrl() != null ? booking.getStore().getCoverImageUrl() : "") // Default empty, UI can handle or we can add store image URL later
                 .status(booking.getStatus())
                 .createdAt(booking.getCreatedAt())
                 .build();

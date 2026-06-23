@@ -1,8 +1,10 @@
 package com.be.bsba.controller;
 
+import com.be.bsba.dto.request.AddItemCartRequest;
 import com.be.bsba.dto.request.CreateCartRequest;
 import com.be.bsba.dto.response.ApiResponse;
 import com.be.bsba.dto.response.CartDetailResponse;
+import com.be.bsba.dto.response.CartItemResponse;
 import com.be.bsba.dto.response.CartResponse;
 import com.be.bsba.service.ICartService;
 import jakarta.validation.Valid;
@@ -27,6 +29,13 @@ public class CartController {
     public ApiResponse<CartResponse> createEmptyCart(@Valid @RequestBody CreateCartRequest request) {
         CartResponse cart = cartService.createCart(request);
         return ApiResponse.success(cart, "Cart created successfully");
+    }
+
+    @PostMapping("/items")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<CartItemResponse> addItemToCart(@Valid @RequestBody AddItemCartRequest request) {
+        CartItemResponse item = cartService.addItemToCart(request);
+        return ApiResponse.success(item, "Item added to cart successfully");
     }
 
     @GetMapping("/{bookingId}")
