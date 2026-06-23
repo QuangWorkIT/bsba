@@ -11,4 +11,11 @@ class StaffDashboardColors {
   static const disabledField = Color(0xFFF2F4F6);
   static const text = Color(0xFF191C1E);
   static const muted = Color(0xFF414753);
+  static const scannerBackgroundStart = Color(0xFF0A2530);
+  static const scannerBackgroundMiddle = Color(0xFF102F45);
+  static const scannerBackgroundEnd = Color(0xFF1F160F);
+  static const scannerLight = Color(0xFF2BB7D9);
+  static const scannerLightGlow = Color(0xFF6ADCF4);
+  static const scannerCard = Color(0xFFECEFF2);
+  static const scannerCardLine = Color(0xFFC6CCD4);
 }

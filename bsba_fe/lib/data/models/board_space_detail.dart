@@ -84,7 +84,7 @@ class BoardSpaceDetail {
       reviewCount: json['reviewCount'] ?? 0,
       maxPlayers: json['totalCapacity'] ?? 4,
       areaSqFt: 450,
-      pricePerHour: 15.0,
+      pricePerHour: json['chargeFee'] ?? 0,
       availableSlots:
           (json['timeSlots'] as List<dynamic>?)
               ?.map((s) {
@@ -123,4 +123,5 @@ class BoardSpaceDetail {
       longitude: (json['longitude'] as num?)?.toDouble(),
     );
   }
+
 }

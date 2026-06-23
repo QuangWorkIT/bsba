@@ -5,5 +5,13 @@ class PaymentRepository {
 
   PaymentRepository(this._service);
 
-  Future<String> createZaloPayPayment() => _service.createZaloPayPayment();
+  Future<String> createZaloPayPayment({
+    required String bookingId,
+    required double totalPrice,
+  }) {
+    return _service.createZaloPayPayment(
+      bookingId: bookingId,
+      totalPrice: totalPrice,
+    );
+  }
 }

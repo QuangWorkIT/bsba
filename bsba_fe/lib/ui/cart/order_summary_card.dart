@@ -7,12 +7,22 @@ class OrderSummaryCard extends StatelessWidget {
     required this.gamesTotal,
     required this.serviceFee,
     required this.onCheckout,
+    required this.totalAmount,
+    this.itemCount,
+    this.showCheckout = true,
+    this.checkoutButtonLabel = 'Proceed to Checkout',
+    this.paymentSuccess = false,
   });
 
   final double roomTotal;
   final double gamesTotal;
   final double serviceFee;
   final VoidCallback onCheckout;
+  final double totalAmount;
+  final int? itemCount;
+  final bool showCheckout;
+  final String checkoutButtonLabel;
+  final bool paymentSuccess;
 
   static Color _borderColor(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
@@ -31,11 +41,11 @@ class OrderSummaryCard extends StatelessWidget {
       ? Theme.of(context).colorScheme.surfaceContainer
       : Colors.white;
 
-  double get total => roomTotal + gamesTotal + serviceFee;
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final buttonLabel = paymentSuccess ? 'Payment success' : checkoutButtonLabel;
+    final buttonColor = paymentSuccess ? Colors.green : scheme.primary;
 
     return Container(
       decoration: BoxDecoration(
@@ -66,11 +76,16 @@ class OrderSummaryCard extends StatelessWidget {
           const SizedBox(height: 16),
           Divider(height: 1, color: _borderColor(context)),
           const SizedBox(height: 16),
-          _SummaryRow(label: 'Room Reservation (3 hrs)', amount: roomTotal),
+          _SummaryRow(label: 'Reservation Fee', amount: roomTotal),
           const SizedBox(height: 8),
-          _SummaryRow(label: 'Game Rentals (2 items)', amount: gamesTotal),
-          const SizedBox(height: 8),
-          _SummaryRow(label: 'Service Fee', amount: serviceFee),
+          _SummaryRow(
+            label: 'Game Rentals (${itemCount ?? 0} items)',
+            amount: gamesTotal,
+          ),
+          if (serviceFee > 0) ...[
+            const SizedBox(height: 8),
+            _SummaryRow(label: 'Service Fee', amount: serviceFee),
+          ],
           const SizedBox(height: 16),
           Divider(height: 1, color: _borderColor(context)),
           const SizedBox(height: 8),
@@ -87,7 +102,7 @@ class OrderSummaryCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '\$${total.toStringAsFixed(2)}',
+                '\$${totalAmount.toStringAsFixed(2)}',
                 style: TextStyle(
                   color: scheme.primary,
                   fontSize: 32,
@@ -97,35 +112,45 @@ class OrderSummaryCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onCheckout,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: scheme.primary,
-                foregroundColor: scheme.onPrimary,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 24,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Proceed to Checkout',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          if (showCheckout) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: paymentSuccess ? null : onCheckout,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: buttonColor,
+                  disabledBackgroundColor: buttonColor,
+                  foregroundColor: scheme.onPrimary,
+                  disabledForegroundColor: scheme.onPrimary,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 24,
                   ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, size: 16),
-                ],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      buttonLabel,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      paymentSuccess ? Icons.check_circle_outline : Icons.arrow_forward,
+                      size: 16,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

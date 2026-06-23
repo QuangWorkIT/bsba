@@ -1,5 +1,7 @@
 package com.be.bsba.service;
 
+import com.be.bsba.dto.request.CreateBookingRequest;
+import com.be.bsba.dto.response.BookingLookupResponse;
 import com.be.bsba.constant.BookingStatus;
 import com.be.bsba.constant.UserRole;
 import com.be.bsba.dto.response.BookingResponse;
@@ -14,6 +16,10 @@ public interface BookingService {
 
     // Customer "My Bookings": the user's own bookings, newest first.
     List<BookingResponse> getUserBookings(UUID userId);
+
+    BookingLookupResponse getPendingBookingByUserAndStore(String userId, String storeId);
+
+    BookingResponse createBooking(CreateBookingRequest request);
 
     /**
      * Staff "Manage Bookings": paged, role-aware list. Staff see bookings of the

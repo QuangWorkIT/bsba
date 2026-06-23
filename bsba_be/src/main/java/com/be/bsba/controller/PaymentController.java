@@ -70,6 +70,7 @@ public class PaymentController {
     )
     public ResponseEntity<Map<String, Object>> handleZaloPayCallback(@RequestBody String rawBody) {
         try {
+            log.info("[ZaloPay] Received callback: {}", rawBody);
             ZaloPayCallbackRequest request = objectMapper.readValue(rawBody, ZaloPayCallbackRequest.class);
             return ResponseEntity.ok(zaloPayService.handleCallback(request, rawBody));
         } catch (JsonProcessingException e) {

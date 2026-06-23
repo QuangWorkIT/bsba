@@ -46,7 +46,7 @@ class BookingCard extends StatelessWidget {
                   const SizedBox(height: 16),
                   _BookingFacts(booking: booking),
                   const SizedBox(height: 16),
-                  _BookingActions(bookingTitle: booking.title),
+                  _BookingActions(booking: booking),
                 ],
               ),
             ),
@@ -65,36 +65,71 @@ class _BookingImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+
     return SizedBox(
       height: 192,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(booking.imageAsset, fit: BoxFit.cover),
-          Positioned(
-            top: 11,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: scheme.primary.withValues(alpha: 0.2),
-                ),
+          if (booking.imageAsset.isNotEmpty)
+            Image.network(
+              booking.imageAsset,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => _BookingImagePlaceholder(
+                color: scheme.secondary.withValues(alpha: 0.5),
               ),
-              child: Text(
-                'Confirmed',
-                style: TextStyle(
-                  color: scheme.onPrimaryContainer,
-                  fontSize: 12,
-                  height: 16 / 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+            )
+          else
+            _BookingImagePlaceholder(
+              color: scheme.secondary.withValues(alpha: 0.5),
             ),
-          ),
+          Positioned(top: 11, right: 16, child: _BookingBadge(booking)),
         ],
+      ),
+    );
+  }
+}
+
+class _BookingImagePlaceholder extends StatelessWidget {
+  const _BookingImagePlaceholder({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Center(
+        child: Icon(Icons.image_outlined, size: 48, color: color),
+      ),
+    );
+  }
+}
+
+class _BookingBadge extends StatelessWidget {
+  const _BookingBadge(this.booking);
+
+  final BookingSummary booking;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        booking.badgeLabel(),
+        style: TextStyle(
+          color: scheme.onPrimaryContainer,
+          fontSize: 12,
+          height: 16 / 12,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -237,21 +272,26 @@ class _BookingFact extends StatelessWidget {
 }
 
 class _BookingActions extends StatelessWidget {
-  const _BookingActions({required this.bookingTitle});
+  const _BookingActions({required this.booking});
 
-  final String bookingTitle;
+  final BookingSummary booking;
 
   void _showDetails(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const CartScreen()));
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CartScreen(
+          bookingId: booking.id,
+          bookingStatus: booking.status,
+        ),
+      ),
+    );
   }
 
   void _showQrCode(BuildContext context) {
     showDialog<void>(
       context: context,
       barrierColor: Colors.black54,
-      builder: (_) => BookingQrDialog(bookingTitle: bookingTitle),
+      builder: (_) => BookingQrDialog(bookingTitle: booking.title),
     );
   }
 

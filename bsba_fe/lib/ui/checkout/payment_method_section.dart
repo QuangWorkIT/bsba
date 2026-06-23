@@ -11,6 +11,7 @@ class PaymentMethodSection extends StatelessWidget {
     required this.cardNumberController,
     required this.expiryController,
     required this.cvcController,
+    this.enabled = true,
   });
 
   final PaymentMethod selectedMethod;
@@ -18,6 +19,7 @@ class PaymentMethodSection extends StatelessWidget {
   final TextEditingController cardNumberController;
   final TextEditingController expiryController;
   final TextEditingController cvcController;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +37,7 @@ class PaymentMethodSection extends StatelessWidget {
             icon: Icons.credit_card_outlined,
             isSelected: selectedMethod == PaymentMethod.card,
             onTap: () => onMethodSelected(PaymentMethod.card),
+            enabled: enabled,
           ),
           const SizedBox(height: 8),
           _PaymentOption(
@@ -42,6 +45,7 @@ class PaymentMethodSection extends StatelessWidget {
             icon: Icons.account_balance_wallet_outlined,
             isSelected: selectedMethod == PaymentMethod.eWallet,
             onTap: () => onMethodSelected(PaymentMethod.eWallet),
+            enabled: enabled,
           ),
           const SizedBox(height: 8),
           _PaymentOption(
@@ -49,6 +53,7 @@ class PaymentMethodSection extends StatelessWidget {
             icon: Icons.account_balance_outlined,
             isSelected: selectedMethod == PaymentMethod.bankTransfer,
             onTap: () => onMethodSelected(PaymentMethod.bankTransfer),
+            enabled: enabled,
           ),
           const SizedBox(height: 8),
           _PaymentOption(
@@ -56,6 +61,7 @@ class PaymentMethodSection extends StatelessWidget {
             icon: Icons.storefront_outlined,
             isSelected: selectedMethod == PaymentMethod.payAtCounter,
             onTap: () => onMethodSelected(PaymentMethod.payAtCounter),
+            enabled: enabled,
           ),
           const SizedBox(height: 8),
           _PaymentOption(
@@ -63,6 +69,7 @@ class PaymentMethodSection extends StatelessWidget {
             icon: Icons.account_balance_wallet,
             isSelected: selectedMethod == PaymentMethod.momo,
             onTap: () => onMethodSelected(PaymentMethod.momo),
+            enabled: enabled,
           ),
           const SizedBox(height: 8),
           _PaymentOption(
@@ -70,6 +77,7 @@ class PaymentMethodSection extends StatelessWidget {
             icon: Icons.account_balance_wallet,
             isSelected: selectedMethod == PaymentMethod.zalopay,
             onTap: () => onMethodSelected(PaymentMethod.zalopay),
+            enabled: enabled,
           ),
           if (selectedMethod == PaymentMethod.card) ...[
             const SizedBox(height: 16),
@@ -80,6 +88,7 @@ class PaymentMethodSection extends StatelessWidget {
               controller: cardNumberController,
               hintText: '0000 0000 0000 0000',
               keyboardType: TextInputType.number,
+              enabled: enabled,
               prefixIcon: Icon(
                 Icons.credit_card,
                 size: 20,
@@ -95,6 +104,7 @@ class PaymentMethodSection extends StatelessWidget {
                     controller: expiryController,
                     hintText: 'MM/YY',
                     keyboardType: TextInputType.datetime,
+                    enabled: enabled,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -105,6 +115,7 @@ class PaymentMethodSection extends StatelessWidget {
                     hintText: '123',
                     keyboardType: TextInputType.number,
                     obscureText: true,
+                    enabled: enabled,
                   ),
                 ),
               ],
@@ -122,12 +133,14 @@ class _PaymentOption extends StatelessWidget {
     required this.icon,
     required this.isSelected,
     required this.onTap,
+    required this.enabled,
   });
 
   final String label;
   final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool enabled;
 
   static const _borderColor = Color(0xFFC1C6D5);
   static const _fillColor = Color(0xFFF9F9FF);
@@ -142,7 +155,7 @@ class _PaymentOption extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 17),

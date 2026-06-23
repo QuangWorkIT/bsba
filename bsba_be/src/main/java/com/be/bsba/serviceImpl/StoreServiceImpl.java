@@ -94,6 +94,7 @@ public class StoreServiceImpl implements StoreService, IStoreService {
                 .reviewCount(reviewCount)
                 .isFavorited(isFavorited)
                 .images(images)
+                .chargeFee(store.getChargeFee())
                 .boardGames(boardGames)
                 .timeSlots(timeSlots)
                 .reviews(reviews)
