@@ -3,9 +3,11 @@ import '../../data/models/board_game.dart';
 import '../../data/models/board_space_detail.dart';
 import '../../data/repositories/board_space_repository.dart';
 import '../../data/repositories/booking_repository.dart';
+import '../../data/repositories/cart_repository.dart';
 import '../../data/services/api_client.dart';
 import '../../data/services/boardgame_service.dart';
 import '../../data/services/booking_service.dart';
+import '../../data/services/cart_service.dart';
 import '../cart/cart_screen.dart';
 import 'game_card.dart';
 import 'game_library_screen.dart';
@@ -34,6 +36,7 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
     _vm = SpaceDetailViewModel(
       BoardSpaceRepository(apiClient),
       BookingRepository(BookingService(apiClient)),
+      CartRepository(CartService(apiClient)),
     );
     _vm.loadSpace(widget.spaceId);
   }

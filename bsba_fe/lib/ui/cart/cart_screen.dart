@@ -1,27 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:project/data/models/booking_summary.dart';
 import 'package:project/ui/cart/cart_game_item_card.dart';
 import 'package:project/ui/cart/order_summary_card.dart';
 import 'package:project/ui/cart/reservation_summary_card.dart';
 import 'package:project/ui/checkout/checkout_screen.dart';
 
 import 'package:provider/provider.dart';
+import '../../data/repositories/cart_repository.dart';
 import '../../data/services/api_client.dart';
+import '../../data/services/cart_service.dart';
 import 'cart_viewmodel.dart';
 
 class CartScreen extends StatelessWidget {
-  const CartScreen({super.key});
+  const CartScreen({super.key, this.bookingId, this.bookingStatus});
+
+  final String? bookingId;
+  final BookingStatus? bookingStatus;
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => CartViewModel(ApiClient())..fetchCart(),
-      child: const _CartView(),
+      create: (_) {
+        final apiClient = ApiClient();
+        return CartViewModel(
+          CartRepository(CartService(apiClient)),
+          bookingId: bookingId,
+        )..fetchCart();
+      },
+      child: _CartView(showCheckout: _canCheckout),
     );
+  }
+
+  bool get _canCheckout {
+    return bookingStatus == null || bookingStatus == BookingStatus.pending;
   }
 }
 
 class _CartView extends StatelessWidget {
-  const _CartView();
+  const _CartView({required this.showCheckout});
+
+  final bool showCheckout;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +82,8 @@ class _CartView extends StatelessWidget {
                     slotDate: vm.slotDate,
                     startTime: vm.startTime,
                     endTime: vm.endTime,
+                    participants: vm.participants,
+                    chargeFee: vm.chargeFee,
                   ),
                   const SizedBox(height: 32),
                   _SelectedGamesHeader(itemCount: vm.items.length),
@@ -102,9 +122,12 @@ class _CartView extends StatelessWidget {
                   }),
                   const SizedBox(height: 16),
                   OrderSummaryCard(
-                    roomTotal: 0, // Should be fetched from cart too
-                    gamesTotal: vm.totalPrice,
-                    serviceFee: 5.5,
+                    roomTotal: vm.chargeFee,
+                    gamesTotal: vm.retailPrice,
+                    serviceFee: 0,
+                    totalAmount: vm.totalPrice,
+                    itemCount: vm.items.length,
+                    showCheckout: showCheckout,
                     onCheckout: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(

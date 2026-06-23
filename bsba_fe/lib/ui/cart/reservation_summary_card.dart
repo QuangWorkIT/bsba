@@ -6,6 +6,8 @@ class ReservationSummaryCard extends StatelessWidget {
   final String? slotDate;
   final String? startTime;
   final String? endTime;
+  final int participants;
+  final double chargeFee;
 
   const ReservationSummaryCard({
     super.key,
@@ -14,6 +16,8 @@ class ReservationSummaryCard extends StatelessWidget {
     this.slotDate,
     this.startTime,
     this.endTime,
+    this.participants = 0,
+    this.chargeFee = 0,
   });
 
   static Color _borderColor(BuildContext context) =>
@@ -124,6 +128,8 @@ class ReservationSummaryCard extends StatelessWidget {
             slotDate: slotDate,
             startTime: startTime,
             endTime: endTime,
+            participants: participants,
+            chargeFee: chargeFee,
           ),
         ],
       ),
@@ -135,8 +141,16 @@ class _DetailGrid extends StatelessWidget {
   final String? slotDate;
   final String? startTime;
   final String? endTime;
+  final int participants;
+  final double chargeFee;
 
-  const _DetailGrid({this.slotDate, this.startTime, this.endTime});
+  const _DetailGrid({
+    this.slotDate,
+    this.startTime,
+    this.endTime,
+    required this.participants,
+    required this.chargeFee,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -168,21 +182,21 @@ class _DetailGrid extends StatelessWidget {
             ),
           ],
         ),
-        // (keeps the players/price row for now as static or needs more back-end fields)
         const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: _DetailRow(
                 icon: Icons.people_outline,
-                label: '4 Players',
+                label:
+                    '$participants ${participants == 1 ? 'Player' : 'Players'}',
                 textStyle: textStyle,
               ),
             ),
             Expanded(
               child: _DetailRow(
                 icon: Icons.payments_outlined,
-                label: r'$45.00 Base',
+                label: '\$${chargeFee.toStringAsFixed(2)} Base',
                 textStyle: textStyle,
               ),
             ),

@@ -4,6 +4,7 @@ import '../../data/models/board_space_detail.dart';
 import '../../data/models/booking.dart';
 import '../../data/repositories/board_space_repository.dart';
 import '../../data/repositories/booking_repository.dart';
+import '../../data/repositories/cart_repository.dart';
 import '../../data/services/current_user.dart';
 
 class SpaceDetailViewModel extends ChangeNotifier {
@@ -12,8 +13,13 @@ class SpaceDetailViewModel extends ChangeNotifier {
 
   final BoardSpaceRepository _spaceRepository;
   final BookingRepository _bookingRepository;
+  final CartRepository _cartRepository;
 
-  SpaceDetailViewModel(this._spaceRepository, this._bookingRepository);
+  SpaceDetailViewModel(
+    this._spaceRepository,
+    this._bookingRepository,
+    this._cartRepository,
+  );
 
   // ── State ──────────────────────────────────────────────────────────────────
 
@@ -61,6 +67,11 @@ class SpaceDetailViewModel extends ChangeNotifier {
           note: defaultBookingNote,
         ),
       );
+      if (booking.id.isEmpty) {
+        throw StateError('Created booking response did not include an id.');
+      }
+
+      await _cartRepository.createEmptyCartForBooking(booking.id);
       _selectedSlot = slot;
       return booking;
     } catch (e) {

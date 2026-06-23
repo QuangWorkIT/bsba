@@ -2,6 +2,7 @@ enum BookingStatus { pending, confirmed, completed, cancelled, noShow }
 
 class BookingSummary {
   const BookingSummary({
+    required this.id,
     required this.title,
     required this.location,
     required this.date,
@@ -56,6 +57,7 @@ class BookingSummary {
     'Dec',
   ];
 
+  final String id;
   final String title;
   final String location;
   final String date;
@@ -92,6 +94,7 @@ class BookingSummary {
     final status = _statusByBackendValue[json['status']] ?? BookingStatus.noShow;
 
     return BookingSummary(
+      id: json['id']?.toString() ?? '',
       title: json['storeName'] ?? 'Unknown Space',
       location: json['storeLocation'] ?? 'Unknown Location',
       date: startsAt != null ? _formatDate(startsAt) : json['date'] ?? 'N/A',
@@ -100,7 +103,7 @@ class BookingSummary {
           : json['time'] ?? 'N/A',
       players: '${json['participants'] ?? 0} Players',
       total: '\$${json['total'] ?? 0}',
-      imageAsset: json['imageAsset'] ?? '',
+      imageAsset: json['storeImage'] ?? json['imageUrl'] ?? json['imageAsset'] ?? '',
       status: status,
       startsAt: startsAt,
       endsAt: endsAt,

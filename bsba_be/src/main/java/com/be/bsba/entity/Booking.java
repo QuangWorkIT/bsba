@@ -54,6 +54,4 @@ public class Booking {
     @Column(nullable = false)
     private OffsetDateTime updatedAt = OffsetDateTime.now();
 
-    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
-    private java.util.List<BookingGame> games;
 }
