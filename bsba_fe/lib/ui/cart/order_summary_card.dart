@@ -7,7 +7,7 @@ class OrderSummaryCard extends StatelessWidget {
     required this.gamesTotal,
     required this.serviceFee,
     required this.onCheckout,
-    this.totalAmount,
+    required this.totalAmount,
     this.itemCount,
     this.showCheckout = true,
   });
@@ -16,7 +16,7 @@ class OrderSummaryCard extends StatelessWidget {
   final double gamesTotal;
   final double serviceFee;
   final VoidCallback onCheckout;
-  final double? totalAmount;
+  final double totalAmount;
   final int? itemCount;
   final bool showCheckout;
 
@@ -36,8 +36,6 @@ class OrderSummaryCard extends StatelessWidget {
       Theme.of(context).brightness == Brightness.dark
       ? Theme.of(context).colorScheme.surfaceContainer
       : Colors.white;
-
-  double get total => totalAmount ?? roomTotal + gamesTotal + serviceFee;
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +96,7 @@ class OrderSummaryCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '\$${total.toStringAsFixed(2)}',
+                '\$${totalAmount.toStringAsFixed(2)}',
                 style: TextStyle(
                   color: scheme.primary,
                   fontSize: 32,

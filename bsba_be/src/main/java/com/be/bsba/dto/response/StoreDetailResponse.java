@@ -26,6 +26,7 @@ public class StoreDetailResponse {
     private BigDecimal ratingAvg;
     private Long reviewCount;
     private Boolean isFavorited;
+    double chargeFee;
 
     private List<StoreImageDto> images;
     private List<BoardGameDto> boardGames;

@@ -145,9 +145,7 @@ public class CartServiceImpl implements ICartService {
 
         double retailPrice = calculateRetailPrice(cartGames);
         double chargeFee = store != null ? store.getChargeFee() : 0.0;
-        double totalPrice = booking.getTotalPrice() != null
-                ? booking.getTotalPrice().doubleValue()
-                : retailPrice + chargeFee;
+        double totalPrice = retailPrice + chargeFee;
 
         return CartDetailResponse.builder()
                 .id(cart.getId())
