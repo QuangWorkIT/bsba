@@ -1,16 +1,18 @@
 package com.be.bsba.security;
 
+import java.util.UUID;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+
 import com.be.bsba.constant.UserRole;
 import com.be.bsba.entity.Role;
 import com.be.bsba.entity.User;
 import com.be.bsba.exception.ResourceNotFoundException;
 import com.be.bsba.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Resolves the authenticated caller from the security context (populated by

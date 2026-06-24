@@ -156,7 +156,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
     try {
       final conversation = await _chatRepository.startConversation(
-        userId: CurrentUser.instance.id,
         storeId: space.id,
       );
       if (!mounted) return;

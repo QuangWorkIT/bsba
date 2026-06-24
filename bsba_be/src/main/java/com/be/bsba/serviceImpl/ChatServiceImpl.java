@@ -90,7 +90,13 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional
-    public ConversationResponse startConversation(UUID userId, StartConversationRequest request) {
+    public ConversationResponse startConversation(UUID userId, UserRole role, StartConversationRequest request) {
+        // Only customers initiate a thread with a store; staff/admin reply but never start one.
+        // Guards against accidentally creating a conversation that treats a staff member as the customer.
+        if (role != UserRole.CUSTOMER) {
+            throw new BadRequestException("Only customers can start a conversation");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found with id: " + userId));

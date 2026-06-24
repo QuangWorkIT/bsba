@@ -128,9 +128,7 @@ class ChatViewModel extends ChangeNotifier {
     try {
       final sent = await _repository.sendMessage(
         conversationId: conversationId,
-        userId: userId,
         content: text,
-        role: role,
       );
       // Reconcile the placeholder with the server's message (real id + time).
       // Fall back to the optimistic timestamp if the server omits createdAt.
@@ -168,8 +166,6 @@ class ChatViewModel extends ChangeNotifier {
     try {
       await _repository.markRead(
         conversationId: conversationId,
-        userId: userId,
-        role: role,
       );
     } catch (e) {
       debugPrint('Error marking read: $e');
