@@ -225,8 +225,6 @@ CREATE TABLE bookings (
                           participant_count INTEGER NOT NULL
                               CHECK (participant_count > 0),
 
-                          total_price NUMERIC(10,2),
-
                           note TEXT,
 
                           status VARCHAR(50) NOT NULL DEFAULT 'PENDING'

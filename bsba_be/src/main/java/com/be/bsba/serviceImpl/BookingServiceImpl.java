@@ -89,7 +89,6 @@ public class BookingServiceImpl implements BookingService {
                 .store(store)
                 .slot(slot)
                 .participantCount(request.getParticipantCount())
-                .totalPrice(request.getTotalPrice())
                 .note(request.getNote())
                 .status(BookingStatus.PENDING)
                 .build();
@@ -146,7 +145,6 @@ public class BookingServiceImpl implements BookingService {
                 .startTime(slot != null ? slot.getStartTime() : null)
                 .endTime(slot != null ? slot.getEndTime() : null)
                 .participants(booking.getParticipantCount())
-                .total(booking.getTotalPrice())
                 .imageAsset(booking.getStore().getCoverImageUrl() != null ? booking.getStore().getCoverImageUrl() : "") // Default empty, UI can handle or we can add store image URL later
                 .status(booking.getStatus())
                 .createdAt(booking.getCreatedAt())
@@ -203,7 +201,6 @@ public class BookingServiceImpl implements BookingService {
                 .participantCount(booking.getParticipantCount())
                 .status(booking.getStatus())
                 .note(booking.getNote())
-                .totalPrice(booking.getTotalPrice())
                 .createdAt(booking.getCreatedAt())
                 .build();
     }
