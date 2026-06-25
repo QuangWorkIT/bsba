@@ -89,7 +89,8 @@ public class BookingServiceImpl implements BookingService {
             return BigDecimal.ZERO;
         }
 
-        return BigDecimal.valueOf(store.getChargeFee());
+        Double chargeFee = store.getChargeFee();
+        return chargeFee != null ? BigDecimal.valueOf(chargeFee) : BigDecimal.ZERO;
     }
 
     @Override
