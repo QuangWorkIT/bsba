@@ -1,5 +1,6 @@
 package com.be.bsba.repository;
 
+import com.be.bsba.constant.TimeSlotStatus;
 import com.be.bsba.entity.StoreTimeSlot;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,8 +15,8 @@ import java.util.UUID;
 @Repository
 public interface StoreTimeSlotRepository extends JpaRepository<StoreTimeSlot, UUID> {
 
-    List<StoreTimeSlot> findByStoreIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(
-            UUID storeId, LocalDate fromDate);
+    List<StoreTimeSlot> findByStoreIdAndSlotDateGreaterThanEqualAndStatusOrderBySlotDateAscStartTimeAsc(
+            UUID storeId, LocalDate fromDate, TimeSlotStatus status);
 
     /**
      * Today's AVAILABLE slots for several stores, case-insensitive on status.

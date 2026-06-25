@@ -17,7 +17,7 @@ public interface BookingService {
     // Customer "My Bookings": the user's own bookings, newest first.
     List<BookingResponse> getUserBookings(UUID userId);
 
-    BookingLookupResponse getPendingBookingByUserAndStore(String userId, String storeId);
+    List<BookingLookupResponse> getPendingBookingsByUserAndStore(String userId, String storeId);
 
     BookingResponse createBooking(CreateBookingRequest request);
 

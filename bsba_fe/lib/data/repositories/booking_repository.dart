@@ -18,7 +18,7 @@ class BookingRepository {
     return await _service.createBooking(request);
   }
 
-  Future<PendingBookingLookup?> lookupPendingBooking({
+  Future<List<PendingBookingLookup>> lookupPendingBooking({
     required String userId,
     required String storeId,
   }) async {

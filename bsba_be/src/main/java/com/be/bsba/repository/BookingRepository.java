@@ -23,7 +23,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     @Query("SELECT b FROM Booking b JOIN FETCH b.user WHERE b.id = :id")
     Optional<Booking> findByIdForUpdate(@Param("id") UUID id);
 
-    Optional<Booking> findFirstByUserIdAndStoreIdAndStatusOrderByCreatedAtDesc(
+    List<Booking> findByUserIdAndStoreIdAndStatusOrderBySlotSlotDateAscSlotStartTimeAsc(
             UUID userId,
             UUID storeId,
             BookingStatus status);
