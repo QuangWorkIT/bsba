@@ -53,8 +53,9 @@ public class ConversationController {
     public ApiResponse<PagedResult<MessageResponse>> getMessages(
             @PathVariable UUID id,
             Pageable pageable) {
+        AuthUser me = currentUserProvider.requireCurrentUser();
         PagedResult<MessageResponse> messages =
-                PagedResult.from(chatService.getMessages(id, pageable));
+                PagedResult.from(chatService.getMessages(id, me.id(), me.role(), pageable));
         return ApiResponse.success(messages, "Messages retrieved successfully");
     }
 

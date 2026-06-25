@@ -2,6 +2,7 @@ package com.be.bsba.security;
 
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.be.bsba.constant.UserRole;
 import com.be.bsba.entity.Role;
 import com.be.bsba.entity.User;
+import com.be.bsba.exception.AppException;
 import com.be.bsba.exception.ResourceNotFoundException;
 import com.be.bsba.repository.UserRepository;
 
@@ -37,6 +39,12 @@ public class CurrentUserProvider {
         String email = auth.getName();
         User user = userRepository.findByEmailWithRole(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
+
+        // The JWT is only checked for isActive at login (24h TTL); re-verify here so a
+        // user deactivated mid-session loses access immediately instead of lingering.
+        if (user.getIsActive() != null && !user.getIsActive()) {
+            throw new AppException("User account is inactive", HttpStatus.FORBIDDEN);
+        }
 
         return new AuthUser(user.getId(), toUserRole(user.getRole()));
     }

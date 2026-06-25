@@ -120,14 +120,38 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MessageResponse> getMessages(UUID conversationId, Pageable pageable) {
-        if (!conversationRepository.existsById(conversationId)) {
-            throw new ResourceNotFoundException(
-                    "Conversation not found with id: " + conversationId);
-        }
+    public Page<MessageResponse> getMessages(UUID conversationId, UUID userId, UserRole role, Pageable pageable) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Conversation not found with id: " + conversationId));
+
+        // Only the thread's customer, an assigned staff, or an admin may read it.
+        authorizeConversationAccess(conversation, userId, role);
 
         return messageRepository.findByConversationIdOrderByCreatedAtDesc(conversationId, pageable)
                 .map(this::mapToResponse);
+    }
+
+    // Authorize a caller to view/act on a conversation:
+    //   admin    → any conversation
+    //   staff    → only conversations of a store they're assigned to
+    //   customer → only their own thread
+    private void authorizeConversationAccess(Conversation conversation, UUID userId, UserRole role) {
+        if (role == UserRole.ADMIN) {
+            return;
+        }
+        if (role == UserRole.STAFF) {
+            UUID storeId = conversation.getStore() != null ? conversation.getStore().getId() : null;
+            if (storeId == null || !storeStaffRepository.existsByStoreIdAndStaffId(storeId, userId)) {
+                throw new BadRequestException("Staff is not assigned to this conversation's store");
+            }
+            return;
+        }
+        // CUSTOMER: must own the conversation.
+        UUID ownerId = conversation.getUser() != null ? conversation.getUser().getId() : null;
+        if (ownerId == null || !ownerId.equals(userId)) {
+            throw new BadRequestException("You do not have access to this conversation");
+        }
     }
 
     @Override
@@ -137,13 +161,8 @@ public class ChatServiceImpl implements ChatService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Conversation not found with id: " + conversationId));
 
-        // A staff member may only act on conversations of a store they're assigned to.
-        if (role == UserRole.STAFF) {
-            UUID storeId = conversation.getStore() != null ? conversation.getStore().getId() : null;
-            if (storeId == null || !storeStaffRepository.existsByStoreIdAndStaffId(storeId, userId)) {
-                throw new BadRequestException("Staff is not assigned to this conversation's store");
-            }
-        }
+        // The customer who owns the thread, an assigned staff, or an admin may act on it.
+        authorizeConversationAccess(conversation, userId, role);
 
         // Mark the other party's messages as read: a customer reads staff messages, staff read customer messages.
         SenderType target = role == UserRole.CUSTOMER ? SenderType.STAFF : SenderType.CUSTOMER;
@@ -176,13 +195,8 @@ public class ChatServiceImpl implements ChatService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found with id: " + userId));
 
-        // A staff member may only reply in conversations of a store they're assigned to.
-        if (role == UserRole.STAFF) {
-            UUID storeId = conversation.getStore() != null ? conversation.getStore().getId() : null;
-            if (storeId == null || !storeStaffRepository.existsByStoreIdAndStaffId(storeId, userId)) {
-                throw new BadRequestException("Staff is not assigned to this conversation's store");
-            }
-        }
+        // The customer who owns the thread, an assigned staff, or an admin may reply.
+        authorizeConversationAccess(conversation, userId, role);
 
         // A customer speaks as CUSTOMER; staff/admin both reply as STAFF in the thread.
         SenderType senderType = role == UserRole.CUSTOMER ? SenderType.CUSTOMER : SenderType.STAFF;
