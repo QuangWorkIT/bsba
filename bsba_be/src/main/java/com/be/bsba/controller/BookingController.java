@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -49,14 +48,14 @@ public class BookingController {
     }
 
     @GetMapping("/lookup")
-    public ApiResponse<BookingLookupResponse> getBookingByUserStoreAndSlot(
+    public ApiResponse<List<BookingLookupResponse>> getBookingByUserStoreAndSlot(
             @RequestParam String userId,
             @RequestParam String storeId) {
-        BookingLookupResponse booking = bookingService.getPendingBookingByUserAndStore(userId, storeId);
-        String message = booking != null
-                ? "Pending booking retrieved successfully"
-                : "No pending booking found for this user and store";
-        return ApiResponse.success(booking, message);
+        List<BookingLookupResponse> bookings = bookingService.getPendingBookingsByUserAndStore(userId, storeId);
+        String message = bookings.isEmpty()
+                ? "No pending bookings found for this user and store"
+                : "Pending bookings retrieved successfully";
+        return ApiResponse.success(bookings, message);
     }
 
     @PostMapping

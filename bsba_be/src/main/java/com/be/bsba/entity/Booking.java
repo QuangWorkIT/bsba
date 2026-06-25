@@ -24,8 +24,6 @@ public class Booking {
 
     private Integer participantCount;
 
-    private BigDecimal totalPrice;
-
     @Column(columnDefinition = "TEXT")
     private String note;
 

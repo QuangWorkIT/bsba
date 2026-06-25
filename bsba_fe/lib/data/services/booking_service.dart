@@ -33,7 +33,7 @@ class BookingService {
     return BookingSummary.fromJson(data);
   }
 
-  Future<PendingBookingLookup?> lookupPendingBooking({
+  Future<List<PendingBookingLookup>> lookupPendingBooking({
     required String userId,
     required String storeId,
   }) async {
@@ -51,15 +51,23 @@ class BookingService {
     }
 
     final data = response['data'];
-    if (data is! Map<String, dynamic>) return null;
+    if (data is! List) return const [];
 
-    return PendingBookingLookup.fromJson(data);
+    return data
+        .whereType<Map>()
+        .map((json) => PendingBookingLookup.fromJson(
+              Map<String, dynamic>.from(json),
+            ))
+        .toList();
   }
 
   /// Staff "Manage Bookings". The caller's id + role come from the JWT, so we
   /// only pass the optional status filter (and a generous page size).
   /// Structure: { data: { items: [...], page, size, ... } }.
-  Future<List<StaffBooking>> getStaffBookings({String? status, int size = 100}) async {
+  Future<List<StaffBooking>> getStaffBookings({
+    String? status,
+    int size = 100,
+  }) async {
     final params = <String, String>{'size': '$size'};
     if (status != null) params['status'] = status;
     final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');

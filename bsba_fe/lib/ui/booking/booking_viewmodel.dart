@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:project/data/models/booking_summary.dart';
 import 'package:project/data/repositories/booking_repository.dart';
 
-enum BookingTab { confirmed, completed, pending, cancelled }
+enum BookingTab { cancelled, pending, confirmed, completed }
 
 enum BookingLoadState { loading, loaded, error }
 

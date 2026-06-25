@@ -7,13 +7,16 @@ import com.be.bsba.dto.response.BookingLookupResponse;
 import com.be.bsba.constant.UserRole;
 import com.be.bsba.dto.response.BookingResponse;
 import com.be.bsba.dto.response.StaffBookingResponse;
+import com.be.bsba.entity.BoardGame;
 import com.be.bsba.entity.Booking;
 import com.be.bsba.entity.BookingCart;
+import com.be.bsba.entity.BookingCartGame;
 import com.be.bsba.entity.Store;
 import com.be.bsba.entity.StoreTimeSlot;
 import com.be.bsba.entity.User;
 import com.be.bsba.exception.BadRequestException;
 import com.be.bsba.exception.ResourceNotFoundException;
+import com.be.bsba.repository.BookingCartGameRepository;
 import com.be.bsba.repository.BookingCartRepository;
 import com.be.bsba.repository.BookingRepository;
 import com.be.bsba.repository.StoreStaffRepository;
@@ -29,6 +32,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +44,7 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final BookingCartRepository bookingCartRepository;
+    private final BookingCartGameRepository bookingCartGameRepository;
     private final UserRepository userRepository;
     private final StoreRepository storeRepository;
     private final StoreTimeSlotRepository storeTimeSlotRepository;
@@ -49,6 +54,44 @@ public class BookingServiceImpl implements BookingService {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mm a");
 
     // ── Customer "My Bookings" ──────────────────────────────────────────────
+    private BigDecimal calculateBookingTotal(Booking booking) {
+        BigDecimal retailPrice = bookingCartRepository.findByBookingId(booking.getId())
+                .map(BookingCart::getId)
+                .map(bookingCartGameRepository::findAllByCartId)
+                .map(this::calculateRetailPrice)
+                .orElse(BigDecimal.ZERO);
+
+        return retailPrice.add(calculateStoreCharge(booking));
+    }
+
+    private BigDecimal calculateRetailPrice(List<BookingCartGame> cartGames) {
+        if (cartGames == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return cartGames.stream()
+                .map(this::calculateBookingGamePrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calculateBookingGamePrice(BookingCartGame cartGame) {
+        BoardGame boardGame = cartGame.getBoardGame();
+        BigDecimal rentalPrice = boardGame != null && boardGame.getRentalPrice() != null
+                ? boardGame.getRentalPrice()
+                : BigDecimal.ZERO;
+        int quantity = cartGame.getQuantity() != null ? cartGame.getQuantity() : 0;
+        return rentalPrice.multiply(BigDecimal.valueOf(quantity));
+    }
+
+    private BigDecimal calculateStoreCharge(Booking booking) {
+        Store store = booking.getStore();
+        if (store == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return BigDecimal.valueOf(store.getChargeFee());
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<BookingResponse> getUserBookings(UUID userId) {
@@ -59,16 +102,17 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public BookingLookupResponse getPendingBookingByUserAndStore(String userIdValue, String storeIdValue) {
+    public List<BookingLookupResponse> getPendingBookingsByUserAndStore(String userIdValue, String storeIdValue) {
         UUID userId = parseUuid(userIdValue, "User ID");
         UUID storeId = parseUuid(storeIdValue, "Store ID");
 
-        return bookingRepository.findFirstByUserIdAndStoreIdAndStatusOrderByCreatedAtDesc(
+        return bookingRepository.findByUserIdAndStoreIdAndStatusOrderBySlotSlotDateAscSlotStartTimeAsc(
                         userId,
                         storeId,
                         BookingStatus.PENDING)
+                .stream()
                 .map(this::mapToLookupResponse)
-                .orElse(null);
+                .toList();
     }
 
     @Override
@@ -89,7 +133,6 @@ public class BookingServiceImpl implements BookingService {
                 .store(store)
                 .slot(slot)
                 .participantCount(request.getParticipantCount())
-                .totalPrice(request.getTotalPrice())
                 .note(request.getNote())
                 .status(BookingStatus.PENDING)
                 .build();
@@ -146,7 +189,7 @@ public class BookingServiceImpl implements BookingService {
                 .startTime(slot != null ? slot.getStartTime() : null)
                 .endTime(slot != null ? slot.getEndTime() : null)
                 .participants(booking.getParticipantCount())
-                .total(booking.getTotalPrice())
+                .total(calculateBookingTotal(booking))
                 .imageAsset(booking.getStore().getCoverImageUrl() != null ? booking.getStore().getCoverImageUrl() : "") // Default empty, UI can handle or we can add store image URL later
                 .status(booking.getStatus())
                 .createdAt(booking.getCreatedAt())
@@ -157,7 +200,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public Page<StaffBookingResponse> getStaffBookings(UUID userId, UserRole role, BookingStatus status, Pageable pageable) {
-        // Default to newest first when the caller didn't ask for a specific order.
+        // Default to first when the caller didn't ask for a specific order.
         Pageable effective = pageable.getSort().isSorted()
                 ? pageable
                 : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
@@ -203,7 +246,6 @@ public class BookingServiceImpl implements BookingService {
                 .participantCount(booking.getParticipantCount())
                 .status(booking.getStatus())
                 .note(booking.getNote())
-                .totalPrice(booking.getTotalPrice())
                 .createdAt(booking.getCreatedAt())
                 .build();
     }

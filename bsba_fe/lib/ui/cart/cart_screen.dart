@@ -108,6 +108,7 @@ class _CartView extends StatelessWidget {
                           imageUrl: item.imageUrl,
                           quantity: item.quantity,
                         ),
+                        canEdit: showCheckout,
                         onRemove: () => vm.removeItem(item.boardGameId),
                         onDecrement: () {
                           if (item.quantity > 1) {

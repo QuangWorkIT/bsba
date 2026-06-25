@@ -337,9 +337,6 @@ public class ZaloPayServiceImpl implements ZaloPayService {
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new AppException("Booking status does not allow payment", HttpStatus.CONFLICT);
         }
-        if (booking.getTotalPrice() == null || booking.getTotalPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new AppException("Booking total price must be greater than zero", HttpStatus.BAD_REQUEST);
-        }
     }
 
     private long toZaloPayAmount(BigDecimal totalPrice) {
