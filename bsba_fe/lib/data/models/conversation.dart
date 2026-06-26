@@ -8,6 +8,10 @@ class Conversation {
   final String? customerAvatarUrl;
   final String? lastMessagePreview;
   final DateTime? lastMessageAt;
+
+  /// Sender type of the last message ('CUSTOMER' / 'STAFF'), used to label the
+  /// inbox preview with "Bạn: " when the current viewer sent it.
+  final String? lastMessageSenderType;
   final int unreadCount;
 
   /// User ids of the store's staff — used so a customer can see the store as
@@ -26,6 +30,7 @@ class Conversation {
     this.customerAvatarUrl,
     this.lastMessagePreview,
     this.lastMessageAt,
+    this.lastMessageSenderType,
     this.unreadCount = 0,
     this.staffUserIds = const [],
     this.createdAt,
@@ -47,6 +52,16 @@ class Conversation {
   }
 
   String get preview => lastMessagePreview ?? 'No messages yet';
+
+  /// Inbox preview labelled from the viewer's perspective: their own last
+  /// message is prefixed with "Bạn: "; the other party's is shown as-is.
+  String previewFor(String role) {
+    final text = lastMessagePreview;
+    if (text == null) return 'No messages yet';
+
+    final mySenderType = role == 'CUSTOMER' ? 'CUSTOMER' : 'STAFF';
+    return lastMessageSenderType == mySenderType ? 'You: $text' : text;
+  }
 
   bool get hasUnread => unreadCount > 0;
 
@@ -73,8 +88,18 @@ class Conversation {
       return days[local.weekday - 1];
     } else {
       const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
       ];
       return '${months[local.month - 1]} ${local.day}';
     }
@@ -107,8 +132,10 @@ class Conversation {
       customerAvatarUrl: json['customerAvatarUrl'] as String?,
       lastMessagePreview: json['lastMessagePreview'] as String?,
       lastMessageAt: parse(json['lastMessageAt'] as String?),
+      lastMessageSenderType: json['lastMessageSenderType'] as String?,
       unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
-      staffUserIds: (json['staffUserIds'] as List<dynamic>?)
+      staffUserIds:
+          (json['staffUserIds'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
@@ -117,7 +144,12 @@ class Conversation {
     );
   }
 
-  Conversation copyWith({int? unreadCount, String? lastMessagePreview, DateTime? lastMessageAt}) {
+  Conversation copyWith({
+    int? unreadCount,
+    String? lastMessagePreview,
+    DateTime? lastMessageAt,
+    String? lastMessageSenderType,
+  }) {
     return Conversation(
       id: id,
       storeId: storeId,
@@ -128,6 +160,8 @@ class Conversation {
       customerAvatarUrl: customerAvatarUrl,
       lastMessagePreview: lastMessagePreview ?? this.lastMessagePreview,
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+      lastMessageSenderType:
+          lastMessageSenderType ?? this.lastMessageSenderType,
       unreadCount: unreadCount ?? this.unreadCount,
       staffUserIds: staffUserIds,
       createdAt: createdAt,

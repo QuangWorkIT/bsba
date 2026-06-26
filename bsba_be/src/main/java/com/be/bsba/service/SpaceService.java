@@ -6,5 +6,5 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface SpaceService {
-    Page<SpaceCardResponse> getSpaces(Double lat, Double lng, SpaceSort sort, String q, Pageable pageable);
+    Page<SpaceCardResponse> getSpaces(Double lat, Double lng, SpaceSort sortBy, String q, Pageable pageable);
 }

@@ -7,16 +7,13 @@ class ChatService {
 
   ChatService(this._apiClient);
 
-  /// GET /api/v1/conversations?userId=..&role=..
+  /// GET /api/v1/conversations
   ///
-  /// The backend wraps the page in ApiResponse:
+  /// The caller's id + role come from the JWT (sent by [ApiClient] as a Bearer
+  /// token), not from query params. The backend wraps the page in ApiResponse:
   /// { success: true, data: { items: [...], page, size, totalElements, ... } }
-  Future<List<Conversation>> getConversations({
-    required String userId,
-    String role = 'CUSTOMER',
-  }) async {
-    final response =
-        await _apiClient.get('/conversations?userId=$userId&role=$role');
+  Future<List<Conversation>> getConversations() async {
+    final response = await _apiClient.get('/conversations');
 
     final List<dynamic> items = response['data']['items'] as List<dynamic>;
 
@@ -25,14 +22,14 @@ class ChatService {
         .toList();
   }
 
-  /// POST /api/v1/conversations?userId=.. with body { storeId }.
+  /// POST /api/v1/conversations with body { storeId }.
   /// Get-or-create: returns the existing thread or a freshly created one.
+  /// The customer is resolved from the JWT; only customers may start a thread.
   Future<Conversation> startConversation({
-    required String userId,
     required String storeId,
   }) async {
     final response = await _apiClient.post(
-      '/conversations?userId=$userId',
+      '/conversations',
       {'storeId': storeId},
     );
     return Conversation.fromJson(response['data'] as Map<String, dynamic>);
@@ -54,40 +51,32 @@ class ChatService {
         .toList();
   }
 
-  /// POST /api/v1/conversations/{id}/messages?userId=..&role=..
+  /// POST /api/v1/conversations/{id}/messages with body { content, type }.
+  /// The sender + role come from the JWT.
   Future<Message> sendMessage({
     required String conversationId,
-    required String userId,
     required String content,
-    String role = 'CUSTOMER',
     String type = 'TEXT',
   }) async {
     final response = await _apiClient.post(
-      '/conversations/$conversationId/messages?userId=$userId&role=$role',
+      '/conversations/$conversationId/messages',
       {'content': content, 'type': type},
     );
 
     return Message.fromJson(response['data'] as Map<String, dynamic>);
   }
 
-  /// GET /api/v1/conversations/unread-count?userId=..&role=..
+  /// GET /api/v1/conversations/unread-count
   /// Returns the number of conversations that have unread messages.
-  Future<int> getUnreadCount({
-    required String userId,
-    String role = 'CUSTOMER',
-  }) async {
-    final response = await _apiClient
-        .get('/conversations/unread-count?userId=$userId&role=$role');
+  Future<int> getUnreadCount() async {
+    final response = await _apiClient.get('/conversations/unread-count');
     return (response['data'] as num?)?.toInt() ?? 0;
   }
 
-  /// PATCH /api/v1/conversations/{id}/read?userId=..&role=..
+  /// PATCH /api/v1/conversations/{id}/read
   Future<void> markRead({
     required String conversationId,
-    required String userId,
-    String role = 'CUSTOMER',
   }) async {
-    await _apiClient
-        .patch('/conversations/$conversationId/read?userId=$userId&role=$role');
+    await _apiClient.patch('/conversations/$conversationId/read');
   }
 }

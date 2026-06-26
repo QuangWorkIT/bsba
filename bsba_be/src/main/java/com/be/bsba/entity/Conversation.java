@@ -1,5 +1,6 @@
 package com.be.bsba.entity;
 
+import com.be.bsba.constant.SenderType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -40,6 +41,10 @@ public class Conversation {
     private String lastMessagePreview;
 
     private OffsetDateTime lastMessageAt;
+
+    // Who sent the last message, so the inbox can label it (e.g. "Bạn: ...").
+    @Enumerated(EnumType.STRING)
+    private SenderType lastMessageSenderType;
 
     @OneToMany(mappedBy = "conversation")
     private List<Message> messages;

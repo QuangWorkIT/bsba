@@ -439,6 +439,7 @@ CREATE TABLE conversations (
 
                                last_message_preview TEXT,
                                last_message_at TIMESTAMPTZ,
+                               last_message_sender_type VARCHAR(20),
 
                                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
