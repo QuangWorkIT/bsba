@@ -6,7 +6,6 @@ import 'package:project/ui/boardgames/staff_games_viewmodel.dart';
 import 'package:project/ui/dashboard/widgets/staff_dashboard_tokens.dart';
 import 'package:project/ui/boardgames/widgets/add_game_screen.dart';
 
-
 class StaffGamesScreen extends StatefulWidget {
   const StaffGamesScreen({super.key});
 
@@ -31,150 +30,162 @@ class _StaffGamesScreenState extends State<StaffGamesScreen> {
     return ListenableBuilder(
       listenable: _vm,
       builder: (context, _) {
-        return Scaffold(
-          backgroundColor: StaffDashboardColors.background,
-          floatingActionButton: FloatingActionButton(
-            backgroundColor: StaffDashboardColors.primary,
-            foregroundColor: Colors.white,
-            tooltip: 'Add New Game',
-            onPressed: () async {
-              final refresh = await Navigator.push<bool>(
-                context,
-                MaterialPageRoute(builder: (_) => const AddGameScreen()),
-              );
-              if (refresh == true) {
-                _vm.loadGames();
-              }
-            },
-            child: const Icon(Icons.add_rounded),
-          ),
-          body: SafeArea(
-            top: false,
-            child: Container(
-              color: StaffDashboardColors.background,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: TextField(
-                      onChanged: _vm.setSearchQuery,
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          color: StaffDashboardColors.muted,
-                        ),
-                        hintText: 'Search game library...',
-                        hintStyle: const TextStyle(color: StaffDashboardColors.muted),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 0,
-                          horizontal: 16,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: StaffDashboardColors.border,
+        return Stack(
+          children: [
+            SafeArea(
+              top: false,
+              child: Container(
+                color: StaffDashboardColors.background,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: TextField(
+                        onChanged: _vm.setSearchQuery,
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: StaffDashboardColors.muted,
                           ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: StaffDashboardColors.border,
+                          hintText: 'Search game library...',
+                          hintStyle: const TextStyle(
+                            color: StaffDashboardColors.muted,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 0,
+                            horizontal: 16,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: StaffDashboardColors.border,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: StaffDashboardColors.border,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _showCategoryDialog(context),
-                            icon: const Icon(
-                              Icons.sort,
-                              size: 18,
-                              color: StaffDashboardColors.text,
-                            ),
-                            label: Text(
-                              _vm.selectedCategory ?? 'Category',
-                              style: const TextStyle(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _showCategoryDialog(context),
+                              icon: const Icon(
+                                Icons.sort,
+                                size: 18,
                                 color: StaffDashboardColors.text,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: const Color(0xFFF0F2F5),
-                              side: const BorderSide(
-                                color: StaffDashboardColors.border,
+                              label: Text(
+                                _vm.selectedCategory ?? 'Category',
+                                style: const TextStyle(
+                                  color: StaffDashboardColors.text,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: const Color(0xFFF0F2F5),
+                                side: const BorderSide(
+                                  color: StaffDashboardColors.border,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _showSortDialog(context),
-                            icon: const Icon(
-                              Icons.filter_list,
-                              size: 18,
-                              color: StaffDashboardColors.text,
-                            ),
-                            label: const Text(
-                              'Sort',
-                              style: TextStyle(
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _showSortDialog(context),
+                              icon: const Icon(
+                                Icons.filter_list,
+                                size: 18,
                                 color: StaffDashboardColors.text,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
                               ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: const Color(0xFFF0F2F5),
-                              side: const BorderSide(
-                                color: StaffDashboardColors.border,
+                              label: const Text(
+                                'Sort',
+                                style: TextStyle(
+                                  color: StaffDashboardColors.text,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: const Color(0xFFF0F2F5),
+                                side: const BorderSide(
+                                  color: StaffDashboardColors.border,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: _vm.isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _vm.error != null
-                            ? Center(child: Text(_vm.error!))
-                            : _vm.filteredAndSortedGames.isEmpty
-                                ? const Center(child: Text('No games found'))
-                                : ListView.separated(
-                                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                                    itemCount: _vm.filteredAndSortedGames.length,
-                                    separatorBuilder: (context, index) =>
-                                        const SizedBox(height: 16),
-                                    itemBuilder: (context, index) {
-                                      final game = _vm.filteredAndSortedGames[index];
-                                      return _buildGameCard(game);
-                                    },
-                                  ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _vm.isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _vm.error != null
+                          ? Center(child: Text(_vm.error!))
+                          : _vm.filteredAndSortedGames.isEmpty
+                          ? const Center(child: Text('No games found'))
+                          : ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                              itemCount: _vm.filteredAndSortedGames.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 16),
+                              itemBuilder: (context, index) {
+                                final game = _vm.filteredAndSortedGames[index];
+                                return _buildGameCard(game);
+                              },
+                            ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+            Positioned(
+              right: 16,
+              bottom: 16,
+              child: FloatingActionButton(
+                heroTag: 'add-game-fab',
+                backgroundColor: StaffDashboardColors.primary,
+                foregroundColor: Colors.white,
+                tooltip: 'Add New Game',
+                onPressed: () async {
+                  final refresh = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AddGameScreen()),
+                  );
+                  if (refresh == true) {
+                    _vm.loadGames();
+                  }
+                },
+                child: const Icon(Icons.add_rounded),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -207,7 +218,10 @@ class _StaffGamesScreenState extends State<StaffGamesScreen> {
                   ListTile(
                     title: const Text('All Categories'),
                     trailing: _vm.selectedCategory == null
-                        ? const Icon(Icons.check, color: StaffDashboardColors.primary)
+                        ? const Icon(
+                            Icons.check,
+                            color: StaffDashboardColors.primary,
+                          )
                         : null,
                     onTap: () {
                       _vm.setCategory(null);
@@ -218,7 +232,10 @@ class _StaffGamesScreenState extends State<StaffGamesScreen> {
                     return ListTile(
                       title: Text(category),
                       trailing: _vm.selectedCategory == category
-                          ? const Icon(Icons.check, color: StaffDashboardColors.primary)
+                          ? const Icon(
+                              Icons.check,
+                              color: StaffDashboardColors.primary,
+                            )
                           : null,
                       onTap: () {
                         _vm.setCategory(category);
@@ -261,8 +278,16 @@ class _StaffGamesScreenState extends State<StaffGamesScreen> {
                   ),
                   _buildSortOption(context, 'Name (A-Z)', SortOption.nameAsc),
                   _buildSortOption(context, 'Name (Z-A)', SortOption.nameDesc),
-                  _buildSortOption(context, 'Stock (Low to High)', SortOption.stockAsc),
-                  _buildSortOption(context, 'Stock (High to Low)', SortOption.stockDesc),
+                  _buildSortOption(
+                    context,
+                    'Stock (Low to High)',
+                    SortOption.stockAsc,
+                  ),
+                  _buildSortOption(
+                    context,
+                    'Stock (High to Low)',
+                    SortOption.stockDesc,
+                  ),
                 ],
               ),
             );
@@ -272,7 +297,11 @@ class _StaffGamesScreenState extends State<StaffGamesScreen> {
     );
   }
 
-  Widget _buildSortOption(BuildContext context, String title, SortOption option) {
+  Widget _buildSortOption(
+    BuildContext context,
+    String title,
+    SortOption option,
+  ) {
     return ListTile(
       title: Text(title),
       trailing: _vm.sortOption == option
