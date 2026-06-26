@@ -20,5 +20,5 @@ public class EditStoreResponse {
     private LocalTime openTime;
     private LocalTime closeTime;
     private int totalCapacity;
-    private double chargeFee;
+    private Double chargeFee;
 }
