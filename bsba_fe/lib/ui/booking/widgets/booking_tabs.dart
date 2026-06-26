@@ -19,8 +19,9 @@ class BookingTabs extends StatelessWidget {
               return Expanded(
                 child: _BookingTabButton(
                   label: switch (tab) {
-                    BookingTab.upcoming => 'Completed',
-                    BookingTab.completed => 'Pending',
+                    BookingTab.completed => 'Completed',
+                    BookingTab.confirmed => 'Confirmed',
+                    BookingTab.pending => 'Pending',
                     BookingTab.cancelled => 'Cancelled',
                   },
                   selected: selected == tab,

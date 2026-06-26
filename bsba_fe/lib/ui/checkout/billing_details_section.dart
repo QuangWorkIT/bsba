@@ -7,11 +7,13 @@ class BillingDetailsSection extends StatelessWidget {
     required this.nameController,
     required this.emailController,
     required this.phoneController,
+    this.enabled = true,
   });
 
   final TextEditingController nameController;
   final TextEditingController emailController;
   final TextEditingController phoneController;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -26,12 +28,14 @@ class BillingDetailsSection extends StatelessWidget {
           CheckoutFormField(
             label: 'Full Name',
             controller: nameController,
+            enabled: enabled,
           ),
           const SizedBox(height: 16),
           CheckoutFormField(
             label: 'Email Address',
             controller: emailController,
             keyboardType: TextInputType.emailAddress,
+            enabled: enabled,
           ),
           const SizedBox(height: 16),
           CheckoutFormField(
@@ -39,6 +43,7 @@ class BillingDetailsSection extends StatelessWidget {
             controller: phoneController,
             hintText: '+1 (555) 000-0000',
             keyboardType: TextInputType.phone,
+            enabled: enabled,
           ),
         ],
       ),

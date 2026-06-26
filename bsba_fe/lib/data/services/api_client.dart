@@ -108,11 +108,15 @@ class ApiClient {
     }
   }
 
-  Future<Map<String, dynamic>> delete(String path) async {
+  Future<Map<String, dynamic>> delete(String path, [dynamic body]) async {
     try {
       final uri = Uri.parse('$baseUrl$path');
       final headers = await _headers();
-      final response = await _client.delete(uri, headers: headers);
+      final response = await _client.delete(
+        uri,
+        headers: headers,
+        body: body != null ? jsonEncode(body) : null,
+      );
 
       return _handleResponse(response);
     } catch (e, stackTrace) {

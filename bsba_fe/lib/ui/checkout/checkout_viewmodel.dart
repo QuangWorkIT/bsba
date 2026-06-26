@@ -22,7 +22,10 @@ class CheckoutViewModel extends ChangeNotifier {
         _zaloPayGatewayService =
             zaloPayGatewayService ?? ZaloPayGatewayService();
 
-  Future<bool> handleZaloPayPayment() async {
+  Future<bool> handleZaloPayPayment({
+    required String bookingId,
+    required double totalPrice,
+  }) async {
     if (_isLoading) return false;
 
     _isLoading = true;
@@ -30,7 +33,10 @@ class CheckoutViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final url = await _paymentRepository.createZaloPayPayment();
+      final url = await _paymentRepository.createZaloPayPayment(
+        bookingId: bookingId,
+        totalPrice: totalPrice,
+      );
       await _zaloPayGatewayService.openPaymentUrl(url);
       return true;
     } catch (e) {

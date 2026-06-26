@@ -38,7 +38,6 @@ public class StaffBookingResponse {
     private Integer participantCount;
     private BookingStatus status;
     private String note;
-    private BigDecimal totalPrice;
 
     private OffsetDateTime createdAt;
 }

@@ -24,12 +24,14 @@ class CartGameItemCard extends StatelessWidget {
   const CartGameItemCard({
     super.key,
     required this.item,
+    this.canEdit = true,
     required this.onRemove,
     required this.onDecrement,
     required this.onIncrement,
   });
 
   final CartGameItem item;
+  final bool canEdit;
   final VoidCallback onRemove;
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
@@ -136,23 +138,53 @@ class CartGameItemCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _QuantityStepper(
-                      quantity: item.quantity,
-                      onDecrement: onDecrement,
-                      onIncrement: onIncrement,
-                    ),
+                    if (canEdit)
+                      _QuantityStepper(
+                        quantity: item.quantity,
+                        onDecrement: onDecrement,
+                        onIncrement: onIncrement,
+                      )
+                    else
+                      _QuantityCount(quantity: item.quantity),
                   ],
                 ),
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.delete_outline, color: scheme.tertiary),
-            onPressed: onRemove,
-            padding: const EdgeInsets.all(8),
-            constraints: const BoxConstraints(),
-          ),
+          if (canEdit)
+            IconButton(
+              icon: Icon(Icons.delete_outline, color: scheme.tertiary),
+              onPressed: onRemove,
+              padding: const EdgeInsets.all(8),
+              constraints: const BoxConstraints(),
+            ),
         ],
+      ),
+    );
+  }
+}
+
+class _QuantityCount extends StatelessWidget {
+  const _QuantityCount({required this.quantity});
+
+  final int quantity;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: CartGameItemCard._stepperBackground(context),
+        borderRadius: BorderRadius.circular(9999),
+      ),
+      child: Text(
+        '$quantity',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: CartGameItemCard._titleColor(context),
+          fontSize: 14,
+          height: 1.43,
+        ),
       ),
     );
   }

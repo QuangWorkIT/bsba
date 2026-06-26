@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../../data/services/api_client.dart';
+import 'package:project/data/repositories/cart_repository.dart';
 
 class CartItem {
   final String id;
@@ -21,10 +21,12 @@ class CartItem {
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
+    final id = json['id']?.toString() ?? '';
+
     return CartItem(
-      id: json['id'].toString(),
-      boardGameId: json['boardGameId'],
-      name: json['boardGameName'] ?? '',
+      id: id,
+      boardGameId: json['boardGameId']?.toString() ?? id,
+      name: json['boardGameName'] ?? json['name'] ?? '',
       category: json['category'] ?? '',
       imageUrl: json['imageUrl'] ?? '',
       rentalPrice: (json['rentalPrice'] as num?)?.toDouble() ?? 0.0,
@@ -34,15 +36,20 @@ class CartItem {
 }
 
 class CartViewModel extends ChangeNotifier {
-  final ApiClient _apiClient;
+  final CartRepository _repository;
+  final String? bookingId;
 
-  CartViewModel(this._apiClient);
+  CartViewModel(this._repository, {this.bookingId});
 
   List<CartItem> _items = [];
+  int _participants = 0;
+  double _chargeFee = 0.0;
+  double _retailPrice = 0.0;
   double _totalPrice = 0.0;
   bool _isLoading = false;
   String? _error;
 
+  String? _cartId;
   String? _storeName;
   String? _storeImage;
   String? _slotDate;
@@ -50,10 +57,14 @@ class CartViewModel extends ChangeNotifier {
   String? _endTime;
 
   List<CartItem> get items => _items;
+  int get participants => _participants;
+  double get chargeFee => _chargeFee;
+  double get retailPrice => _retailPrice;
   double get totalPrice => _totalPrice;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  String? get cartId => _cartId;
   String? get storeName => _storeName;
   String? get storeImage => _storeImage;
   String? get slotDate => _slotDate;
@@ -66,12 +77,15 @@ class CartViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiClient.get('/carts');
-      final data = response['data'];
+      final data = await _repository.fetchCart(bookingId: bookingId);
 
       if (data == null) {
         _items = [];
+        _participants = 0;
+        _chargeFee = 0.0;
+        _retailPrice = 0.0;
         _totalPrice = 0.0;
+        _cartId = null;
         _storeName = null;
         _storeImage = null;
         _slotDate = null;
@@ -80,15 +94,22 @@ class CartViewModel extends ChangeNotifier {
         return;
       }
 
-      final List<dynamic> itemsJson = data['items'];
-      _items = itemsJson.map((json) => CartItem.fromJson(json)).toList();
+      final List<dynamic> gamesJson = data['boardGames'] ?? data['items'] ?? [];
+      _items = gamesJson
+          .whereType<Map<String, dynamic>>()
+          .map(CartItem.fromJson)
+          .toList();
+      _participants = (data['participants'] as num?)?.toInt() ?? 0;
+      _chargeFee = (data['chargeFee'] as num?)?.toDouble() ?? 0.0;
+      _retailPrice = (data['retailPrice'] as num?)?.toDouble() ?? 0.0;
       _totalPrice = (data['totalPrice'] as num?)?.toDouble() ?? 0.0;
 
-      _storeName = data['storeName'];
-      _storeImage = data['storeImage'];
-      _slotDate = data['slotDate'];
-      _startTime = data['startTime'];
-      _endTime = data['endTime'];
+      _cartId = data['id']?.toString();
+      _storeName = data['storeName']?.toString();
+      _storeImage = data['storeImage']?.toString();
+      _slotDate = data['slotDate']?.toString();
+      _startTime = data['startTime']?.toString();
+      _endTime = data['endTime']?.toString();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -98,8 +119,18 @@ class CartViewModel extends ChangeNotifier {
   }
 
   Future<void> updateQuantity(String gameId, int quantity) async {
+    final cartId = _cartId;
+    if (cartId == null || cartId.isEmpty) {
+      debugPrint('Error updating quantity: Cart id is missing.');
+      return;
+    }
+
     try {
-      await _apiClient.patch('/carts/items/$gameId', {'quantity': quantity});
+      await _repository.updateItemQuantity(
+        cartId: cartId,
+        boardGameId: gameId,
+        quantity: quantity,
+      );
       await fetchCart();
     } catch (e) {
       debugPrint('Error updating quantity: $e');
@@ -107,8 +138,14 @@ class CartViewModel extends ChangeNotifier {
   }
 
   Future<void> removeItem(String gameId) async {
+    final cartId = _cartId;
+    if (cartId == null || cartId.isEmpty) {
+      debugPrint('Error removing item: Cart id is missing.');
+      return;
+    }
+
     try {
-      await _apiClient.delete('/carts/items/$gameId');
+      await _repository.removeItem(cartId: cartId, boardGameId: gameId);
       await fetchCart();
     } catch (e) {
       debugPrint('Error removing item: $e');

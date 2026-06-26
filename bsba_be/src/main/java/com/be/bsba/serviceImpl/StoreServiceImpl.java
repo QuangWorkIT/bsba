@@ -1,5 +1,6 @@
 package com.be.bsba.serviceImpl;
 
+import com.be.bsba.constant.TimeSlotStatus;
 import com.be.bsba.dto.request.UpdateStoreRequest;
 import com.be.bsba.dto.response.*;
 import com.be.bsba.entity.*;
@@ -53,10 +54,10 @@ public class StoreServiceImpl implements StoreService, IStoreService {
                 .filter(java.util.Objects::nonNull)
                 .toList();
 
-        // 4. Fetch upcoming time slots (from today onwards)
+        // 4. Fetch upcoming available time slots (from today onwards)
         List<TimeSlotDto> timeSlots = storeTimeSlotRepository
-                .findByStoreIdAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(
-                        storeId, LocalDate.now())
+                .findByStoreIdAndSlotDateGreaterThanEqualAndStatusOrderBySlotDateAscStartTimeAsc(
+                        storeId, LocalDate.now(), TimeSlotStatus.AVAILABLE)
                 .stream()
                 .map(this::toTimeSlotDto)
                 .filter(java.util.Objects::nonNull)
@@ -94,6 +95,7 @@ public class StoreServiceImpl implements StoreService, IStoreService {
                 .reviewCount(reviewCount)
                 .isFavorited(isFavorited)
                 .images(images)
+                .chargeFee(store.getChargeFee())
                 .boardGames(boardGames)
                 .timeSlots(timeSlots)
                 .reviews(reviews)
