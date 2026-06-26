@@ -229,6 +229,7 @@ public class ChatServiceImpl implements ChatService {
         // Keep the denormalized inbox-preview fields in sync.
         conversation.setLastMessagePreview(savedMessage.getContent());
         conversation.setLastMessageAt(savedMessage.getCreatedAt());
+        conversation.setLastMessageSenderType(savedMessage.getSenderType());
         conversationRepository.save(conversation);
 
         // Build the broadcast payloads now (DB/lazy access happens here), but defer the
@@ -324,6 +325,7 @@ public class ChatServiceImpl implements ChatService {
                 .customerAvatarUrl(customer != null ? customer.getAvatarUrl() : null)
                 .lastMessagePreview(conversation.getLastMessagePreview())
                 .lastMessageAt(conversation.getLastMessageAt())
+                .lastMessageSenderType(conversation.getLastMessageSenderType())
                 .unreadCount(unreadCount)
                 .staffUserIds(staffUserIds)
                 .createdAt(conversation.getCreatedAt())

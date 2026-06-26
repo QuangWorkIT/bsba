@@ -229,7 +229,7 @@ class _ConversationCard extends StatelessWidget {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        conversation.preview,
+                                        conversation.previewFor(role),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
