@@ -21,7 +21,7 @@ class ChatItem extends StatelessWidget {
   final bool isOnline;
 
   /// Unsent draft for this thread; when set, it replaces [message] in the
-  /// preview with a "Chưa gửi" marker.
+  /// preview with a "Not sent" marker.
   final String? draft;
   final int unreadCount;
   final IconData? icon;
@@ -41,108 +41,110 @@ class ChatItem extends StatelessWidget {
           border: Border(bottom: BorderSide(color: Color(0xFFEBEDF7))),
         ),
         child: Row(
-        children: [
-          _Avatar(name: name, icon: icon, isOnline: isOnline),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF181C22),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      time,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight:
-                            isUnread ? FontWeight.bold : FontWeight.w500,
-                        color: isUnread
-                            ? theme.colorScheme.primary
-                            : const Color(0xFF414753),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: hasDraft
-                          ? Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Chưa gửi: ',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: theme.colorScheme.tertiary,
-                                    ),
-                                  ),
-                                  TextSpan(text: draft!.trim()),
-                                ],
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xFF414753),
-                              ),
-                            )
-                          : Text(
-                              message,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight:
-                                    isUnread ? FontWeight.w500 : FontWeight.w400,
-                                color: isUnread
-                                    ? const Color(0xFF181C22)
-                                    : const Color(0xFF414753),
-                              ),
-                            ),
-                    ),
-                    if (isUnread) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        width: 20,
-                        height: 20,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary,
-                          shape: BoxShape.circle,
-                        ),
+          children: [
+            _Avatar(name: name, icon: icon, isOnline: isOnline),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
                         child: Text(
-                          '$unreadCount',
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF181C22),
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      Text(
+                        time,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isUnread
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: isUnread
+                              ? theme.colorScheme.primary
+                              : const Color(0xFF414753),
+                        ),
+                      ),
                     ],
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: hasDraft
+                            ? Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'Not sent: ',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: theme.colorScheme.tertiary,
+                                      ),
+                                    ),
+                                    TextSpan(text: draft!.trim()),
+                                  ],
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color: Color(0xFF414753),
+                                ),
+                              )
+                            : Text(
+                                message,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: isUnread
+                                      ? FontWeight.w500
+                                      : FontWeight.w400,
+                                  color: isUnread
+                                      ? const Color(0xFF181C22)
+                                      : const Color(0xFF414753),
+                                ),
+                              ),
+                      ),
+                      if (isUnread) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 20,
+                          height: 20,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            '$unreadCount',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
@@ -168,8 +170,9 @@ class _Avatar extends StatelessWidget {
         child: Icon(icon, color: const Color(0xFF3F5881)),
       );
     } else {
-      final initial =
-          name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?';
+      final initial = name.isNotEmpty
+          ? name.substring(0, 1).toUpperCase()
+          : '?';
       avatar = CircleAvatar(
         radius: 28,
         backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
