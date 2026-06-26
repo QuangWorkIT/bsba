@@ -17,9 +17,9 @@ class StaffBookingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => StaffBookingsViewModel(
-        BookingRepository(BookingService(ApiClient())),
-      )..load(),
+      create: (_) =>
+          StaffBookingsViewModel(BookingRepository(BookingService(ApiClient())))
+            ..load(),
       child: const _BookingsView(),
     );
   }
@@ -40,7 +40,10 @@ class _BookingsView extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: StaffDashboardColors.primary),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: StaffDashboardColors.primary,
+          ),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         title: const Text(
@@ -53,7 +56,11 @@ class _BookingsView extends StatelessWidget {
         ),
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: StaffDashboardColors.border),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: StaffDashboardColors.border,
+          ),
         ),
       ),
       body: SafeArea(
@@ -143,7 +150,10 @@ class _OverviewSection extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           'You have $confirmedCount confirmed bookings for today.',
-          style: const TextStyle(fontSize: 14, color: StaffDashboardColors.muted),
+          style: const TextStyle(
+            fontSize: 14,
+            color: StaffDashboardColors.muted,
+          ),
         ),
         const SizedBox(height: 16),
         Align(
@@ -298,10 +308,7 @@ class _ErrorState extends StatelessWidget {
             style: const TextStyle(color: Colors.red),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: onRetry,
-            child: const Text('Retry'),
-          ),
+          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
         ],
       ),
     );

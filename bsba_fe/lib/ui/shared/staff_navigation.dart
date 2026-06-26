@@ -80,7 +80,8 @@ class StaffNavigation extends StatelessWidget {
               top: -28,
               child: _StaffPrimaryActionButton(
                 selected: primarySelected || selectedIndex == 2,
-                onPressed: onPrimaryActionPressed ??
+                onPressed:
+                    onPrimaryActionPressed ??
                     () => onDestinationSelected?.call(2),
               ),
             ),
@@ -92,10 +93,7 @@ class StaffNavigation extends StatelessWidget {
 }
 
 class _StaffPrimaryActionButton extends StatelessWidget {
-  const _StaffPrimaryActionButton({
-    required this.selected,
-    this.onPressed,
-  });
+  const _StaffPrimaryActionButton({required this.selected, this.onPressed});
 
   final bool selected;
   final VoidCallback? onPressed;
@@ -154,7 +152,11 @@ class _StaffNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = selected ? StaffNavigation._primary : StaffNavigation._muted;
-    final navIcon = Icon(selected ? selectedIcon : icon, color: color, size: 20);
+    final navIcon = Icon(
+      selected ? selectedIcon : icon,
+      color: color,
+      size: 20,
+    );
 
     return InkWell(
       onTap: onTap,

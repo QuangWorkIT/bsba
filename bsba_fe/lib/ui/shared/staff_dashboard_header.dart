@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../dashboard/widgets/staff_dashboard_tokens.dart';
+import 'package:project/data/services/current_user.dart';
 
-class StaffDashboardHeader extends StatelessWidget implements PreferredSizeWidget {
+class StaffDashboardHeader extends StatelessWidget
+    implements PreferredSizeWidget {
   const StaffDashboardHeader({super.key, this.title = 'BoardNest'});
 
   final String title;
@@ -18,7 +20,7 @@ class StaffDashboardHeader extends StatelessWidget implements PreferredSizeWidge
       ),
       titleSpacing: 0,
       title: Text(
-        title,
+        '${CurrentUser.instance.fullName}\'s BoardNest',
         style: const TextStyle(
           color: StaffDashboardColors.primary,
           fontSize: 24,
