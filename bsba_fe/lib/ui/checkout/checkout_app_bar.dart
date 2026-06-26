@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:project/app/home_screen.dart';
+import 'package:project/ui/booking/booking_viewmodel.dart';
 
 class CheckoutAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CheckoutAppBar({super.key});
+  const CheckoutAppBar({super.key, this.paymentSuccess = false});
+
+  final bool paymentSuccess;
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +17,21 @@ class CheckoutAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       leading: IconButton(
         icon: Icon(Icons.arrow_back, color: scheme.onSurface),
-        onPressed: () => Navigator.of(context).maybePop(),
+        onPressed: () {
+          if (paymentSuccess) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute<void>(
+                builder: (_) => const HomeScreen(
+                  initialIndex: 2,
+                  initialBookingTab: BookingTab.confirmed,
+                ),
+              ),
+              (route) => false,
+            );
+          } else {
+            Navigator.of(context).maybePop();
+          }
+        },
       ),
       title: Text(
         'BoardNest ',

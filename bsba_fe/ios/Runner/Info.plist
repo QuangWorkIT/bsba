@@ -6,6 +6,8 @@
 	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs your location to show nearby board game spaces.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to scan booking QR codes for check-in.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

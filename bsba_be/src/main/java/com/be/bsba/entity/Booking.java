@@ -24,8 +24,6 @@ public class Booking {
 
     private Integer participantCount;
 
-    private BigDecimal totalPrice;
-
     @Column(columnDefinition = "TEXT")
     private String note;
 
@@ -44,12 +42,14 @@ public class Booking {
     @JoinColumn(name = "slot_id")
     private StoreTimeSlot slot;
 
+    @Builder.Default
     @CreationTimestamp
-    private OffsetDateTime createdAt;
+    @Column(nullable = false, updatable = false)
+    private OffsetDateTime createdAt = OffsetDateTime.now();
 
+    @Builder.Default
     @UpdateTimestamp
-    private OffsetDateTime updatedAt;
+    @Column(nullable = false)
+    private OffsetDateTime updatedAt = OffsetDateTime.now();
 
-    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
-    private java.util.List<BookingGame> games;
 }

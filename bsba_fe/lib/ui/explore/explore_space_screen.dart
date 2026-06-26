@@ -13,7 +13,6 @@ import '../presence/presence_viewmodel.dart';
 import 'space_card.dart';
 import 'explore_space_filter.dart';
 import 'explore_space_viewmodel.dart';
-import 'game_library_screen.dart';
 import 'space_detail_screen.dart';
 
 /// Explore screen – lists nearby board game spaces.
@@ -67,15 +66,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       controller: _searchController,
                       onChanged: _vm.onSearchChanged,
                     ),
-                    const SizedBox(height: 12),
-                    // Quick Access Banner
-                    _LibraryBanner(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const GameLibraryScreen(),
-                        ),
-                      ),
-                    ),
+                    const SizedBox(height: 12)
                   ],
                 ),
               ),

@@ -6,12 +6,14 @@ class StaffNavigation extends StatelessWidget {
     this.selectedIndex = 0,
     this.onDestinationSelected,
     this.onPrimaryActionPressed,
+    this.primarySelected = false,
     this.chatBadgeCount = 0,
   });
 
   final int selectedIndex;
   final ValueChanged<int>? onDestinationSelected;
   final VoidCallback? onPrimaryActionPressed;
+  final bool primarySelected;
   final int chatBadgeCount;
 
   static const _primary = Color(0xFF005AB4);
@@ -60,23 +62,27 @@ class StaffNavigation extends StatelessWidget {
                     icon: Icons.videogame_asset_outlined,
                     selectedIcon: Icons.videogame_asset_rounded,
                     label: 'Games',
-                    selected: selectedIndex == 2,
-                    onTap: () => onDestinationSelected?.call(2),
+                    selected: selectedIndex == 3,
+                    onTap: () => onDestinationSelected?.call(3),
                   ),
                   _StaffNavItem(
                     icon: Icons.chat_outlined,
                     selectedIcon: Icons.chat_rounded,
                     label: 'Chat',
-                    selected: selectedIndex == 3,
+                    selected: selectedIndex == 4,
                     badgeCount: chatBadgeCount,
-                    onTap: () => onDestinationSelected?.call(3),
+                    onTap: () => onDestinationSelected?.call(4),
                   ),
                 ],
               ),
             ),
             Positioned(
               top: -28,
-              child: _StaffPrimaryActionButton(onPressed: onPrimaryActionPressed),
+              child: _StaffPrimaryActionButton(
+                selected: primarySelected || selectedIndex == 2,
+                onPressed: onPrimaryActionPressed ??
+                    () => onDestinationSelected?.call(2),
+              ),
             ),
           ],
         ),
@@ -86,8 +92,12 @@ class StaffNavigation extends StatelessWidget {
 }
 
 class _StaffPrimaryActionButton extends StatelessWidget {
-  const _StaffPrimaryActionButton({this.onPressed});
+  const _StaffPrimaryActionButton({
+    required this.selected,
+    this.onPressed,
+  });
 
+  final bool selected;
   final VoidCallback? onPressed;
 
   @override
@@ -104,12 +114,15 @@ class _StaffPrimaryActionButton extends StatelessWidget {
           width: 64,
           height: 64,
           padding: const EdgeInsets.all(6),
-          child: const DecoratedBox(
+          child: DecoratedBox(
             decoration: BoxDecoration(
               color: StaffNavigation._primary,
               shape: BoxShape.circle,
+              border: selected
+                  ? Border.all(color: const Color(0xFFD5E3FC), width: 4)
+                  : null,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.qr_code_scanner_rounded,
               color: Colors.white,
               size: 26,

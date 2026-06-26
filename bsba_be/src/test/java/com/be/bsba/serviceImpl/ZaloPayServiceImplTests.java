@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.when;
 class ZaloPayServiceImplTests {
 
     private static final String KEY2 = "callback-key";
+    private static final UUID BOOKING_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     private final ZaloPayProperties properties = new ZaloPayProperties();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -127,7 +129,10 @@ class ZaloPayServiceImplTests {
                 .appTransId("260612_order")
                 .amount(new BigDecimal("10000.00"))
                 .status(PaymentStatus.PENDING)
-                .booking(Booking.builder().status(BookingStatus.PENDING).build())
+                .booking(Booking.builder()
+                        .id(BOOKING_ID)
+                        .status(BookingStatus.PENDING)
+                        .build())
                 .build();
     }
 

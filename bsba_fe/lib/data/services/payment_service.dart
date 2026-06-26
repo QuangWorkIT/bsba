@@ -5,9 +5,13 @@ class PaymentService {
 
   PaymentService(this._apiClient);
 
-  Future<String> createZaloPayPayment() async {
+  Future<String> createZaloPayPayment({
+    required String bookingId,
+    required double totalPrice,
+  }) async {
     final response = await _apiClient.post('/payment/zalopay/create', {
-      "bookingId": "f0000000-0000-0000-0000-000000000003",
+      'bookingId': bookingId,
+      'totalPrice': totalPrice,
     });
     final data = response['data'] as Map<String, dynamic>;
     return data['zpTransToken'] as String;

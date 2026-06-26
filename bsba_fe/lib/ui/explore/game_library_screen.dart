@@ -9,16 +9,32 @@ import 'game_library_viewmodel.dart';
 class GameLibraryScreen extends StatelessWidget {
   final String? storeId;
   final String? slotId;
+  final String? bookingCartId;
+  final bool canAddToCart;
 
-  const GameLibraryScreen({super.key, this.storeId, this.slotId});
+  const GameLibraryScreen({
+    super.key,
+    this.storeId,
+    this.slotId,
+    this.bookingCartId,
+    this.canAddToCart = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => GameLibraryViewModel(
-        BoardGameRepository(BoardGameService(ApiClient())),
-      )..loadGames(storeId: storeId),
-      child: _GameLibraryView(storeId: storeId, slotId: slotId),
+      create: (_) {
+        final apiClient = ApiClient();
+        return GameLibraryViewModel(
+          BoardGameRepository(BoardGameService(apiClient)),
+        )..loadGames(storeId: storeId);
+      },
+      child: _GameLibraryView(
+        storeId: storeId,
+        slotId: slotId,
+        bookingCartId: bookingCartId,
+        canAddToCart: canAddToCart,
+      ),
     );
   }
 }
@@ -26,8 +42,15 @@ class GameLibraryScreen extends StatelessWidget {
 class _GameLibraryView extends StatefulWidget {
   final String? storeId;
   final String? slotId;
+  final String? bookingCartId;
+  final bool canAddToCart;
 
-  const _GameLibraryView({this.storeId, this.slotId});
+  const _GameLibraryView({
+    this.storeId,
+    this.slotId,
+    this.bookingCartId,
+    required this.canAddToCart,
+  });
 
   @override
   State<_GameLibraryView> createState() => _GameLibraryViewState();
@@ -108,7 +131,7 @@ class _GameLibraryViewState extends State<_GameLibraryView> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: vm.loadGames,
+                        onPressed: () => vm.loadGames(storeId: widget.storeId),
                         child: const Text('Retry'),
                       ),
                     ],
@@ -128,7 +151,9 @@ class _GameLibraryViewState extends State<_GameLibraryView> {
                         badgeLabel: game.category,
                         badgeColor:
                             _categoryColors[game.category] ?? colors.primary,
-                        onAddToCart: () => _onAddToCart(context, game),
+                        onAddToCart: widget.canAddToCart
+                            ? () => _onAddToCart(context, game)
+                            : null,
                       );
                     },
                   ),
@@ -156,21 +181,17 @@ class _GameLibraryViewState extends State<_GameLibraryView> {
     }
 
     final vm = context.read<GameLibraryViewModel>();
-    final success = await vm.addToCart(
+    final String? error = await vm.addToCart(
       game,
-      storeId: widget.storeId,
-      slotId: widget.slotId,
+      bookingCartId: widget.bookingCartId,
     );
 
     if (context.mounted) {
+      final message = error ?? '${game.name} added to cart';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            success
-                ? '${game.name} added to cart'
-                : 'Failed to add ${game.name} to cart',
-          ),
-          backgroundColor: success ? null : Colors.red,
+          content: Text(message),
+          backgroundColor: error == null ? null : Colors.red,
         ),
       );
     }
@@ -229,7 +250,7 @@ class _GameLibraryCard extends StatelessWidget {
   final BoardGame game;
   final String badgeLabel;
   final Color badgeColor;
-  final VoidCallback onAddToCart;
+  final VoidCallback? onAddToCart;
 
   const _GameLibraryCard({
     required this.game,
@@ -250,7 +271,7 @@ class _GameLibraryCard extends StatelessWidget {
             height: 150,
             width: double.infinity,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const Icon(Icons.casino),
+            errorBuilder: (_, _, _) => const Icon(Icons.casino),
           ),
           ListTile(
             title: Text(game.name),
@@ -281,10 +302,11 @@ class _GameLibraryCard extends StatelessWidget {
               ),
             ),
           ),
-          ElevatedButton(
-            onPressed: onAddToCart,
-            child: const Text('Add to Cart'),
-          ),
+          if (onAddToCart != null)
+            ElevatedButton(
+              onPressed: onAddToCart,
+              child: const Text('Add to Cart'),
+            ),
         ],
       ),
     );
