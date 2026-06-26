@@ -19,9 +19,9 @@ class ChatViewModel extends ChangeNotifier {
     this._socket, {
     required this.conversationId,
     DraftStore? draftStore,
-  })  : userId = CurrentUser.instance.id,
-        role = CurrentUser.instance.role,
-        _draftStore = draftStore ?? DraftStore() {
+  }) : userId = CurrentUser.instance.id,
+       role = CurrentUser.instance.role,
+       _draftStore = draftStore ?? DraftStore() {
     _socket.subscribeJson(
       '/topic/conversations/$conversationId/messages',
       (json) => _onIncoming(Message.fromJson(json)),
@@ -164,9 +164,7 @@ class ChatViewModel extends ChangeNotifier {
 
   Future<void> markRead() async {
     try {
-      await _repository.markRead(
-        conversationId: conversationId,
-      );
+      await _repository.markRead(conversationId: conversationId);
     } catch (e) {
       debugPrint('Error marking read: $e');
     }

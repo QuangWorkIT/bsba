@@ -25,7 +25,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -173,15 +176,21 @@ public class ChatServiceImpl implements ChatService {
             return;
         }
 
-        // Live read receipt: tell anyone with this chat open that messages from
-        // `target` were just read, so their "seen" indicator updates instantly.
-        messagingTemplate.convertAndSend(
-                "/topic/conversations/" + conversationId + "/read",
-                (Object) Map.of("readSenderType", target.name()));
-
         // The bulk update cleared the persistence context; re-load to map lazy fields safely.
         Conversation refreshed = conversationRepository.findById(conversationId).orElse(conversation);
-        broadcastConversationRow(refreshed);
+
+        // Build the payloads now (while the session is open), then push only after the
+        // transaction commits, so a rollback can't leave clients showing a "read" state
+        // the database never saved.
+        List<Broadcast> broadcasts = new ArrayList<>();
+        // Live read receipt: tell anyone with this chat open that messages from
+        // `target` were just read, so their "seen" indicator updates instantly.
+        broadcasts.add(new Broadcast(
+                "/topic/conversations/" + conversationId + "/read",
+                Map.of("readSenderType", target.name())));
+        broadcasts.addAll(collectConversationRowBroadcasts(refreshed));
+
+        publishAfterCommit(broadcasts);
     }
 
     @Override
@@ -222,42 +231,71 @@ public class ChatServiceImpl implements ChatService {
         conversation.setLastMessageAt(savedMessage.getCreatedAt());
         conversationRepository.save(conversation);
 
-        broadcastNewMessage(conversation, savedMessage);
+        // Build the broadcast payloads now (DB/lazy access happens here), but defer the
+        // actual STOMP push until the transaction commits — otherwise a rollback after
+        // this point would leave clients showing a message the DB never stored.
+        publishAfterCommit(collectNewMessageBroadcasts(conversation, savedMessage));
 
         return mapToResponse(savedMessage);
     }
 
-    // Push the new message + inbox-row updates to everyone involved over STOMP.
-    private void broadcastNewMessage(Conversation conversation, Message message) {
-        // Anyone with this chat open receives the new message.
-        messagingTemplate.convertAndSend(
-                "/topic/conversations/" + conversation.getId() + "/messages",
-                mapToResponse(message));
+    // A single STOMP message to send: where it goes and what payload.
+    private record Broadcast(String destination, Object payload) {}
 
-        broadcastConversationRow(conversation);
+    // Collect the new-message broadcast + inbox-row updates for everyone involved.
+    // Builds payloads eagerly (DB/lazy access happens here, inside the transaction).
+    private List<Broadcast> collectNewMessageBroadcasts(Conversation conversation, Message message) {
+        List<Broadcast> broadcasts = new ArrayList<>();
+        // Anyone with this chat open receives the new message.
+        broadcasts.add(new Broadcast(
+                "/topic/conversations/" + conversation.getId() + "/messages",
+                mapToResponse(message)));
+        broadcasts.addAll(collectConversationRowBroadcasts(conversation));
+        return broadcasts;
     }
 
-    // Push the (perspective-correct) inbox row to the customer and every store staff,
+    // Collect the (perspective-correct) inbox row for the customer and every store staff,
     // so unread counts / previews update live on each side's inbox.
-    private void broadcastConversationRow(Conversation conversation) {
+    private List<Broadcast> collectConversationRowBroadcasts(Conversation conversation) {
+        List<Broadcast> broadcasts = new ArrayList<>();
         User customer = conversation.getUser();
         Store store = conversation.getStore();
 
         // The customer's inbox row (their unread perspective).
         if (customer != null) {
-            messagingTemplate.convertAndSend(
+            broadcasts.add(new Broadcast(
                     "/topic/users/" + customer.getId() + "/conversations",
-                    mapToConversationResponse(conversation, false));
+                    mapToConversationResponse(conversation, false)));
         }
 
         // Every staff member of the store gets the row in their (staff) perspective.
         if (store != null) {
             ConversationResponse staffView = mapToConversationResponse(conversation, true);
             for (UUID staffId : storeStaffRepository.findStaffIdsByStoreId(store.getId())) {
-                messagingTemplate.convertAndSend(
+                broadcasts.add(new Broadcast(
                         "/topic/users/" + staffId + "/conversations",
-                        staffView);
+                        staffView));
             }
+        }
+        return broadcasts;
+    }
+
+    // Push the collected STOMP messages only after the current transaction commits, so
+    // clients never receive an update that a later rollback would erase. If there is no
+    // active transaction (shouldn't happen here), send immediately.
+    private void publishAfterCommit(List<Broadcast> broadcasts) {
+        Runnable send = () -> broadcasts.forEach(
+                b -> messagingTemplate.convertAndSend(b.destination(), b.payload()));
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    send.run();
+                }
+            });
+        } else {
+            send.run();
         }
     }
 
