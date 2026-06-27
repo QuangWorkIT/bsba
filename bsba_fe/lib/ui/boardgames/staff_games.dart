@@ -30,162 +30,193 @@ class _StaffGamesScreenState extends State<StaffGamesScreen> {
     return ListenableBuilder(
       listenable: _vm,
       builder: (context, _) {
-        return Stack(
-          children: [
-            SafeArea(
-              top: false,
-              child: Container(
-                color: StaffDashboardColors.background,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: TextField(
-                        onChanged: _vm.setSearchQuery,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(
-                            Icons.search,
-                            color: StaffDashboardColors.muted,
-                          ),
-                          hintText: 'Search game library...',
-                          hintStyle: const TextStyle(
-                            color: StaffDashboardColors.muted,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 0,
-                            horizontal: 16,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(
-                              color: StaffDashboardColors.border,
+        return Scaffold(
+          backgroundColor: StaffDashboardColors.background,
+          appBar: AppBar(
+            backgroundColor: StaffDashboardColors.background,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: StaffDashboardColors.primary,
+              ),
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
+            title: const Text(
+              'Manage Games',
+              style: TextStyle(
+                color: StaffDashboardColors.primary,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            bottom: const PreferredSize(
+              preferredSize: Size.fromHeight(1),
+              child: Divider(
+                height: 1,
+                thickness: 1,
+                color: StaffDashboardColors.border,
+              ),
+            ),
+          ),
+          body: Stack(
+            children: [
+              SafeArea(
+                top: false,
+                child: Container(
+                  color: StaffDashboardColors.background,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        child: TextField(
+                          onChanged: _vm.setSearchQuery,
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: StaffDashboardColors.muted,
                             ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(
-                              color: StaffDashboardColors.border,
+                            hintText: 'Search game library...',
+                            hintStyle: const TextStyle(
+                              color: StaffDashboardColors.muted,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 0,
+                              horizontal: 16,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(
+                                color: StaffDashboardColors.border,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(
+                                color: StaffDashboardColors.border,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _showCategoryDialog(context),
-                              icon: const Icon(
-                                Icons.sort,
-                                size: 18,
-                                color: StaffDashboardColors.text,
-                              ),
-                              label: Text(
-                                _vm.selectedCategory ?? 'Category',
-                                style: const TextStyle(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () => _showCategoryDialog(context),
+                                icon: const Icon(
+                                  Icons.sort,
+                                  size: 18,
                                   color: StaffDashboardColors.text,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: const Color(0xFFF0F2F5),
-                                side: const BorderSide(
-                                  color: StaffDashboardColors.border,
+                                label: Text(
+                                  _vm.selectedCategory ?? 'Category',
+                                  style: const TextStyle(
+                                    color: StaffDashboardColors.text,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFF0F2F5),
+                                  side: const BorderSide(
+                                    color: StaffDashboardColors.border,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _showSortDialog(context),
-                              icon: const Icon(
-                                Icons.filter_list,
-                                size: 18,
-                                color: StaffDashboardColors.text,
-                              ),
-                              label: const Text(
-                                'Sort',
-                                style: TextStyle(
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () => _showSortDialog(context),
+                                icon: const Icon(
+                                  Icons.filter_list,
+                                  size: 18,
                                   color: StaffDashboardColors.text,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
                                 ),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: const Color(0xFFF0F2F5),
-                                side: const BorderSide(
-                                  color: StaffDashboardColors.border,
+                                label: const Text(
+                                  'Sort',
+                                  style: TextStyle(
+                                    color: StaffDashboardColors.text,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFF0F2F5),
+                                  side: const BorderSide(
+                                    color: StaffDashboardColors.border,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: _vm.isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : _vm.error != null
-                          ? Center(child: Text(_vm.error!))
-                          : _vm.filteredAndSortedGames.isEmpty
-                          ? const Center(child: Text('No games found'))
-                          : ListView.separated(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                              itemCount: _vm.filteredAndSortedGames.length,
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(height: 16),
-                              itemBuilder: (context, index) {
-                                final game = _vm.filteredAndSortedGames[index];
-                                return _buildGameCard(game);
-                              },
-                            ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: _vm.isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : _vm.error != null
+                            ? Center(child: Text(_vm.error!))
+                            : _vm.filteredAndSortedGames.isEmpty
+                            ? const Center(child: Text('No games found'))
+                            : ListView.separated(
+                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                                itemCount: _vm.filteredAndSortedGames.length,
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 16),
+                                itemBuilder: (context, index) {
+                                  final game = _vm.filteredAndSortedGames[index];
+                                  return _buildGameCard(game);
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Positioned(
-              right: 16,
-              bottom: 16,
-              child: FloatingActionButton(
-                heroTag: 'add-game-fab',
-                backgroundColor: StaffDashboardColors.primary,
-                foregroundColor: Colors.white,
-                tooltip: 'Add New Game',
-                onPressed: () async {
-                  final refresh = await Navigator.push<bool>(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AddGameScreen()),
-                  );
-                  if (refresh == true) {
-                    _vm.loadGames();
-                  }
-                },
-                child: const Icon(Icons.add_rounded),
+              Positioned(
+                right: 16,
+                bottom: 16,
+                child: FloatingActionButton(
+                  heroTag: 'add-game-fab',
+                  backgroundColor: StaffDashboardColors.primary,
+                  foregroundColor: Colors.white,
+                  tooltip: 'Add New Game',
+                  onPressed: () async {
+                    final refresh = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AddGameScreen()),
+                    );
+                    if (refresh == true) {
+                      _vm.loadGames();
+                    }
+                  },
+                  child: const Icon(Icons.add_rounded),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
