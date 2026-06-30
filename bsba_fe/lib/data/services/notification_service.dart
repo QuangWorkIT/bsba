@@ -11,4 +11,16 @@ class NotificationService {
 
     return data.map((item) => NotificationModel.fromJson(item)).toList();
   }
+
+  Future<List<NotificationModel>> markNotificationsAsRead(
+    List<String> notificationIds,
+  ) async {
+    final jsonMap = await _apiClient.patch('/notifications/read', {
+      'notificationIds': notificationIds,
+    });
+
+    final List<dynamic> data = jsonMap['data'] ?? [];
+
+    return data.map((item) => NotificationModel.fromJson(item)).toList();
+  }
 }

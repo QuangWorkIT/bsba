@@ -10,4 +10,10 @@ class NotificationRepository {
   Future<List<NotificationModel>> getNotifications(String userId) {
     return _notificationService.getNotifications(userId);
   }
+
+  Future<List<NotificationModel>> markNotificationsAsRead(
+    List<String> notificationIds,
+  ) {
+    return _notificationService.markNotificationsAsRead(notificationIds);
+  }
 }

@@ -73,17 +73,32 @@ class _InboxIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = const Icon(Icons.chat_outlined);
+    final icon = SizedBox(
+      width: 28,
+      height: 28,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          const Center(child: Icon(Icons.chat_outlined)),
+          if (hasNotificationBadge)
+            Positioned(
+              top: 1,
+              right: 1,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.error,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
 
     if (badgeCount > 0) {
       return Badge(label: Text('$badgeCount'), child: icon);
-    }
-
-    if (hasNotificationBadge) {
-      return const Badge(
-        smallSize: 8,
-        child: Icon(Icons.chat_outlined),
-      );
     }
 
     return icon;

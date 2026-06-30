@@ -3,16 +3,20 @@ package com.be.bsba.serviceImpl;
 import com.be.bsba.dto.response.notification.NotificationResponse;
 import com.be.bsba.entity.Booking;
 import com.be.bsba.entity.Notification;
+import com.be.bsba.exception.ResourceNotFoundException;
 import com.be.bsba.repository.NotificationRepository;
 import com.be.bsba.service.INotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -32,6 +36,32 @@ public class NotificationServiceImpl implements INotificationService {
     public List<NotificationResponse> getNotificationsForUser(UUID userId) {
         List<Notification> notifications = notificationRepository.getByUserIdOrderByCreatedAtDesc(userId);
         return notifications.stream()
+                .map(NotificationResponse::from)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public List<NotificationResponse> markNotificationsRead(List<UUID> notificationIds) {
+        if (notificationIds == null || notificationIds.isEmpty()) {
+            return List.of();
+        }
+
+        Set<UUID> requestedIds = new LinkedHashSet<>(notificationIds);
+        List<Notification> notifications = notificationRepository.findAllById(requestedIds);
+        Set<UUID> foundIds = notifications.stream()
+                .map(Notification::getId)
+                .collect(java.util.stream.Collectors.toSet());
+
+        List<UUID> missingIds = requestedIds.stream()
+                .filter(id -> !foundIds.contains(id))
+                .toList();
+        if (!missingIds.isEmpty()) {
+            throw new ResourceNotFoundException("Notifications not found: " + missingIds);
+        }
+
+        notifications.forEach(notification -> notification.setIsRead(true));
+        return notificationRepository.saveAll(notifications).stream()
                 .map(NotificationResponse::from)
                 .toList();
     }

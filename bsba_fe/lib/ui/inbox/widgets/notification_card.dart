@@ -7,21 +7,26 @@ class NotificationCard extends StatelessWidget {
     this.subtitle,
     this.time,
     this.icon,
+    this.isRead = true,
   });
 
   final String? title;
   final String? subtitle;
   final String? time;
   final IconData? icon;
+  final bool isRead;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Card(
-      margin: EdgeInsets.only(bottom: 16),
+      color: isRead
+          ? theme.colorScheme.surface
+          : theme.colorScheme.primary.withValues(alpha: 0.08),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

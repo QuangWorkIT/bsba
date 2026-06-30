@@ -16,6 +16,7 @@ class NotificationViewModel extends ChangeNotifier {
 
   List<NotificationModel> _notifications = const [];
   bool _isLoading = false;
+  bool _isMarkingAsRead = false;
   String? _errorMessage;
   bool _isDisposed = false;
   int _requestId = 0;
@@ -24,8 +25,12 @@ class NotificationViewModel extends ChangeNotifier {
 
   List<NotificationModel> get notifications => _notifications;
   bool get isLoading => _isLoading;
+  bool get isMarkingAsRead => _isMarkingAsRead;
   String? get errorMessage => _errorMessage;
   bool get isLive => _socket.isConnected;
+  bool get hasUnreadNotifications {
+    return _notifications.any((notification) => !notification.isRead);
+  }
 
   Future<void> start(String userId) async {
     final currentUserId = _verifiedCurrentUserId(userId);
@@ -69,6 +74,43 @@ class NotificationViewModel extends ChangeNotifier {
     } finally {
       if (!_isDisposed && requestId == _requestId) {
         _isLoading = false;
+        _notifyListeners();
+      }
+    }
+  }
+
+  Future<bool> markAllAsRead() async {
+    final unreadIds = _notifications
+        .where((notification) => !notification.isRead)
+        .map((notification) => notification.id)
+        .toList();
+    if (unreadIds.isEmpty || _isMarkingAsRead) return false;
+
+    _isMarkingAsRead = true;
+    _notifyListeners();
+
+    try {
+      final updatedNotifications = await _repository.markNotificationsAsRead(
+        unreadIds,
+      );
+      if (_isDisposed) return false;
+
+      final updatedById = {
+        for (final notification in updatedNotifications)
+          notification.id: notification,
+      };
+      _notifications = _notifications.map((notification) {
+        return updatedById[notification.id] ?? notification;
+      }).toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      return true;
+    } catch (e) {
+      debugPrint('Failed to mark notifications as read: $e');
+      return false;
+    } finally {
+      if (!_isDisposed) {
+        _isMarkingAsRead = false;
         _notifyListeners();
       }
     }

@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public interface INotificationService {
     List<NotificationResponse> getNotificationsForUser(UUID userId);
+    List<NotificationResponse> markNotificationsRead(List<UUID> notificationIds);
     NotificationResponse notifyBookingConfirmed(Booking booking);
     NotificationResponse notifyBookingCancelled(Booking booking);
     NotificationResponse notifyBookingReminder(Booking booking);
