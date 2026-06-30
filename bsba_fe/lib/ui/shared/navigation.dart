@@ -4,12 +4,14 @@ class Navigation extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int>? onDestinationSelected;
   final int inboxBadgeCount;
+  final bool inboxHasNotificationBadge;
 
   const Navigation({
     super.key,
     this.selectedIndex = 0,
     this.onDestinationSelected,
     this.inboxBadgeCount = 0,
+    this.inboxHasNotificationBadge = false,
   });
 
   @override
@@ -44,12 +46,10 @@ class Navigation extends StatelessWidget {
             label: 'Bookings',
           ),
           NavigationDestination(
-            icon: inboxBadgeCount > 0
-                ? Badge(
-                    label: Text('$inboxBadgeCount'),
-                    child: const Icon(Icons.chat_outlined),
-                  )
-                : const Icon(Icons.chat_outlined),
+            icon: _InboxIcon(
+              badgeCount: inboxBadgeCount,
+              hasNotificationBadge: inboxHasNotificationBadge,
+            ),
             label: 'Inbox',
           ),
           const NavigationDestination(
@@ -59,5 +59,33 @@ class Navigation extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _InboxIcon extends StatelessWidget {
+  const _InboxIcon({
+    required this.badgeCount,
+    required this.hasNotificationBadge,
+  });
+
+  final int badgeCount;
+  final bool hasNotificationBadge;
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = const Icon(Icons.chat_outlined);
+
+    if (badgeCount > 0) {
+      return Badge(label: Text('$badgeCount'), child: icon);
+    }
+
+    if (hasNotificationBadge) {
+      return const Badge(
+        smallSize: 8,
+        child: Icon(Icons.chat_outlined),
+      );
+    }
+
+    return icon;
   }
 }

@@ -17,14 +17,14 @@ class _NotificationContentState extends State<NotificationContent> {
   @override
   void initState() {
     super.initState();
-    _viewModel.loadNotifications(widget.userId);
+    _viewModel.start(widget.userId);
   }
 
   @override
   void didUpdateWidget(covariant NotificationContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.userId != widget.userId) {
-      _viewModel.loadNotifications(widget.userId);
+      _viewModel.start(widget.userId);
     }
   }
 

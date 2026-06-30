@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -42,4 +44,42 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     Page<Booking> findByStoreIdInAndStatus(Collection<UUID> storeIds, BookingStatus status, Pageable pageable);
 
     Page<Booking> findByStatus(BookingStatus status, Pageable pageable);
+
+    @Query("""
+            SELECT b FROM Booking b
+            JOIN FETCH b.user
+            LEFT JOIN FETCH b.store
+            JOIN FETCH b.slot s
+            WHERE b.status = :status
+              AND (
+                    s.slotDate > :startDate
+                    OR (s.slotDate = :startDate AND s.startTime >= :startTime)
+                  )
+              AND (
+                    s.slotDate < :endDate
+                    OR (s.slotDate = :endDate AND s.startTime <= :endTime)
+                  )
+            """)
+    List<Booking> findBookingsStartingBetween(
+            @Param("status") BookingStatus status,
+            @Param("startDate") LocalDate startDate,
+            @Param("startTime") LocalTime startTime,
+            @Param("endDate") LocalDate endDate,
+            @Param("endTime") LocalTime endTime);
+
+    @Query("""
+            SELECT b FROM Booking b
+            JOIN FETCH b.user
+            LEFT JOIN FETCH b.store
+            JOIN FETCH b.slot s
+            WHERE b.status NOT IN :excludedStatuses
+              AND (
+                    s.slotDate < :today
+                    OR (s.slotDate = :today AND s.endTime < :currentTime)
+                  )
+            """)
+    List<Booking> findExpiredBookingsExcludingStatuses(
+            @Param("excludedStatuses") Collection<BookingStatus> excludedStatuses,
+            @Param("today") LocalDate today,
+            @Param("currentTime") LocalTime currentTime);
 }
