@@ -288,10 +288,20 @@ class _BookingActions extends StatelessWidget {
   }
 
   void _showQrCode(BuildContext context) {
+    if (booking.qrCode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('QR code is not available.')),
+      );
+      return;
+    }
+
     showDialog<void>(
       context: context,
       barrierColor: Colors.black54,
-      builder: (_) => BookingQrDialog(bookingTitle: booking.title),
+      builder: (_) => BookingQrDialog(
+        bookingTitle: booking.title,
+        qrCode: booking.qrCode,
+      ),
     );
   }
 

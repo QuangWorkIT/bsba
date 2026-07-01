@@ -2,6 +2,7 @@ package com.be.bsba.serviceImpl;
 
 import com.be.bsba.constant.BookingStatus;
 import com.be.bsba.constant.TimeSlotStatus;
+import com.be.bsba.dto.request.CheckInBookingRequest;
 import com.be.bsba.dto.request.CreateBookingRequest;
 import com.be.bsba.dto.response.BookingLookupResponse;
 import com.be.bsba.constant.UserRole;
@@ -129,10 +130,12 @@ public class BookingServiceImpl implements BookingService {
         validateUserHasNotBookedSlot(user, slot);
         validateTimeSlotForBooking(slot, store);
 
+        String qrCode = generateQrCode();
         Booking booking = Booking.builder()
                 .user(user)
                 .store(store)
                 .slot(slot)
+                .qrCode(qrCode)
                 .participantCount(request.getParticipantCount())
                 .note(request.getNote())
                 .status(BookingStatus.PENDING)
@@ -140,6 +143,20 @@ public class BookingServiceImpl implements BookingService {
 
         Booking savedBooking = bookingRepository.save(booking);
         return mapToResponse(savedBooking);
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse checkInBooking(CheckInBookingRequest request) {
+        Booking booking = bookingRepository.findByQrCode(request.getQrCode().trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with QR code: " + request.getQrCode()));
+
+        booking.setStatus(BookingStatus.COMPLETED);
+        return mapToResponse(bookingRepository.save(booking));
+    }
+
+    private String generateQrCode() {
+        return UUID.randomUUID().toString().substring(0,6);
     }
 
     private void validateUserHasNotBookedSlot(User user, StoreTimeSlot slot) {
@@ -183,6 +200,7 @@ public class BookingServiceImpl implements BookingService {
 
         return BookingResponse.builder()
                 .id(booking.getId())
+                .qrCode(booking.getQrCode())
                 .slotId(booking.getSlot() != null ? booking.getSlot().getId() : null)
                 .storeName(booking.getStore() != null ? booking.getStore().getName() : "Unknown Store")
                 .storeLocation(booking.getStore() != null ? booking.getStore().getAddress() : "Unknown Location")

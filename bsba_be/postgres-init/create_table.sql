@@ -224,9 +224,8 @@ CREATE TABLE bookings (
 
                           participant_count INTEGER NOT NULL
                               CHECK (participant_count > 0),
-
                           note TEXT,
-
+                          qr_code VARCHAR(6) NOT NULL,
                           status VARCHAR(50) NOT NULL DEFAULT 'PENDING'
                               CHECK (
                                   status IN (

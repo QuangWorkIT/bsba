@@ -11,6 +11,7 @@ class BookingSummary {
     required this.total,
     required this.imageAsset,
     required this.status,
+    required this.qrCode,
     this.startsAt,
     this.endsAt,
   });
@@ -68,6 +69,7 @@ class BookingSummary {
   final BookingStatus status;
   final DateTime? startsAt;
   final DateTime? endsAt;
+  final String qrCode;
 
   String get statusLabel => _statusLabels[status] ?? 'Unknown';
 
@@ -107,6 +109,7 @@ class BookingSummary {
       status: status,
       startsAt: startsAt,
       endsAt: endsAt,
+      qrCode: json['qrCode']?.toString() ?? '',
     );
   }
 

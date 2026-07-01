@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:project/data/repositories/booking_repository.dart';
+import 'package:project/data/services/api_client.dart';
+import 'package:project/data/services/booking_service.dart';
 import 'package:project/ui/dashboard/widgets/staff_dashboard_tokens.dart';
 import 'package:project/ui/qr_scan/qr_scan_viewmodel.dart';
 
@@ -14,7 +17,8 @@ class QrScanScreen extends StatefulWidget {
   State<QrScanScreen> createState() => _QrScanScreenState();
 }
 
-class _QrScanScreenState extends State<QrScanScreen> {
+class _QrScanScreenState extends State<QrScanScreen>
+    with WidgetsBindingObserver {
   late final QrScanViewModel _viewModel;
   late final MobileScannerController _scannerController;
   bool _scannerControllerRunning = false;
@@ -22,7 +26,10 @@ class _QrScanScreenState extends State<QrScanScreen> {
   @override
   void initState() {
     super.initState();
-    _viewModel = QrScanViewModel();
+    WidgetsBinding.instance.addObserver(this);
+    _viewModel = QrScanViewModel(
+      BookingRepository(BookingService(ApiClient())),
+    );
     _scannerController = MobileScannerController(
       autoStart: false,
       detectionSpeed: DetectionSpeed.noDuplicates,
@@ -41,6 +48,27 @@ class _QrScanScreenState extends State<QrScanScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_viewModel.scannerActive) {
+      return;
+    }
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _scannerControllerRunning = false;
+        _syncScannerController();
+        return;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        _scannerControllerRunning = false;
+        unawaited(_stopScannerController());
+        return;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return _QrScanView(
       viewModel: _viewModel,
@@ -50,6 +78,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _viewModel.removeListener(_handleViewModelChanged);
     _viewModel.dispose();
     unawaited(_scannerController.dispose());
@@ -254,7 +283,7 @@ class _ManualCodeDialogState extends State<_ManualCodeDialog> {
           keyboardType: TextInputType.text,
           decoration: const InputDecoration(
             labelText: 'Booking code',
-            hintText: 'BN-2026-QR-1042',
+            hintText: '123456',
           ),
           validator: (value) {
             final code = value?.trim() ?? '';

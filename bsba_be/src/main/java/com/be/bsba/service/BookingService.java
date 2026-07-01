@@ -1,6 +1,7 @@
 package com.be.bsba.service;
 
 import com.be.bsba.dto.request.CreateBookingRequest;
+import com.be.bsba.dto.request.CheckInBookingRequest;
 import com.be.bsba.dto.response.BookingLookupResponse;
 import com.be.bsba.constant.BookingStatus;
 import com.be.bsba.constant.UserRole;
@@ -20,6 +21,8 @@ public interface BookingService {
     List<BookingLookupResponse> getPendingBookingsByUserAndStore(String userId, String storeId);
 
     BookingResponse createBooking(CreateBookingRequest request);
+
+    BookingResponse checkInBooking(CheckInBookingRequest request);
 
     /**
      * Staff "Manage Bookings": paged, role-aware list. Staff see bookings of the

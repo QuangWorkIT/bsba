@@ -1,6 +1,7 @@
 package com.be.bsba.controller;
 
 import com.be.bsba.dto.request.CreateBookingRequest;
+import com.be.bsba.dto.request.CheckInBookingRequest;
 import com.be.bsba.constant.BookingStatus;
 import com.be.bsba.dto.response.ApiResponse;
 import com.be.bsba.dto.response.BookingLookupResponse;
@@ -63,6 +64,12 @@ public class BookingController {
     public ApiResponse<BookingResponse> createBooking(@Valid @RequestBody CreateBookingRequest request) {
         BookingResponse booking = bookingService.createBooking(request);
         return ApiResponse.success(booking, "Booking created successfully");
+    }
+
+    @PostMapping("/checkin")
+    public ApiResponse<BookingResponse> checkInBooking(@Valid @RequestBody CheckInBookingRequest request) {
+        BookingResponse booking = bookingService.checkInBooking(request);
+        return ApiResponse.success(booking, "Booking checked in successfully");
     }
 
     /**

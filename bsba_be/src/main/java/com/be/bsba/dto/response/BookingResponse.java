@@ -21,6 +21,7 @@ public class BookingResponse {
     private UUID id;
     private UUID slotId;
     private String storeName;
+    private String qrCode;
     private String storeLocation;
     @JsonProperty("slot_date")
     private LocalDate slotDate;

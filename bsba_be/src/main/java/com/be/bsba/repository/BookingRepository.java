@@ -30,6 +30,8 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
             UUID storeId,
             BookingStatus status);
 
+    Optional<Booking> findByQrCode(String qrCode);
+
     boolean existsByUserIdAndSlotId(UUID userId, UUID slotId);
     // Customer "My Bookings": their own, newest first.
     List<Booking> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
