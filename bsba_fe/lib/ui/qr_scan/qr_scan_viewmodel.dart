@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:project/data/repositories/booking_repository.dart';
+import 'package:project/data/services/api_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class CheckInLog {
@@ -21,6 +23,9 @@ class QrScanFeedback {
 }
 
 class QrScanViewModel extends ChangeNotifier {
+  QrScanViewModel(this._bookingRepository);
+
+  final BookingRepository _bookingRepository;
   bool _scannerActive = false;
   bool _isCheckingIn = false;
   bool _cameraAccessRequested = false;
@@ -55,13 +60,23 @@ class QrScanViewModel extends ChangeNotifier {
   }
 
   Future<void> requestCameraAccess() async {
-    if (_cameraAccessRequested) {
+    if (_disposed || _cameraAccessRequested) {
+      debugPrint(
+        '[Scanner] permission request skipped '
+        'disposed=$_disposed requested=$_cameraAccessRequested',
+      );
       return;
     }
 
     _cameraAccessRequested = true;
+    debugPrint('[Scanner] permission request started');
     final status = await Permission.camera.request();
+    debugPrint(
+      '[Scanner] permission request completed '
+      'status=$status granted=${status.isGranted}',
+    );
     if (_disposed) {
+      debugPrint('[Scanner] permission result ignored because disposed');
       return;
     }
 
@@ -70,10 +85,17 @@ class QrScanViewModel extends ChangeNotifier {
     _errorMessage = status.isGranted
         ? null
         : 'Camera permission is required to scan booking QR codes.';
+    debugPrint(
+      '[Scanner] permission state applied scannerActive=$_scannerActive',
+    );
     notifyListeners();
   }
 
   void toggleScanner() {
+    if (_disposed) {
+      return;
+    }
+
     if (!_cameraAccessRequested) {
       requestCameraAccess();
       return;
@@ -86,13 +108,23 @@ class QrScanViewModel extends ChangeNotifier {
   }
 
   Future<void> scanCurrentFrame() {
-    _successMessage = null;
-    _errorMessage = 'Point the camera at a booking QR code to scan.';
-    notifyListeners();
+    if (_disposed) {
+      return Future<void>.value();
+    }
+
+    debugPrint(
+      '[Scanner] scan current frame requested; '
+      'mobile_scanner detects automatically from the live camera stream.',
+    );
     return Future<void>.value();
   }
 
   void reportScannerError(String message) {
+    if (_disposed) {
+      return;
+    }
+
+    debugPrint('[Scanner] scanner error reported to view model: $message');
     _scannerActive = false;
     _successMessage = null;
     _errorMessage = message;
@@ -100,16 +132,30 @@ class QrScanViewModel extends ChangeNotifier {
   }
 
   Future<void> scanDetectedCode(String rawCode) async {
-    if (!_scannerActive || _isCheckingIn) {
+    if (_disposed) {
+      debugPrint('[Scanner] detected code ignored because disposed');
       return;
     }
 
-    final bookingCode = rawCode.trim().toUpperCase();
+    if (!_scannerActive || _isCheckingIn) {
+      debugPrint(
+        '[Scanner] detected code ignored '
+        'scannerActive=$_scannerActive isCheckingIn=$_isCheckingIn',
+      );
+      return;
+    }
+
+    final bookingCode = rawCode.trim();
+    debugPrint(
+      '[Scanner] detected code received '
+      'isEmpty=${bookingCode.isEmpty} length=${bookingCode.length}',
+    );
     final now = DateTime.now();
     final lastDetectedAt = _lastDetectedAt;
     if (_lastDetectedCode == bookingCode &&
         lastDetectedAt != null &&
         now.difference(lastDetectedAt) < const Duration(seconds: 3)) {
+      debugPrint('[Scanner] detected code ignored as duplicate');
       return;
     }
 
@@ -119,7 +165,11 @@ class QrScanViewModel extends ChangeNotifier {
   }
 
   Future<void> checkInCode(String rawCode) async {
-    final bookingCode = rawCode.trim().toUpperCase();
+    if (_disposed) {
+      return;
+    }
+
+    final bookingCode = rawCode.trim();
     _successMessage = null;
     _errorMessage = null;
 
@@ -138,41 +188,36 @@ class QrScanViewModel extends ChangeNotifier {
     _isCheckingIn = true;
     notifyListeners();
 
-    await Future<void>.delayed(const Duration(milliseconds: 650));
-    if (_disposed) {
-      return;
+    try {
+      final booking = await _bookingRepository.checkInBooking(bookingCode);
+      if (_disposed) {
+        return;
+      }
+
+      _recentLogs.insert(
+        0,
+        CheckInLog(
+          bookingCode: booking.qrCode.isNotEmpty ? booking.qrCode : bookingCode,
+          customerName: booking.title,
+          checkedInAt: DateTime.now(),
+        ),
+      );
+
+      if (_recentLogs.length > 5) {
+        _recentLogs.removeRange(5, _recentLogs.length);
+      }
+
+      _successMessage = 'Checked in ${booking.title}.';
+    } on ApiException catch (error) {
+      _errorMessage = error.message;
+    } catch (_) {
+      _errorMessage = 'Unable to check in booking. Please try again.';
+    } finally {
+      if (!_disposed) {
+        _isCheckingIn = false;
+        notifyListeners();
+      }
     }
-
-    if (bookingCode.startsWith('BAD') || bookingCode.startsWith('INVALID')) {
-      _isCheckingIn = false;
-      _errorMessage = 'No active booking found for $bookingCode.';
-      notifyListeners();
-      return;
-    }
-
-    _recentLogs.insert(
-      0,
-      CheckInLog(
-        bookingCode: bookingCode,
-        customerName: _customerNameForCode(bookingCode),
-        checkedInAt: DateTime.now(),
-      ),
-    );
-
-    if (_recentLogs.length > 5) {
-      _recentLogs.removeRange(5, _recentLogs.length);
-    }
-
-    _isCheckingIn = false;
-    _successMessage = 'Checked in ${_recentLogs.first.customerName}.';
-    notifyListeners();
-  }
-
-  String _customerNameForCode(String bookingCode) {
-    final suffix = bookingCode.length >= 4
-        ? bookingCode.substring(bookingCode.length - 4)
-        : bookingCode;
-    return 'Guest $suffix';
   }
 
   @override

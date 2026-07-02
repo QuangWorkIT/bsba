@@ -67,10 +67,7 @@ class InboxViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _conversations = await _repository.fetchConversations(
-        userId: userId,
-        role: role,
-      );
+      _conversations = await _repository.fetchConversations();
       await _refreshDrafts();
     } catch (e) {
       _error =
@@ -95,10 +92,7 @@ class InboxViewModel extends ChangeNotifier {
   /// a socket update was missed or arrived out of order.
   Future<void> silentReload() async {
     try {
-      _conversations = await _repository.fetchConversations(
-        userId: userId,
-        role: role,
-      );
+      _conversations = await _repository.fetchConversations();
       await _refreshDrafts();
       notifyListeners();
     } catch (e) {

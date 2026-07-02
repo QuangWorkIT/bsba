@@ -25,7 +25,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -90,7 +93,13 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional
-    public ConversationResponse startConversation(UUID userId, StartConversationRequest request) {
+    public ConversationResponse startConversation(UUID userId, UserRole role, StartConversationRequest request) {
+        // Only customers initiate a thread with a store; staff/admin reply but never start one.
+        // Guards against accidentally creating a conversation that treats a staff member as the customer.
+        if (role != UserRole.CUSTOMER) {
+            throw new BadRequestException("Only customers can start a conversation");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found with id: " + userId));
@@ -114,14 +123,38 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MessageResponse> getMessages(UUID conversationId, Pageable pageable) {
-        if (!conversationRepository.existsById(conversationId)) {
-            throw new ResourceNotFoundException(
-                    "Conversation not found with id: " + conversationId);
-        }
+    public Page<MessageResponse> getMessages(UUID conversationId, UUID userId, UserRole role, Pageable pageable) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Conversation not found with id: " + conversationId));
+
+        // Only the thread's customer, an assigned staff, or an admin may read it.
+        authorizeConversationAccess(conversation, userId, role);
 
         return messageRepository.findByConversationIdOrderByCreatedAtDesc(conversationId, pageable)
                 .map(this::mapToResponse);
+    }
+
+    // Authorize a caller to view/act on a conversation:
+    //   admin    → any conversation
+    //   staff    → only conversations of a store they're assigned to
+    //   customer → only their own thread
+    private void authorizeConversationAccess(Conversation conversation, UUID userId, UserRole role) {
+        if (role == UserRole.ADMIN) {
+            return;
+        }
+        if (role == UserRole.STAFF) {
+            UUID storeId = conversation.getStore() != null ? conversation.getStore().getId() : null;
+            if (storeId == null || !storeStaffRepository.existsByStoreIdAndStaffId(storeId, userId)) {
+                throw new BadRequestException("Staff is not assigned to this conversation's store");
+            }
+            return;
+        }
+        // CUSTOMER: must own the conversation.
+        UUID ownerId = conversation.getUser() != null ? conversation.getUser().getId() : null;
+        if (ownerId == null || !ownerId.equals(userId)) {
+            throw new BadRequestException("You do not have access to this conversation");
+        }
     }
 
     @Override
@@ -131,13 +164,8 @@ public class ChatServiceImpl implements ChatService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Conversation not found with id: " + conversationId));
 
-        // A staff member may only act on conversations of a store they're assigned to.
-        if (role == UserRole.STAFF) {
-            UUID storeId = conversation.getStore() != null ? conversation.getStore().getId() : null;
-            if (storeId == null || !storeStaffRepository.existsByStoreIdAndStaffId(storeId, userId)) {
-                throw new BadRequestException("Staff is not assigned to this conversation's store");
-            }
-        }
+        // The customer who owns the thread, an assigned staff, or an admin may act on it.
+        authorizeConversationAccess(conversation, userId, role);
 
         // Mark the other party's messages as read: a customer reads staff messages, staff read customer messages.
         SenderType target = role == UserRole.CUSTOMER ? SenderType.STAFF : SenderType.CUSTOMER;
@@ -148,15 +176,21 @@ public class ChatServiceImpl implements ChatService {
             return;
         }
 
-        // Live read receipt: tell anyone with this chat open that messages from
-        // `target` were just read, so their "seen" indicator updates instantly.
-        messagingTemplate.convertAndSend(
-                "/topic/conversations/" + conversationId + "/read",
-                (Object) Map.of("readSenderType", target.name()));
-
         // The bulk update cleared the persistence context; re-load to map lazy fields safely.
         Conversation refreshed = conversationRepository.findById(conversationId).orElse(conversation);
-        broadcastConversationRow(refreshed);
+
+        // Build the payloads now (while the session is open), then push only after the
+        // transaction commits, so a rollback can't leave clients showing a "read" state
+        // the database never saved.
+        List<Broadcast> broadcasts = new ArrayList<>();
+        // Live read receipt: tell anyone with this chat open that messages from
+        // `target` were just read, so their "seen" indicator updates instantly.
+        broadcasts.add(new Broadcast(
+                "/topic/conversations/" + conversationId + "/read",
+                Map.of("readSenderType", target.name())));
+        broadcasts.addAll(collectConversationRowBroadcasts(refreshed));
+
+        publishAfterCommit(broadcasts);
     }
 
     @Override
@@ -170,13 +204,8 @@ public class ChatServiceImpl implements ChatService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found with id: " + userId));
 
-        // A staff member may only reply in conversations of a store they're assigned to.
-        if (role == UserRole.STAFF) {
-            UUID storeId = conversation.getStore() != null ? conversation.getStore().getId() : null;
-            if (storeId == null || !storeStaffRepository.existsByStoreIdAndStaffId(storeId, userId)) {
-                throw new BadRequestException("Staff is not assigned to this conversation's store");
-            }
-        }
+        // The customer who owns the thread, an assigned staff, or an admin may reply.
+        authorizeConversationAccess(conversation, userId, role);
 
         // A customer speaks as CUSTOMER; staff/admin both reply as STAFF in the thread.
         SenderType senderType = role == UserRole.CUSTOMER ? SenderType.CUSTOMER : SenderType.STAFF;
@@ -200,44 +229,74 @@ public class ChatServiceImpl implements ChatService {
         // Keep the denormalized inbox-preview fields in sync.
         conversation.setLastMessagePreview(savedMessage.getContent());
         conversation.setLastMessageAt(savedMessage.getCreatedAt());
+        conversation.setLastMessageSenderType(savedMessage.getSenderType());
         conversationRepository.save(conversation);
 
-        broadcastNewMessage(conversation, savedMessage);
+        // Build the broadcast payloads now (DB/lazy access happens here), but defer the
+        // actual STOMP push until the transaction commits — otherwise a rollback after
+        // this point would leave clients showing a message the DB never stored.
+        publishAfterCommit(collectNewMessageBroadcasts(conversation, savedMessage));
 
         return mapToResponse(savedMessage);
     }
 
-    // Push the new message + inbox-row updates to everyone involved over STOMP.
-    private void broadcastNewMessage(Conversation conversation, Message message) {
-        // Anyone with this chat open receives the new message.
-        messagingTemplate.convertAndSend(
-                "/topic/conversations/" + conversation.getId() + "/messages",
-                mapToResponse(message));
+    // A single STOMP message to send: where it goes and what payload.
+    private record Broadcast(String destination, Object payload) {}
 
-        broadcastConversationRow(conversation);
+    // Collect the new-message broadcast + inbox-row updates for everyone involved.
+    // Builds payloads eagerly (DB/lazy access happens here, inside the transaction).
+    private List<Broadcast> collectNewMessageBroadcasts(Conversation conversation, Message message) {
+        List<Broadcast> broadcasts = new ArrayList<>();
+        // Anyone with this chat open receives the new message.
+        broadcasts.add(new Broadcast(
+                "/topic/conversations/" + conversation.getId() + "/messages",
+                mapToResponse(message)));
+        broadcasts.addAll(collectConversationRowBroadcasts(conversation));
+        return broadcasts;
     }
 
-    // Push the (perspective-correct) inbox row to the customer and every store staff,
+    // Collect the (perspective-correct) inbox row for the customer and every store staff,
     // so unread counts / previews update live on each side's inbox.
-    private void broadcastConversationRow(Conversation conversation) {
+    private List<Broadcast> collectConversationRowBroadcasts(Conversation conversation) {
+        List<Broadcast> broadcasts = new ArrayList<>();
         User customer = conversation.getUser();
         Store store = conversation.getStore();
 
         // The customer's inbox row (their unread perspective).
         if (customer != null) {
-            messagingTemplate.convertAndSend(
+            broadcasts.add(new Broadcast(
                     "/topic/users/" + customer.getId() + "/conversations",
-                    mapToConversationResponse(conversation, false));
+                    mapToConversationResponse(conversation, false)));
         }
 
         // Every staff member of the store gets the row in their (staff) perspective.
         if (store != null) {
             ConversationResponse staffView = mapToConversationResponse(conversation, true);
             for (UUID staffId : storeStaffRepository.findStaffIdsByStoreId(store.getId())) {
-                messagingTemplate.convertAndSend(
+                broadcasts.add(new Broadcast(
                         "/topic/users/" + staffId + "/conversations",
-                        staffView);
+                        staffView));
             }
+        }
+        return broadcasts;
+    }
+
+    // Push the collected STOMP messages only after the current transaction commits, so
+    // clients never receive an update that a later rollback would erase. If there is no
+    // active transaction (shouldn't happen here), send immediately.
+    private void publishAfterCommit(List<Broadcast> broadcasts) {
+        Runnable send = () -> broadcasts.forEach(
+                b -> messagingTemplate.convertAndSend(b.destination(), b.payload()));
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    send.run();
+                }
+            });
+        } else {
+            send.run();
         }
     }
 
@@ -266,6 +325,7 @@ public class ChatServiceImpl implements ChatService {
                 .customerAvatarUrl(customer != null ? customer.getAvatarUrl() : null)
                 .lastMessagePreview(conversation.getLastMessagePreview())
                 .lastMessageAt(conversation.getLastMessageAt())
+                .lastMessageSenderType(conversation.getLastMessageSenderType())
                 .unreadCount(unreadCount)
                 .staffUserIds(staffUserIds)
                 .createdAt(conversation.getCreatedAt())

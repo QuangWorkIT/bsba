@@ -9,9 +9,9 @@ class SpaceRepository {
   Future<List<BoardSpace>> fetchSpaces({
     double? lat,
     double? lng,
-    String sort = 'ALL',
+    String sortBy = 'ALL',
     String? q,
   }) {
-    return _service.getSpaces(lat: lat, lng: lng, sort: sort, q: q);
+    return _service.getSpaces(lat: lat, lng: lng, sortBy: sortBy, q: q);
   }
 }

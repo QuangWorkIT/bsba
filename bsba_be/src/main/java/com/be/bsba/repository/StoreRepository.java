@@ -157,6 +157,6 @@ public interface StoreRepository extends JpaRepository<Store, UUID> {
                 @Param("openTime") LocalTime openTime,
                 @Param("closeTime") LocalTime closeTime,
                 @Param("totalCapacity") int totalCapacity,
-                @Param("chargeFee") double chargeFee
+                @Param("chargeFee") Double chargeFee
         );
 }

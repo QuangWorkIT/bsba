@@ -3,6 +3,7 @@ import '../../data/models/board_game.dart';
 import '../../data/models/booking_summary.dart';
 import '../../data/models/board_space_detail.dart';
 import '../../data/models/booking.dart';
+import '../../data/models/pending_booking_lookup.dart';
 import '../../data/repositories/board_space_repository.dart';
 import '../../data/repositories/booking_repository.dart';
 import '../../data/repositories/cart_repository.dart';
@@ -32,6 +33,7 @@ class SpaceDetailViewModel extends ChangeNotifier {
   SpaceSlot? _selectedSlot;
   String? _pendingBookingId;
   String? _pendingCartId;
+  List<PendingBookingLookup> _pendingBookings = const [];
 
   // ── Getters ────────────────────────────────────────────────────────────────
 
@@ -43,12 +45,22 @@ class SpaceDetailViewModel extends ChangeNotifier {
   SpaceSlot? get selectedSlot => _selectedSlot;
   String? get pendingBookingId => _pendingBookingId;
   String? get pendingCartId => _pendingCartId;
+  List<PendingBookingLookup> get pendingBookings => _pendingBookings;
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
   void selectSlot(SpaceSlot slot) {
     _selectedSlot = slot;
     notifyListeners();
+  }
+
+  bool selectPendingBookingForSlot(SpaceSlot slot) {
+    final pendingBooking = _findPendingBookingBySlotId(slot.id);
+    if (pendingBooking == null) return false;
+
+    _setCurrentPendingBooking(pendingBooking, slot);
+    notifyListeners();
+    return true;
   }
 
   Future<BookingSummary> createPendingBooking(SpaceSlot slot) async {
@@ -126,21 +138,42 @@ class SpaceDetailViewModel extends ChangeNotifier {
   }
 
   Future<void> _lookupPendingBooking(BoardSpaceDetail space) async {
-    final pendingBooking = await _bookingRepository.lookupPendingBooking(
+    final pendingBookings = await _bookingRepository.lookupPendingBooking(
       userId: CurrentUser.instance.id,
       storeId: space.id,
     );
 
-    if (pendingBooking == null) {
+    _pendingBookings = pendingBookings;
+
+    if (pendingBookings.isEmpty) {
       _pendingBookingId = null;
       _pendingCartId = null;
       _selectedSlot = null;
       return;
     }
 
+    final nearestPendingBooking = pendingBookings.first;
+    _setCurrentPendingBooking(
+      nearestPendingBooking,
+      _findSlotById(space.availableSlots, nearestPendingBooking.slotId),
+    );
+  }
+
+  PendingBookingLookup? _findPendingBookingBySlotId(String slotId) {
+    for (final booking in _pendingBookings) {
+      if (booking.slotId == slotId) return booking;
+    }
+
+    return null;
+  }
+
+  void _setCurrentPendingBooking(
+    PendingBookingLookup pendingBooking,
+    SpaceSlot? slot,
+  ) {
     _pendingBookingId = pendingBooking.bookingId;
     _pendingCartId = pendingBooking.cartId;
-    _selectedSlot = _findSlotById(space.availableSlots, pendingBooking.slotId);
+    _selectedSlot = slot;
   }
 
   SpaceSlot? _findSlotById(List<SpaceSlot> slots, String slotId) {

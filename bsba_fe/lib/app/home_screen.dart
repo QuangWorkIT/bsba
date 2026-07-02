@@ -13,6 +13,7 @@ import 'package:project/ui/map/map_screen.dart';
 import 'package:project/ui/booking/booking_screen.dart';
 import 'package:project/ui/booking/booking_viewmodel.dart';
 import 'package:project/ui/inbox/inbox_screen.dart';
+import 'package:project/ui/inbox/notification_badge_viewmodel.dart';
 import 'package:project/ui/inbox/unread_badge_viewmodel.dart';
 import 'package:project/ui/presence/presence_viewmodel.dart';
 import 'package:project/data/services/presence_service.dart';
@@ -63,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
         refreshTrigger: _bookingRefreshTrigger,
         initialTab: widget.initialBookingTab,
       ),
-      const InboxScreen(),
+      InboxScreen(active: _selectedIndex == _inboxIndex),
       const ProfileScreen(),
     ];
 
@@ -76,6 +77,11 @@ class _HomeScreenState extends State<HomeScreen> {
           )..start(),
         ),
         ChangeNotifierProvider(
+          create: (_) => NotificationBadgeViewModel(
+            socket: ChatSocketService(),
+          )..start(),
+        ),
+        ChangeNotifierProvider(
           create: (_) => PresenceViewModel(
             PresenceService(ApiClient()),
             ChatSocketService(),
@@ -85,10 +91,12 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         appBar: _selectedIndex == 2 ? null : const BoardNestAppBar(),
         body: IndexedStack(index: _selectedIndex, children: screens),
-        bottomNavigationBar: Consumer<UnreadBadgeViewModel>(
-          builder: (context, badge, _) => Navigation(
+        bottomNavigationBar: Consumer2<UnreadBadgeViewModel, NotificationBadgeViewModel>(
+          builder: (context, badge, notificationBadge, _) => Navigation(
             selectedIndex: _selectedIndex,
             inboxBadgeCount: badge.count,
+            inboxHasNotificationBadge:
+                notificationBadge.hasUnreadNotification,
             onDestinationSelected: (index) {
               setState(() {
                 if (index == _bookingIndex) {

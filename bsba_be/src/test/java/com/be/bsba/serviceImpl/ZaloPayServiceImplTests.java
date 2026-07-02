@@ -9,6 +9,7 @@ import com.be.bsba.entity.Payment;
 import com.be.bsba.repository.BookingRepository;
 import com.be.bsba.repository.PaymentRepository;
 import com.be.bsba.repository.UserRepository;
+import com.be.bsba.service.INotificationService;
 import com.be.bsba.util.HmacUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,6 +36,7 @@ import static org.mockito.Mockito.when;
 class ZaloPayServiceImplTests {
 
     private static final String KEY2 = "callback-key";
+    private static final UUID BOOKING_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     private final ZaloPayProperties properties = new ZaloPayProperties();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -49,6 +52,9 @@ class ZaloPayServiceImplTests {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private INotificationService notificationService;
 
     private ZaloPayServiceImpl service;
 
@@ -67,7 +73,8 @@ class ZaloPayServiceImplTests {
                 zaloPayRestClient,
                 bookingRepository,
                 paymentRepository,
-                userRepository
+                userRepository,
+                notificationService
         );
     }
 
@@ -89,6 +96,7 @@ class ZaloPayServiceImplTests {
                 () -> assertNotNull(payment.getCallbackReceivedAt())
         );
         verify(paymentRepository).save(payment);
+        verify(notificationService).notifyBookingConfirmed(payment.getBooking());
     }
 
     @Test
@@ -103,6 +111,7 @@ class ZaloPayServiceImplTests {
 
         assertEquals(1, response.get("return_code"));
         verify(paymentRepository, never()).save(payment);
+        verify(notificationService, never()).notifyBookingConfirmed(payment.getBooking());
     }
 
     @Test
@@ -120,6 +129,7 @@ class ZaloPayServiceImplTests {
                 () -> assertEquals(BookingStatus.PENDING, payment.getBooking().getStatus())
         );
         verify(paymentRepository, never()).save(payment);
+        verify(notificationService, never()).notifyBookingConfirmed(payment.getBooking());
     }
 
     private Payment pendingPayment() {
@@ -127,7 +137,10 @@ class ZaloPayServiceImplTests {
                 .appTransId("260612_order")
                 .amount(new BigDecimal("10000.00"))
                 .status(PaymentStatus.PENDING)
-                .booking(Booking.builder().status(BookingStatus.PENDING).build())
+                .booking(Booking.builder()
+                        .id(BOOKING_ID)
+                        .status(BookingStatus.PENDING)
+                        .build())
                 .build();
     }
 

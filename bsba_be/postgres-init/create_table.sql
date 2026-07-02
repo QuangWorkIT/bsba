@@ -224,11 +224,8 @@ CREATE TABLE bookings (
 
                           participant_count INTEGER NOT NULL
                               CHECK (participant_count > 0),
-
-                          total_price NUMERIC(10,2),
-
                           note TEXT,
-
+                          qr_code VARCHAR(6) NOT NULL,
                           status VARCHAR(50) NOT NULL DEFAULT 'PENDING'
                               CHECK (
                                   status IN (
@@ -441,6 +438,7 @@ CREATE TABLE conversations (
 
                                last_message_preview TEXT,
                                last_message_at TIMESTAMPTZ,
+                               last_message_sender_type VARCHAR(20),
 
                                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

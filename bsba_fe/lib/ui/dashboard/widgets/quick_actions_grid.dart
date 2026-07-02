@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project/ui/bookings/staff_bookings_screen.dart';
-import 'package:project/ui/boardgames/widgets/add_game_screen.dart';
+import 'package:project/ui/boardgames/staff_games.dart';
 import 'dashboard_card.dart';
 import 'staff_dashboard_tokens.dart';
 
@@ -30,7 +30,7 @@ class QuickActionsGrid extends StatelessWidget {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const AddGameScreen()),
+              MaterialPageRoute(builder: (_) => const StaffGamesScreen()),
             );
           },
         ),

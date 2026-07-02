@@ -23,11 +23,11 @@ public class SpaceController {
     public ApiResponse<PagedResult<SpaceCardResponse>> getSpaces(
             @RequestParam(required = false) Double lat,
             @RequestParam(required = false) Double lng,
-            @RequestParam(defaultValue = "ALL") SpaceSort sort,
+            @RequestParam(name = "sortBy", defaultValue = "ALL") SpaceSort sortBy,
             @RequestParam(required = false) String q,
             Pageable pageable) {
         PagedResult<SpaceCardResponse> spaces =
-                PagedResult.from(spaceService.getSpaces(lat, lng, sort, q, pageable));
+                PagedResult.from(spaceService.getSpaces(lat, lng, sortBy, q, pageable));
         return ApiResponse.success(spaces, "Spaces retrieved successfully");
     }
 }

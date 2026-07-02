@@ -24,10 +24,11 @@ public class Booking {
 
     private Integer participantCount;
 
-    private BigDecimal totalPrice;
-
     @Column(columnDefinition = "TEXT")
     private String note;
+
+    @Column(name = "qr_code")
+    private String qrCode;
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status;

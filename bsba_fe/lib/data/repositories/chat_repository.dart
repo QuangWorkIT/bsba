@@ -7,18 +7,14 @@ class ChatRepository {
 
   ChatRepository(this._service);
 
-  Future<List<Conversation>> fetchConversations({
-    required String userId,
-    String role = 'CUSTOMER',
-  }) {
-    return _service.getConversations(userId: userId, role: role);
+  Future<List<Conversation>> fetchConversations() {
+    return _service.getConversations();
   }
 
   Future<Conversation> startConversation({
-    required String userId,
     required String storeId,
   }) {
-    return _service.startConversation(userId: userId, storeId: storeId);
+    return _service.startConversation(storeId: storeId);
   }
 
   Future<List<Message>> fetchMessages({
@@ -35,34 +31,21 @@ class ChatRepository {
 
   Future<Message> sendMessage({
     required String conversationId,
-    required String userId,
     required String content,
-    String role = 'CUSTOMER',
   }) {
     return _service.sendMessage(
       conversationId: conversationId,
-      userId: userId,
       content: content,
-      role: role,
     );
   }
 
   Future<void> markRead({
     required String conversationId,
-    required String userId,
-    String role = 'CUSTOMER',
   }) {
-    return _service.markRead(
-      conversationId: conversationId,
-      userId: userId,
-      role: role,
-    );
+    return _service.markRead(conversationId: conversationId);
   }
 
-  Future<int> fetchUnreadCount({
-    required String userId,
-    String role = 'CUSTOMER',
-  }) {
-    return _service.getUnreadCount(userId: userId, role: role);
+  Future<int> fetchUnreadCount() {
+    return _service.getUnreadCount();
   }
 }

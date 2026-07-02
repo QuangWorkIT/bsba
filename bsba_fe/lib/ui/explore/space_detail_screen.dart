@@ -108,6 +108,7 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
                     _LibrarySection(
                       games: space.libraryHighlights,
                       totalGames: space.totalGames,
+                      canAddToCart: _vm.pendingBookingId != null,
                       onAddToCart: (game) => _addGameToCart(context, game),
                       onSeeAll: () {
                         Navigator.of(context).push(
@@ -115,6 +116,8 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
                             builder: (_) => GameLibraryScreen(
                               storeId: space.id,
                               slotId: _vm.selectedSlot?.id,
+                              bookingCartId: _vm.pendingCartId,
+                              canAddToCart: _vm.pendingBookingId != null,
                             ),
                           ),
                         );
@@ -185,17 +188,34 @@ class _SpaceDetailScreenState extends State<SpaceDetailScreen> {
       builder: (_) => _SlotPickerSheet(
         slots: space.availableSlots,
         selectedSlot: _vm.selectedSlot,
-        onSlotSelected: (slot) => _createBookingForSlot(context, slot),
+        onSlotSelected: (slot) => _selectOrCreateBookingForSlot(context, slot),
       ),
     );
+  }
+
+  Future<void> _selectOrCreateBookingForSlot(
+    BuildContext context,
+    SpaceSlot slot,
+  ) async {
+    Navigator.pop(context);
+
+    if (_vm.selectPendingBookingForSlot(slot)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Selected pending booking for ${slot.startTime}.'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+      );
+      return;
+    }
+
+    await _createBookingForSlot(context, slot);
   }
 
   Future<void> _createBookingForSlot(
     BuildContext context,
     SpaceSlot slot,
   ) async {
-    Navigator.pop(context);
-
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -547,12 +567,14 @@ class _AmenityItem extends StatelessWidget {
 class _LibrarySection extends StatelessWidget {
   final List<BoardGame> games;
   final int totalGames;
+  final bool canAddToCart;
   final ValueChanged<BoardGame> onAddToCart;
   final VoidCallback onSeeAll;
 
   const _LibrarySection({
     required this.games,
     required this.totalGames,
+    required this.canAddToCart,
     required this.onAddToCart,
     required this.onSeeAll,
   });
@@ -604,7 +626,9 @@ class _LibrarySection extends StatelessWidget {
               itemBuilder: (context, index) => GameCard(
                 game: games[index],
                 showAvailability: true,
-                onAddToCart: () => onAddToCart(games[index]),
+                onAddToCart: canAddToCart
+                    ? () => onAddToCart(games[index])
+                    : null,
               ),
             ),
           ),

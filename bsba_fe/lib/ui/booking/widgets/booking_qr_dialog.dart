@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class BookingQrDialog extends StatelessWidget {
-  const BookingQrDialog({super.key, required this.bookingTitle});
+  const BookingQrDialog({
+    super.key,
+    required this.bookingTitle,
+    required this.qrCode,
+  });
 
   final String bookingTitle;
+  final String qrCode;
 
   @override
   Widget build(BuildContext context) {
@@ -66,13 +72,30 @@ class BookingQrDialog extends StatelessWidget {
                 ),
                 child: AspectRatio(
                   aspectRatio: 1,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      'assets/images/booking/booking_qr_code.png',
-                      fit: BoxFit.cover,
+                  child: QrImageView(
+                    data: qrCode,
+                    backgroundColor: Colors.white,
+                    eyeStyle: QrEyeStyle(
+                      eyeShape: QrEyeShape.square,
+                      color: scheme.onSurface,
+                    ),
+                    dataModuleStyle: QrDataModuleStyle(
+                      dataModuleShape: QrDataModuleShape.square,
+                      color: scheme.onSurface,
                     ),
                   ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SelectableText(
+                qrCode,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: scheme.onSurface,
+                  fontSize: 18,
+                  height: 24 / 18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
                 ),
               ),
               const SizedBox(height: 20),

@@ -37,7 +37,7 @@ public class SpaceServiceImpl implements SpaceService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<SpaceCardResponse> getSpaces(Double lat, Double lng, SpaceSort sort, String q, Pageable pageable) {
+    public Page<SpaceCardResponse> getSpaces(Double lat, Double lng, SpaceSort sortBy, String q, Pageable pageable) {
         // 1) Active stores (optionally filtered by search text).
         List<Store> stores = (q == null || q.isBlank())
                 ? storeRepository.findByIsActiveTrue()
@@ -57,7 +57,7 @@ public class SpaceServiceImpl implements SpaceService {
         }
 
         // 3) Sort.
-        stores.sort(comparatorFor(sort, hasLocation, distanceByStore));
+        stores.sort(comparatorFor(sortBy, hasLocation, distanceByStore));
 
         // 4) Paginate the sorted list in memory.
         long total = stores.size();
@@ -99,11 +99,11 @@ public class SpaceServiceImpl implements SpaceService {
         return new PageImpl<>(content, pageable, total);
     }
 
-    private Comparator<Store> comparatorFor(SpaceSort sort, boolean hasLocation, Map<UUID, Double> distanceByStore) {
+    private Comparator<Store> comparatorFor(SpaceSort sortBy, boolean hasLocation, Map<UUID, Double> distanceByStore) {
         Comparator<Store> byRatingDesc =
                 Comparator.comparing(Store::getRatingAvg, Comparator.nullsLast(Comparator.reverseOrder()));
 
-        return switch (sort) {
+        return switch (sortBy) {
             case TOP_RATED -> byRatingDesc;
             case NEARBY -> hasLocation
                     ? Comparator.comparing((Store s) -> distanceByStore.get(s.getId()),

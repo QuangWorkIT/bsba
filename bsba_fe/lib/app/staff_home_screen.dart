@@ -11,6 +11,10 @@ import 'package:project/ui/presence/presence_viewmodel.dart';
 import 'package:project/ui/shared/staff_dashboard_header.dart';
 import 'package:project/ui/dashboard/widgets/staff_dashboard_tokens.dart';
 import 'package:project/ui/shared/staff_navigation.dart';
+import 'package:project/ui/qr_scan/qr_scan_screen.dart';
+import 'package:project/ui/inbox/unread_badge_viewmodel.dart';
+import 'package:project/data/repositories/chat_repository.dart';
+import 'package:project/data/services/chat_service.dart';
 
 class StaffHomeScreen extends StatefulWidget {
   const StaffHomeScreen({super.key});
@@ -28,25 +32,39 @@ class _StaffHomeScreenState extends State<StaffHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const screens = <Widget>[
-      StaffDashboard(),
-      StoreScreen(),
-      StaffGamesScreen(),
-      StaffChatInbox(),
+    final screens = <Widget>[
+      const StaffDashboard(),
+      const StoreScreen(),
+      QrScanScreen(active: _selectedIndex == 2),
+      const StaffGamesScreen(),
+      const StaffChatInbox(),
     ];
 
-    return ChangeNotifierProvider(
-      create: (_) => PresenceViewModel(
-        PresenceService(ApiClient()),
-        ChatSocketService(),
-      )..start(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => PresenceViewModel(
+            PresenceService(ApiClient()),
+            ChatSocketService(),
+          )..start(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => UnreadBadgeViewModel(
+            ChatRepository(ChatService(ApiClient())),
+            ChatSocketService(),
+          )..start(),
+        ),
+      ],
       child: Scaffold(
         backgroundColor: StaffDashboardColors.background,
         appBar: const StaffDashboardHeader(),
         body: IndexedStack(index: _selectedIndex, children: screens),
-        bottomNavigationBar: StaffNavigation(
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: _selectTab,
+        bottomNavigationBar: Consumer<UnreadBadgeViewModel>(
+          builder: (context, badge, _) => StaffNavigation(
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: _selectTab,
+            chatBadgeCount: badge.count,
+          ),
         ),
       ),
     );

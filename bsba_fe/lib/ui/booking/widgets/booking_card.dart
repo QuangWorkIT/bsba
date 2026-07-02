@@ -288,15 +288,27 @@ class _BookingActions extends StatelessWidget {
   }
 
   void _showQrCode(BuildContext context) {
+    if (booking.qrCode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('QR code is not available.')),
+      );
+      return;
+    }
+
     showDialog<void>(
       context: context,
       barrierColor: Colors.black54,
-      builder: (_) => BookingQrDialog(bookingTitle: booking.title),
+      builder: (_) => BookingQrDialog(
+        bookingTitle: booking.title,
+        qrCode: booking.qrCode,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final showQrCode = booking.status == BookingStatus.confirmed;
+
     return Row(
       children: [
         Expanded(
@@ -311,21 +323,23 @@ class _BookingActions extends StatelessWidget {
             child: const Text('View Details'),
           ),
         ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 56,
-          height: 50,
-          child: OutlinedButton(
-            onPressed: () => _showQrCode(context),
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+        if (showQrCode) ...[
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 56,
+            height: 50,
+            child: OutlinedButton(
+              onPressed: () => _showQrCode(context),
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
+              child: const Icon(Icons.qr_code),
             ),
-            child: const Icon(Icons.qr_code),
           ),
-        ),
+        ],
       ],
     );
   }

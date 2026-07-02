@@ -47,6 +47,7 @@ public class DataInitializer implements CommandLineRunner {
                     .totalCapacity(50)
                     .ratingAvg(new BigDecimal("4.8"))
                     .isActive(true)
+                    .chargeFee(0.0)
                     .build());
             System.out.println("✅ Store created: Main Board Game Oasis");
         }

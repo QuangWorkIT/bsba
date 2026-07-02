@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../data/models/board_game.dart';
 import '../../data/repositories/board_game_repository.dart';
+import '../../data/repositories/cart_repository.dart';
+import '../../data/services/api_client.dart';
+import '../../data/services/cart_service.dart';
 
 enum GameLibraryFilter {
   allGames('All Games'),
@@ -15,8 +18,11 @@ enum GameLibraryFilter {
 
 class GameLibraryViewModel extends ChangeNotifier {
   final BoardGameRepository _repository;
+  final CartRepository _cartRepository;
 
-  GameLibraryViewModel(this._repository);
+  GameLibraryViewModel(this._repository, {CartRepository? cartRepository})
+    : _cartRepository =
+          cartRepository ?? CartRepository(CartService(ApiClient()));
 
   // ── State ──────────────────────────────────────────────────────────────────
   List<BoardGame> _allGames = [];
@@ -71,18 +77,25 @@ class GameLibraryViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> addToCart(
+  Future<String?> addToCart(
     BoardGame game, {
-    String? storeId,
-    String? slotId,
+    String? bookingCartId,
+    int quantity = 1,
   }) async {
-    // We could add a separate _isAddingToCart state if we wanted specific per-item loading
+    if (bookingCartId == null || bookingCartId.isEmpty) {
+      return 'Please select a booking time first';
+    }
+
     try {
-      await _repository.addToCart(game.id, storeId: storeId, slotId: slotId);
-      return true;
+      await _cartRepository.addItemToCart(
+        bookingCartId: bookingCartId,
+        boardGameId: game.id,
+        quantity: quantity,
+      );
+      return null;
     } catch (e) {
       debugPrint('Error adding to cart: $e');
-      return false;
+      return 'Failed to add ${game.name} to cart';
     }
   }
 }

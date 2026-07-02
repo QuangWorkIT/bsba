@@ -19,9 +19,9 @@ class ChatViewModel extends ChangeNotifier {
     this._socket, {
     required this.conversationId,
     DraftStore? draftStore,
-  })  : userId = CurrentUser.instance.id,
-        role = CurrentUser.instance.role,
-        _draftStore = draftStore ?? DraftStore() {
+  }) : userId = CurrentUser.instance.id,
+       role = CurrentUser.instance.role,
+       _draftStore = draftStore ?? DraftStore() {
     _socket.subscribeJson(
       '/topic/conversations/$conversationId/messages',
       (json) => _onIncoming(Message.fromJson(json)),
@@ -128,9 +128,7 @@ class ChatViewModel extends ChangeNotifier {
     try {
       final sent = await _repository.sendMessage(
         conversationId: conversationId,
-        userId: userId,
         content: text,
-        role: role,
       );
       // Reconcile the placeholder with the server's message (real id + time).
       // Fall back to the optimistic timestamp if the server omits createdAt.
@@ -166,11 +164,7 @@ class ChatViewModel extends ChangeNotifier {
 
   Future<void> markRead() async {
     try {
-      await _repository.markRead(
-        conversationId: conversationId,
-        userId: userId,
-        role: role,
-      );
+      await _repository.markRead(conversationId: conversationId);
     } catch (e) {
       debugPrint('Error marking read: $e');
     }
