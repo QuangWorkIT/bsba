@@ -235,7 +235,7 @@ public class ZaloPayServiceImpl implements ZaloPayService {
             payment.setCallbackReceivedAt(OffsetDateTime.now());
             payment.getBooking().setStatus(BookingStatus.CONFIRMED);
             paymentRepository.save(payment);
-            notificationService.notifyBookingCompleted(payment.getBooking());
+            notificationService.notifyBookingConfirmed(payment.getBooking());
 
             log.info("[ZaloPay] Callback applied: appTransId={}, zpTransId={}, serverTime={}, bookingId={}",
                     appTransId, zpTransId, serverTime, payment.getBooking().getId().toString());

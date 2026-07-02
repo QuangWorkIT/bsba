@@ -96,7 +96,7 @@ class ZaloPayServiceImplTests {
                 () -> assertNotNull(payment.getCallbackReceivedAt())
         );
         verify(paymentRepository).save(payment);
-        verify(notificationService).notifyBookingCompleted(payment.getBooking());
+        verify(notificationService).notifyBookingConfirmed(payment.getBooking());
     }
 
     @Test
@@ -111,7 +111,7 @@ class ZaloPayServiceImplTests {
 
         assertEquals(1, response.get("return_code"));
         verify(paymentRepository, never()).save(payment);
-        verify(notificationService, never()).notifyBookingCompleted(payment.getBooking());
+        verify(notificationService, never()).notifyBookingConfirmed(payment.getBooking());
     }
 
     @Test
@@ -129,7 +129,7 @@ class ZaloPayServiceImplTests {
                 () -> assertEquals(BookingStatus.PENDING, payment.getBooking().getStatus())
         );
         verify(paymentRepository, never()).save(payment);
-        verify(notificationService, never()).notifyBookingCompleted(payment.getBooking());
+        verify(notificationService, never()).notifyBookingConfirmed(payment.getBooking());
     }
 
     private Payment pendingPayment() {
