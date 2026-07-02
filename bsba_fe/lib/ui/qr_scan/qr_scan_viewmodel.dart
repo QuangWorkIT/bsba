@@ -60,13 +60,23 @@ class QrScanViewModel extends ChangeNotifier {
   }
 
   Future<void> requestCameraAccess() async {
-    if (_cameraAccessRequested) {
+    if (_disposed || _cameraAccessRequested) {
+      debugPrint(
+        '[Scanner] permission request skipped '
+        'disposed=$_disposed requested=$_cameraAccessRequested',
+      );
       return;
     }
 
     _cameraAccessRequested = true;
+    debugPrint('[Scanner] permission request started');
     final status = await Permission.camera.request();
+    debugPrint(
+      '[Scanner] permission request completed '
+      'status=$status granted=${status.isGranted}',
+    );
     if (_disposed) {
+      debugPrint('[Scanner] permission result ignored because disposed');
       return;
     }
 
@@ -75,10 +85,17 @@ class QrScanViewModel extends ChangeNotifier {
     _errorMessage = status.isGranted
         ? null
         : 'Camera permission is required to scan booking QR codes.';
+    debugPrint(
+      '[Scanner] permission state applied scannerActive=$_scannerActive',
+    );
     notifyListeners();
   }
 
   void toggleScanner() {
+    if (_disposed) {
+      return;
+    }
+
     if (!_cameraAccessRequested) {
       requestCameraAccess();
       return;
@@ -91,13 +108,23 @@ class QrScanViewModel extends ChangeNotifier {
   }
 
   Future<void> scanCurrentFrame() {
-    _successMessage = null;
-    _errorMessage = 'Point the camera at a booking QR code to scan.';
-    notifyListeners();
+    if (_disposed) {
+      return Future<void>.value();
+    }
+
+    debugPrint(
+      '[Scanner] scan current frame requested; '
+      'mobile_scanner detects automatically from the live camera stream.',
+    );
     return Future<void>.value();
   }
 
   void reportScannerError(String message) {
+    if (_disposed) {
+      return;
+    }
+
+    debugPrint('[Scanner] scanner error reported to view model: $message');
     _scannerActive = false;
     _successMessage = null;
     _errorMessage = message;
@@ -105,16 +132,30 @@ class QrScanViewModel extends ChangeNotifier {
   }
 
   Future<void> scanDetectedCode(String rawCode) async {
+    if (_disposed) {
+      debugPrint('[Scanner] detected code ignored because disposed');
+      return;
+    }
+
     if (!_scannerActive || _isCheckingIn) {
+      debugPrint(
+        '[Scanner] detected code ignored '
+        'scannerActive=$_scannerActive isCheckingIn=$_isCheckingIn',
+      );
       return;
     }
 
     final bookingCode = rawCode.trim();
+    debugPrint(
+      '[Scanner] detected code received '
+      'isEmpty=${bookingCode.isEmpty} length=${bookingCode.length}',
+    );
     final now = DateTime.now();
     final lastDetectedAt = _lastDetectedAt;
     if (_lastDetectedCode == bookingCode &&
         lastDetectedAt != null &&
         now.difference(lastDetectedAt) < const Duration(seconds: 3)) {
+      debugPrint('[Scanner] detected code ignored as duplicate');
       return;
     }
 
@@ -124,6 +165,10 @@ class QrScanViewModel extends ChangeNotifier {
   }
 
   Future<void> checkInCode(String rawCode) async {
+    if (_disposed) {
+      return;
+    }
+
     final bookingCode = rawCode.trim();
     _successMessage = null;
     _errorMessage = null;

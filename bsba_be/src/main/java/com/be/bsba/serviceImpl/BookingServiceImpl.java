@@ -25,6 +25,7 @@ import com.be.bsba.repository.StoreRepository;
 import com.be.bsba.repository.StoreTimeSlotRepository;
 import com.be.bsba.repository.UserRepository;
 import com.be.bsba.service.BookingService;
+import com.be.bsba.service.INotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +35,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -50,7 +53,9 @@ public class BookingServiceImpl implements BookingService {
     private final StoreRepository storeRepository;
     private final StoreTimeSlotRepository storeTimeSlotRepository;
     private final StoreStaffRepository storeStaffRepository;
+    private final INotificationService notificationService;
 
+    private static final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("EEE, MMM dd");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mm a");
 
@@ -151,8 +156,12 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findByQrCode(request.getQrCode().trim())
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with QR code: " + request.getQrCode()));
 
+        validateBookingCanBeCheckedIn(booking);
+
         booking.setStatus(BookingStatus.COMPLETED);
-        return mapToResponse(bookingRepository.save(booking));
+        Booking savedBooking = bookingRepository.save(booking);
+        notificationService.notifyBookingCompleted(savedBooking);
+        return mapToResponse(savedBooking);
     }
 
     private String generateQrCode() {
@@ -162,6 +171,25 @@ public class BookingServiceImpl implements BookingService {
     private void validateUserHasNotBookedSlot(User user, StoreTimeSlot slot) {
         if (bookingRepository.existsByUserIdAndSlotId(user.getId(), slot.getId())) {
             throw new BadRequestException("User already booked this slot.");
+        }
+    }
+
+    private void validateBookingCanBeCheckedIn(Booking booking) {
+        if (!BookingStatus.CONFIRMED.equals(booking.getStatus())) {
+            throw new BadRequestException("The booking is not confirmed");
+        }
+
+        StoreTimeSlot slot = booking.getSlot();
+        if (slot == null || slot.getSlotDate() == null || slot.getStartTime() == null || slot.getEndTime() == null) {
+            throw new BadRequestException("The booking is overdue");
+        }
+
+        LocalDateTime now = LocalDateTime.now(VIETNAM_ZONE);
+        LocalDateTime slotStart = LocalDateTime.of(slot.getSlotDate(), slot.getStartTime());
+        LocalDateTime slotEnd = LocalDateTime.of(slot.getSlotDate(), slot.getEndTime());
+
+        if (now.isBefore(slotStart) || now.isAfter(slotEnd)) {
+            throw new BadRequestException("The booking is overdue");
         }
     }
 

@@ -11,5 +11,6 @@ public interface INotificationService {
     List<NotificationResponse> markNotificationsRead(List<UUID> notificationIds);
     NotificationResponse notifyBookingConfirmed(Booking booking);
     NotificationResponse notifyBookingCancelled(Booking booking);
+    NotificationResponse notifyBookingCompleted(Booking booking);
     NotificationResponse notifyBookingReminder(Booking booking);
 }

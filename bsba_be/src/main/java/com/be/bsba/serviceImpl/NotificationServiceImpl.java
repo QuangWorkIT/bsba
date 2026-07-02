@@ -25,6 +25,7 @@ public class NotificationServiceImpl implements INotificationService {
     private static final String NOTIFICATIONS_TOPIC = "/topic/notifications";
     private static final String BOOKING_CONFIRMED_TYPE = "BOOKING_CONFIRMED";
     private static final String BOOKING_CANCELLED_TYPE = "BOOKING_CANCELLED";
+    private static final String BOOKING_COMPLETED_TYPE = "BOOKING_COMPLETED";
     private static final String BOOKING_REMINDER_TYPE = "BOOKING_REMINDER";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -82,6 +83,15 @@ public class NotificationServiceImpl implements INotificationService {
                 "Booking cancelled",
                 "Your booking at %s has been cancelled.",
                 BOOKING_CANCELLED_TYPE);
+    }
+
+    @Override
+    public NotificationResponse notifyBookingCompleted(Booking booking) {
+        return notifyBookingStatusChanged(
+                booking,
+                "Booking completed",
+                "Your booking at %s has been completed.",
+                BOOKING_COMPLETED_TYPE);
     }
 
     @Override
