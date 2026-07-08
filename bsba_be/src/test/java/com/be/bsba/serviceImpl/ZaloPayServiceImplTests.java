@@ -9,6 +9,7 @@ import com.be.bsba.entity.Payment;
 import com.be.bsba.repository.BookingRepository;
 import com.be.bsba.repository.PaymentRepository;
 import com.be.bsba.repository.UserRepository;
+import com.be.bsba.service.INotificationService;
 import com.be.bsba.util.HmacUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +53,9 @@ class ZaloPayServiceImplTests {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private INotificationService notificationService;
+
     private ZaloPayServiceImpl service;
 
     @BeforeEach
@@ -69,7 +73,8 @@ class ZaloPayServiceImplTests {
                 zaloPayRestClient,
                 bookingRepository,
                 paymentRepository,
-                userRepository
+                userRepository,
+                notificationService
         );
     }
 
@@ -91,6 +96,7 @@ class ZaloPayServiceImplTests {
                 () -> assertNotNull(payment.getCallbackReceivedAt())
         );
         verify(paymentRepository).save(payment);
+        verify(notificationService).notifyBookingConfirmed(payment.getBooking());
     }
 
     @Test
@@ -105,6 +111,7 @@ class ZaloPayServiceImplTests {
 
         assertEquals(1, response.get("return_code"));
         verify(paymentRepository, never()).save(payment);
+        verify(notificationService, never()).notifyBookingConfirmed(payment.getBooking());
     }
 
     @Test
@@ -122,6 +129,7 @@ class ZaloPayServiceImplTests {
                 () -> assertEquals(BookingStatus.PENDING, payment.getBooking().getStatus())
         );
         verify(paymentRepository, never()).save(payment);
+        verify(notificationService, never()).notifyBookingConfirmed(payment.getBooking());
     }
 
     private Payment pendingPayment() {

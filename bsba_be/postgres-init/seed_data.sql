@@ -25,7 +25,8 @@ INSERT INTO users (id, email, password_hash, full_name, phone, avatar_url, auth_
     ('a0000000-0000-0000-0000-000000000003', 'customer02@gmail.com', crypt('Password@123', gen_salt('bf', 10)), 'Customer Two',   '0901000002', 'https://i.pravatar.cc/150?img=20', 'local', 2, TRUE),
     ('a0000000-0000-0000-0000-000000000004', 'customer03@gmail.com', crypt('Password@123', gen_salt('bf', 10)), 'Customer Three', '0901000003', 'https://i.pravatar.cc/150?img=33', 'local', 2, TRUE),
     ('a0000000-0000-0000-0000-000000000005', 'staff01@gmail.com',    crypt('Password@123', gen_salt('bf', 10)), 'Staff One',      '0902000001', 'https://i.pravatar.cc/150?img=51', 'local', 3, TRUE),
-    ('a0000000-0000-0000-0000-000000000006', 'staff02@gmail.com',    crypt('Password@123', gen_salt('bf', 10)), 'Staff Two',      '0902000002', 'https://i.pravatar.cc/150?img=52', 'local', 3, TRUE)
+    ('a0000000-0000-0000-0000-000000000006', 'staff02@gmail.com',    crypt('Password@123', gen_salt('bf', 10)), 'Staff Two',      '0902000002', 'https://i.pravatar.cc/150?img=52', 'local', 3, TRUE),
+    ('a0000000-0000-0000-0000-000000000007', 'staff03@gmail.com',    crypt('Password@123', gen_salt('bf', 10)), 'Staff Three',    '0902000003', 'https://i.pravatar.cc/150?img=53', 'local', 3, TRUE)
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------
@@ -101,11 +102,11 @@ ON CONFLICT (id) DO NOTHING;
 -- ------------------------------------------
 -- BOOKINGS
 -- ------------------------------------------
-INSERT INTO bookings (id, user_id, store_id, slot_id, participant_count, note, status) VALUES
-    ('f0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 4,  'Birthday meetup, please prepare Catan.', 'COMPLETED'),
-    ('f0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000004', 2,  NULL,                                     'CONFIRMED'),
-    ('f0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000003', 'e0000000-0000-0000-0000-000000000007', 6,  'Party night with friends.',              'PENDING'),
-    ('f0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000002', 3, NULL,                                     'CANCELLED')
+INSERT INTO bookings (id, user_id, store_id, slot_id, participant_count, note,qr_code, status) VALUES
+    ('f0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 4,  'Birthday meetup, please prepare Catan.', '123456','COMPLETED'),
+    ('f0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000004', 2,  NULL,                                     '123ABC','CONFIRMED'),
+    ('f0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000003', 'e0000000-0000-0000-0000-000000000007', 6,  'Party night with friends.',              '123Abc','PENDING'),
+    ('f0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000002', 3, NULL,                                     'ABC123','CANCELLED')
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------
@@ -194,9 +195,9 @@ INSERT INTO booking_cart_games (cart_id, board_game_id, quantity) VALUES
 -- ------------------------------------------
 -- CONVERSATIONS (user <-> store chat)
 -- ------------------------------------------
-INSERT INTO conversations (id, user_id, store_id, last_message_preview, last_message_at) VALUES
-    ('50000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'Great, see you at 9!',            NOW() - INTERVAL '2 hours'),
-    ('50000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000002', 'Do you have Wingspan available?', NOW() - INTERVAL '30 minutes')
+INSERT INTO conversations (id, user_id, store_id, last_message_preview, last_message_at, last_message_sender_type) VALUES
+    ('50000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'Great, see you at 9!',            NOW() - INTERVAL '2 hours',     'STAFF'),
+    ('50000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000002', 'Do you have Wingspan available?', NOW() - INTERVAL '30 minutes', 'CUSTOMER')
 ON CONFLICT (user_id, store_id) DO NOTHING;
 
 -- ------------------------------------------
@@ -214,7 +215,9 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO store_staff (id, created_at, user_id, store_id) VALUES
     (1, now(), 'a0000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001'),
-    (2, now(), 'a0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001')
+    (2, now(), 'a0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001'),
+    -- Staff Three works at District 1 (store2) — also the store of conversation #2.
+    (3, now(), 'a0000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000002')
 ON CONFLICT (store_id, user_id) DO NOTHING;
 
 SELECT setval(pg_get_serial_sequence('store_staff', 'id'), (SELECT MAX(id) FROM store_staff));

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:project/ui/inbox/notification_badge_viewmodel.dart';
 import 'package:project/ui/inbox/widgets/notification_viewmodel.dart';
 import 'package:project/ui/inbox/widgets/notification_card.dart';
 
@@ -17,14 +19,14 @@ class _NotificationContentState extends State<NotificationContent> {
   @override
   void initState() {
     super.initState();
-    _viewModel.loadNotifications(widget.userId);
+    _viewModel.start(widget.userId);
   }
 
   @override
   void didUpdateWidget(covariant NotificationContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.userId != widget.userId) {
-      _viewModel.loadNotifications(widget.userId);
+      _viewModel.start(widget.userId);
     }
   }
 
@@ -51,9 +53,32 @@ class _NotificationContentState extends State<NotificationContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Notifications',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Notifications',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: _viewModel.hasUnreadNotifications &&
+                            !_viewModel.isMarkingAsRead
+                        ? _markAllAsRead
+                        : null,
+                    icon: _viewModel.isMarkingAsRead
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.done_all),
+                    label: const Text('Mark as read'),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               Expanded(child: _buildBody()),
@@ -62,6 +87,23 @@ class _NotificationContentState extends State<NotificationContent> {
         );
       },
     );
+  }
+
+  Future<void> _markAllAsRead() async {
+    final success = await _viewModel.markAllAsRead();
+    if (!mounted) return;
+
+    if (success) {
+      await context.read<NotificationBadgeViewModel>().refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notifications marked as read.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No unread notifications to update.')),
+      );
+    }
   }
 
   Widget _buildBody() {
@@ -116,6 +158,7 @@ class _NotificationContentState extends State<NotificationContent> {
             title: notification.title,
             subtitle: notification.body,
             time: _formatTime(notification.createdAt),
+            isRead: notification.isRead,
             icon: notification.type == 'SYSTEM'
                 ? Icons.warning_amber
                 : Icons.notifications,

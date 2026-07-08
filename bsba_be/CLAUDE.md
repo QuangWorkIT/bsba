@@ -52,8 +52,10 @@ Package map under `com.be.bsba`:
 | `repository` | Spring Data JPA `@Repository` interfaces extending `JpaRepository<Entity, IdType>`. |
 | `entity` | JPA `@Entity` classes mapped to tables. |
 | `dto.request` / `dto.response` | API request/response payloads. |
-| `constant` | Enums (`BookingStatus`, `TimeSlotStatus`) and config (`WebConfig` CORS). |
-| `exception` | `GlobalExceptionHandler` (`@RestControllerAdvice`). |
+| `constant` | Enums (`BookingStatus`, `TimeSlotStatus`, `UserRole`) and config (`WebConfig`, `WebSocketConfig`). |
+| `exception` | `GlobalExceptionHandler` (`@RestControllerAdvice`) + custom types (`ResourceNotFoundException`, `BadRequestException`, `AppException`). |
+| `config` | App config beans incl. `SecurityConfig` (Spring Security filter chain, CORS, `PasswordEncoder`), `DataInitializer`. |
+| `security` | JWT auth: `JwtAuthenticationFilter`, `JwtService`, `TokenBlacklistService`, `CurrentUserProvider`. |
 
 The **BoardGame** vertical slice is the reference implementation — copy its structure when adding a new feature. Most other entities exist but are not yet exposed through controllers/services.
 
@@ -73,9 +75,18 @@ The **BoardGame** vertical slice is the reference implementation — copy its st
 
 Hibernate is set to `ddl-auto: update`, but the **canonical schema is [postgres-init/create_table.sql](postgres-init/create_table.sql)** — applied automatically on a fresh Postgres volume. Core tables: `roles`, `users`, `stores`, `store_images`, `board_games`, `store_board_games`, `store_time_slots`, `bookings`, `booking_games`, `booking_carts`, `booking_cart_games`, `reviews`, `favorite_stores`, `notifications`, `payments`. When you change an entity, update this SQL to match.
 
+## Security & auth
+
+Auth **is** wired up: Spring Security + JWT (`jjwt`), stateless sessions, BCrypt passwords.
+
+- **Filter chain** ([config/SecurityConfig.java](src/main/java/com/be/bsba/config/SecurityConfig.java)): `permitAll` for `/api/v1/auth/**`, `/ws/**`, and the ZaloPay callbacks; **every other endpoint requires a valid `Authorization: Bearer <jwt>`** (`anyRequest().authenticated()`).
+- **[JwtAuthenticationFilter](src/main/java/com/be/bsba/security/JwtAuthenticationFilter.java)** validates the token, checks the blacklist ([TokenBlacklistService](src/main/java/com/be/bsba/security/TokenBlacklistService.java)), and populates the `SecurityContext` with the caller's email + `ROLE_<role>` authority.
+- **Resolve the caller from the token, not the request.** Use [`CurrentUserProvider.requireCurrentUser()`](src/main/java/com/be/bsba/security/CurrentUserProvider.java) → `AuthUser(id, role)`. See [BookingController.java](src/main/java/com/be/bsba/controller/BookingController.java) for the reference usage.
+- ⚠️ **Migration is incomplete.** Only `BookingController` uses `CurrentUserProvider` so far. Most controllers (e.g. [ConversationController](src/main/java/com/be/bsba/controller/ConversationController.java)) still read `userId`/`role` from `@RequestParam` — **the client can spoof these**. When adding or editing an endpoint, derive identity from `CurrentUserProvider` and drop the `userId`/`role` params.
+- Auth endpoints (login/register/Google/OTP/logout) live in [AuthController](src/main/java/com/be/bsba/controller/AuthController.java); the JWT secret is `app.jwt.secret` in [application.yaml](src/main/resources/application.yaml).
+
 ## Notes for agents
 
 - This is a monorepo: `bsba_fe/` (Flutter) is the client — don't touch it for backend tasks.
-- CORS currently allows all origins for `/api/**` ([constant/WebConfig.java](src/main/java/com/be/bsba/constant/WebConfig.java)) — fine for dev, tighten before prod.
-- No auth/security layer is wired up yet (no Spring Security dependency); `password_hash`/`auth_provider` exist on `users` for future use.
+- CORS is configured in [SecurityConfig.java](src/main/java/com/be/bsba/config/SecurityConfig.java) (allows all origin patterns, credentials enabled) — fine for dev, tighten before prod.
 - `show-sql: true` is on — SQL is logged during dev.

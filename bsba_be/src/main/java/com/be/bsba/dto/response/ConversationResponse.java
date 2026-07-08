@@ -1,5 +1,6 @@
 package com.be.bsba.dto.response;
 
+import com.be.bsba.constant.SenderType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +24,8 @@ public class ConversationResponse {
     private String customerAvatarUrl;
     private String lastMessagePreview;
     private OffsetDateTime lastMessageAt;
+    // Sender of the last message (CUSTOMER/STAFF); lets the client prefix "Bạn: " for own messages.
+    private SenderType lastMessageSenderType;
     private long unreadCount;
     // User ids of the store's staff, so the customer side can show an online dot
     // for the store (online = any of these staff is currently connected).

@@ -106,19 +106,21 @@ class _StaffChatBody extends StatelessWidget {
           return _ConversationCard(
             conversation: c,
             role: vm.role,
+            draft: vm.draftFor(c.id),
             onTap: () async {
               await Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => ChangeNotifierProvider<PresenceViewModel>.value(
-                    value: context.read<PresenceViewModel>(),
-                    child: ChatScreen(
-                      conversationId: c.id,
-                      name: c.displayNameFor(vm.role),
-                      presenceUserIds: [
-                        if (c.customerId != null) c.customerId!,
-                      ],
-                    ),
-                  ),
+                  builder: (_) =>
+                      ChangeNotifierProvider<PresenceViewModel>.value(
+                        value: context.read<PresenceViewModel>(),
+                        child: ChatScreen(
+                          conversationId: c.id,
+                          name: c.displayNameFor(vm.role),
+                          presenceUserIds: [
+                            if (c.customerId != null) c.customerId!,
+                          ],
+                        ),
+                      ),
                 ),
               );
               // Re-sync unread on return so a thread just read stops looking new.
@@ -135,17 +137,23 @@ class _ConversationCard extends StatelessWidget {
   const _ConversationCard({
     required this.conversation,
     required this.role,
+    this.draft,
     this.onTap,
   });
 
   final Conversation conversation;
   final String role;
+
+  /// Unsent draft for this thread; when set, it replaces the last-message
+  /// preview with a "Not sent" marker (same behaviour as the customer inbox).
+  final String? draft;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final isUnread = conversation.hasUnread;
     final name = conversation.displayNameFor(role);
+    final hasDraft = draft != null && draft!.trim().isNotEmpty;
 
     // Staff watch the customer's presence; a customer would watch the store's staff.
     final presence = context.watch<PresenceViewModel>();
@@ -228,21 +236,49 @@ class _ConversationCard extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
-                                      child: Text(
-                                        conversation.preview,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          height: 1.3,
-                                          fontWeight: isUnread
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                          color: isUnread
-                                              ? StaffDashboardColors.text
-                                              : StaffDashboardColors.muted,
-                                        ),
-                                      ),
+                                      child: hasDraft
+                                          ? Text.rich(
+                                              TextSpan(
+                                                children: [
+                                                  const TextSpan(
+                                                    text: 'Not sent: ',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color:
+                                                          StaffDashboardColors
+                                                              .accent,
+                                                    ),
+                                                  ),
+                                                  TextSpan(text: draft!.trim()),
+                                                ],
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                height: 1.3,
+                                                fontWeight: FontWeight.w400,
+                                                color:
+                                                    StaffDashboardColors.muted,
+                                              ),
+                                            )
+                                          : Text(
+                                              conversation.previewFor(role),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                height: 1.3,
+                                                fontWeight: isUnread
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w400,
+                                                color: isUnread
+                                                    ? StaffDashboardColors.text
+                                                    : StaffDashboardColors
+                                                          .muted,
+                                              ),
+                                            ),
                                     ),
                                     if (isUnread) ...[
                                       const SizedBox(width: 8),

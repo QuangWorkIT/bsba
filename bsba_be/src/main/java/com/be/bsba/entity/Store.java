@@ -51,7 +51,7 @@ public class Store {
     private Integer totalCapacity;
 
     @Column(name = "charge_fee")
-    private double chargeFee;
+    private Double chargeFee;
 
     @Column(precision = 3, scale = 2)
     private BigDecimal ratingAvg;

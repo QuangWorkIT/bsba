@@ -6,17 +6,17 @@ class SpaceService {
 
   SpaceService(this._apiClient);
 
-  /// GET /api/v1/spaces?lat=..&lng=..&sort=..&q=..
+  /// GET /api/v1/spaces?lat=..&lng=..&sortBy=..&q=..
   /// Response: { data: { items: [SpaceCardResponse...], ... } }
   Future<List<BoardSpace>> getSpaces({
     double? lat,
     double? lng,
-    String sort = 'ALL',
+    String sortBy = 'ALL',
     String? q,
     int page = 0,
     int size = 50,
   }) async {
-    final params = <String>['sort=$sort', 'page=$page', 'size=$size'];
+    final params = <String>['sortBy=$sortBy', 'page=$page', 'size=$size'];
     if (lat != null) params.add('lat=$lat');
     if (lng != null) params.add('lng=$lng');
     if (q != null && q.isNotEmpty) {

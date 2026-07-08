@@ -33,6 +33,22 @@ class BookingService {
     return BookingSummary.fromJson(data);
   }
 
+  Future<BookingSummary> checkInBooking(String qrCode) async {
+    final response = await _apiClient.post('/bookings/checkin', {
+      'qrCode': qrCode,
+    });
+
+    if (response['success'] == false) {
+      throw ApiException(
+        400,
+        response['message'] as String? ?? 'Unable to check in booking.',
+      );
+    }
+
+    final data = response['data'] as Map<String, dynamic>;
+    return BookingSummary.fromJson(data);
+  }
+
   Future<List<PendingBookingLookup>> lookupPendingBooking({
     required String userId,
     required String storeId,

@@ -100,7 +100,7 @@ class _InboxBody extends StatelessWidget {
           final c = conversations[index];
           return ChatItem(
             name: c.displayNameFor(vm.role),
-            message: c.preview,
+            message: c.previewFor(vm.role),
             draft: vm.draftFor(c.id),
             time: c.relativeLabel,
             unreadCount: c.unreadCount,

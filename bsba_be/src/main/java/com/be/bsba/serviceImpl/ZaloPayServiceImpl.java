@@ -17,6 +17,7 @@ import com.be.bsba.exception.ResourceNotFoundException;
 import com.be.bsba.repository.BookingRepository;
 import com.be.bsba.repository.PaymentRepository;
 import com.be.bsba.repository.UserRepository;
+import com.be.bsba.service.INotificationService;
 import com.be.bsba.service.ZaloPayService;
 import com.be.bsba.util.HmacUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -64,6 +65,7 @@ public class ZaloPayServiceImpl implements ZaloPayService {
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+    private final INotificationService notificationService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
@@ -233,6 +235,7 @@ public class ZaloPayServiceImpl implements ZaloPayService {
             payment.setCallbackReceivedAt(OffsetDateTime.now());
             payment.getBooking().setStatus(BookingStatus.CONFIRMED);
             paymentRepository.save(payment);
+            notificationService.notifyBookingConfirmed(payment.getBooking());
 
             log.info("[ZaloPay] Callback applied: appTransId={}, zpTransId={}, serverTime={}, bookingId={}",
                     appTransId, zpTransId, serverTime, payment.getBooking().getId().toString());
@@ -313,6 +316,7 @@ public class ZaloPayServiceImpl implements ZaloPayService {
             payment.setZpTransId(asString(response.get("zp_trans_id")));
             payment.getBooking().setStatus(BookingStatus.CONFIRMED);
             paymentRepository.saveAndFlush(payment);
+            notificationService.notifyBookingConfirmed(payment.getBooking());
         } else if (returnCode == 2) {
             payment.setStatus(PaymentStatus.FAILED);
             paymentRepository.saveAndFlush(payment);

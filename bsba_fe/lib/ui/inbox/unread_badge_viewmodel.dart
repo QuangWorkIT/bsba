@@ -11,13 +11,11 @@ class UnreadBadgeViewModel extends ChangeNotifier {
   final ChatRepository _repository;
   final ChatSocketService _socket;
   final String userId;
-  final String role;
 
   UnreadBadgeViewModel(
     this._repository,
     this._socket,
-  )   : userId = CurrentUser.instance.id,
-        role = CurrentUser.instance.role {
+  )   : userId = CurrentUser.instance.id {
     _socket.subscribeJson(
       '/topic/users/$userId/conversations',
       (_) => refresh(),
@@ -34,7 +32,7 @@ class UnreadBadgeViewModel extends ChangeNotifier {
 
   Future<void> refresh() async {
     try {
-      _count = await _repository.fetchUnreadCount(userId: userId, role: role);
+      _count = await _repository.fetchUnreadCount();
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading unread count: $e');

@@ -27,6 +27,9 @@ public class Booking {
     @Column(columnDefinition = "TEXT")
     private String note;
 
+    @Column(name = "qr_code")
+    private String qrCode;
+
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
 
