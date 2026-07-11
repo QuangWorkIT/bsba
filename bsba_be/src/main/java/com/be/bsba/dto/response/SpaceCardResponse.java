@@ -21,5 +21,8 @@ public class SpaceCardResponse {
     private Double distanceMiles;       // null when the caller sends no location
     private String description;
     private List<String> featuredGames;
+    // Full list of every game this store carries, used for client-side search
+    // (featuredGames is only the first few shown on the card).
+    private List<String> gameNames;
     private List<SpaceSlotResponse> availableSlotsToday;
 }

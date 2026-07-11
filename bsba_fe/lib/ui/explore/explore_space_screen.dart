@@ -107,6 +107,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     final space = _vm.spaces[index];
                     return SpaceCard(
                       space: space,
+                      matchedGame: _vm.matchedGameFor(space),
                       onBookTap: () => _onBookTap(space.id),
                       onChatTap: () => _onChatTap(space),
                     );
@@ -414,70 +415,3 @@ class _ErrorState extends StatelessWidget {
   }
 }
 
-class _LibraryBanner extends StatelessWidget {
-  final VoidCallback onTap;
-  const _LibraryBanner({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [colors.primary, colors.primary.withValues(alpha: 0.8)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: colors.primary.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.auto_stories_rounded,
-              color: Colors.white,
-              size: 28,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Browse Game Library',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Explore our collection of 500+ games',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: Colors.white,
-              size: 16,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
