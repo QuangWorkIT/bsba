@@ -8,6 +8,10 @@ class BoardSpace {
   final String description;
   final List<String> availableSlots;
   final List<String> featuredGames;
+
+  /// Every game this store carries (superset of [featuredGames]); used to
+  /// search stores by game name even for games not shown on the card.
+  final List<String> gameNames;
   final double pricePerHour;
 
   const BoardSpace({
@@ -20,6 +24,7 @@ class BoardSpace {
     required this.description,
     required this.availableSlots,
     required this.featuredGames,
+    this.gameNames = const [],
     required this.pricePerHour,
   });
 
@@ -27,6 +32,7 @@ class BoardSpace {
   factory BoardSpace.fromJson(Map<String, dynamic> json) {
     final slots = (json['availableSlotsToday'] as List<dynamic>?) ?? const [];
     final games = (json['featuredGames'] as List<dynamic>?) ?? const [];
+    final allGames = (json['gameNames'] as List<dynamic>?) ?? const [];
 
     return BoardSpace(
       id: json['id'] as String,
@@ -41,6 +47,7 @@ class BoardSpace {
           .where((s) => s.isNotEmpty)
           .toList(),
       featuredGames: games.map((g) => g as String).toList(),
+      gameNames: allGames.map((g) => g as String).toList(),
       pricePerHour: 0,
     );
   }
@@ -56,6 +63,7 @@ class BoardSpace {
     String? description,
     List<String>? availableSlots,
     List<String>? featuredGames,
+    List<String>? gameNames,
     double? pricePerHour,
   }) {
     return BoardSpace(
@@ -68,6 +76,7 @@ class BoardSpace {
       description: description ?? this.description,
       availableSlots: availableSlots ?? this.availableSlots,
       featuredGames: featuredGames ?? this.featuredGames,
+      gameNames: gameNames ?? this.gameNames,
       pricePerHour: pricePerHour ?? this.pricePerHour,
     );
   }

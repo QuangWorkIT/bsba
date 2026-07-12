@@ -6,11 +6,16 @@ class SpaceCard extends StatelessWidget {
   final VoidCallback? onBookTap;
   final VoidCallback? onChatTap;
 
+  /// Game name that matched the current search, if any — surfaced as a badge so
+  /// the user sees which game this store serves.
+  final String? matchedGame;
+
   const SpaceCard({
     super.key,
     required this.space,
     this.onBookTap,
     this.onChatTap,
+    this.matchedGame,
   });
 
   @override
@@ -53,6 +58,13 @@ class SpaceCard extends StatelessWidget {
                     height: 1.45,
                   ),
                 ),
+                if (space.featuredGames.isNotEmpty || matchedGame != null) ...[
+                  const SizedBox(height: 14),
+                  _GamesSection(
+                    games: space.featuredGames,
+                    matchedGame: matchedGame,
+                  ),
+                ],
                 const SizedBox(height: 14),
                 Divider(color: colors.outlineVariant, height: 1),
                 const SizedBox(height: 12),
@@ -80,6 +92,91 @@ class SpaceCard extends StatelessWidget {
 }
 
 // ── Sub-widgets ────────────────────────────────────────────────────────────────
+
+class _GamesSection extends StatelessWidget {
+  final List<String> games;
+
+  /// Game matched by the current search; highlighted, and appended if it's not
+  /// already among the featured games so a searched game always shows.
+  final String? matchedGame;
+
+  const _GamesSection({required this.games, this.matchedGame});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final showExtraMatch =
+        matchedGame != null && !games.contains(matchedGame);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'POPULAR GAMES',
+          style: TextStyle(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.8,
+            color: colors.secondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            for (final g in games)
+              _GameTag(label: g, highlight: g == matchedGame),
+            if (showExtraMatch) _GameTag(label: matchedGame!, highlight: true),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _GameTag extends StatelessWidget {
+  final String label;
+  final bool highlight;
+
+  const _GameTag({required this.label, this.highlight = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: highlight ? colors.primary.withValues(alpha: 0.1) : colors.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: highlight ? colors.primary : colors.outline,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.casino_rounded,
+            size: 14,
+            color: highlight ? colors.primary : colors.secondary,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
+              color: highlight ? colors.primary : colors.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _ChatButton extends StatelessWidget {
   final VoidCallback? onTap;

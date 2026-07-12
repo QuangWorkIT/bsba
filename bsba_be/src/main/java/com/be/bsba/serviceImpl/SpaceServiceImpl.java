@@ -128,6 +128,7 @@ public class SpaceServiceImpl implements SpaceService {
                 .distanceMiles(distanceMiles)
                 .description(store.getDescription())
                 .featuredGames(featured)
+                .gameNames(games)
                 .availableSlotsToday(slots)
                 .build();
     }
