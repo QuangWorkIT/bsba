@@ -34,7 +34,7 @@ class ExploreViewModel extends ChangeNotifier {
       result = result.where((s) {
         return s.name.toLowerCase().contains(q) ||
             s.description.toLowerCase().contains(q) ||
-            s.featuredGames.any((g) => g.toLowerCase().contains(q));
+            s.gameNames.any((g) => g.toLowerCase().contains(q));
       }).toList();
     }
 
@@ -51,6 +51,17 @@ class ExploreViewModel extends ChangeNotifier {
     }
 
     return result;
+  }
+
+  /// When the current query matches a game this space carries, returns that
+  /// game's name (first match) so the card can surface it; otherwise null.
+  String? matchedGameFor(BoardSpace space) {
+    final q = _searchQuery.trim().toLowerCase();
+    if (q.isEmpty) return null;
+    for (final g in space.gameNames) {
+      if (g.toLowerCase().contains(q)) return g;
+    }
+    return null;
   }
 
   // ── Actions ────────────────────────────────────────────────────────────────
