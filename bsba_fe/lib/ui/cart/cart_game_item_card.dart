@@ -127,7 +127,7 @@ class CartGameItemCard extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        '${item.pricePerHour.toStringAsFixed(2)} VND / hr',
+                        '${item.pricePerHour.toStringAsFixed(0)} VND / hr',
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: scheme.primary,
@@ -213,8 +213,9 @@ class _QuantityStepper extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _StepperButton(icon: Icons.remove, onPressed: onDecrement),
-          SizedBox(
-            width: 16,
+          Container(
+            constraints: const BoxConstraints(minWidth: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               '$quantity',
               textAlign: TextAlign.center,

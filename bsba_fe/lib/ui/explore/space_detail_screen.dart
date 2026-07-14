@@ -666,44 +666,51 @@ class _BookingBar extends StatelessWidget {
         ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Price
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: '${pricePerHour.toStringAsFixed(0)} VND',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    color: cs.onSurface,
+          Flexible(
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: '${pricePerHour.toStringAsFixed(0)} VND',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: cs.onSurface,
+                    ),
                   ),
-                ),
-                TextSpan(
-                  text: ' / hour',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: cs.onSurface.withValues(alpha: 0.5),
+                  TextSpan(
+                    text: ' / hour',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: cs.onSurface.withValues(alpha: 0.5),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          // CTA button
-          FilledButton(
-            onPressed: onSelect,
-            style: FilledButton.styleFrom(
-              backgroundColor: cs.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                ],
               ),
             ),
-            child: const Text(
-              'Select Booking Time',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          ),
+          const SizedBox(width: 12),
+          // CTA button
+          Flexible(
+            child: FilledButton(
+              onPressed: onSelect,
+              style: FilledButton.styleFrom(
+                backgroundColor: cs.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Select Time',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
         ],

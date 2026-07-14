@@ -70,7 +70,7 @@ class CheckoutOrderSummary extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Total',
+                'Total Price',
                 style: TextStyle(
                   color: _titleColor,
                   fontSize: 16,
@@ -78,13 +78,17 @@ class CheckoutOrderSummary extends StatelessWidget {
                   height: 1.5,
                 ),
               ),
-              Text(
-                '${total.toStringAsFixed(2)} VND',
-                style: TextStyle(
-                  color: scheme.primary,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  height: 1.33,
+              const SizedBox(width: 16),
+              Flexible(
+                child: Text(
+                  '${total.toStringAsFixed(0)} VND',
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    color: scheme.primary,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    height: 1.33,
+                  ),
                 ),
               ),
             ],
@@ -183,12 +187,16 @@ class _OrderLineItem extends StatelessWidget {
             ],
           ),
         ),
-        Text(
-          '${amount.toStringAsFixed(2)} VND',
-          style: const TextStyle(
-            color: CheckoutOrderSummary._titleColor,
-            fontSize: 14,
-            height: 1.43,
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(
+            '${amount.toStringAsFixed(0)} VND',
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              color: CheckoutOrderSummary._titleColor,
+              fontSize: 14,
+              height: 1.43,
+            ),
           ),
         ),
       ],
@@ -207,20 +215,26 @@ class _AmountRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: CheckoutOrderSummary._bodyTextColor,
-            fontSize: 14,
-            height: 1.43,
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: CheckoutOrderSummary._bodyTextColor,
+              fontSize: 14,
+              height: 1.43,
+            ),
           ),
         ),
-        Text(
-          '${amount.toStringAsFixed(2)} VND',
-          style: const TextStyle(
-            color: CheckoutOrderSummary._titleColor,
-            fontSize: 14,
-            height: 1.43,
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(
+            '${amount.toStringAsFixed(0)} VND',
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              color: CheckoutOrderSummary._titleColor,
+              fontSize: 14,
+              height: 1.43,
+            ),
           ),
         ),
       ],
