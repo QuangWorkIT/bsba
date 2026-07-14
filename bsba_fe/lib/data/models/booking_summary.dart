@@ -104,7 +104,7 @@ class BookingSummary {
           ? '${_formatTime(startsAt)} - ${_formatTime(endsAt)}'
           : json['time'] ?? 'N/A',
       players: '${json['participants'] ?? 0} Players',
-      total: '\$${json['total'] ?? 0}',
+      total: '${json['total'] ?? 0} VND',
       imageAsset: json['storeImage'] ?? json['imageUrl'] ?? json['imageAsset'] ?? '',
       status: status,
       startsAt: startsAt,

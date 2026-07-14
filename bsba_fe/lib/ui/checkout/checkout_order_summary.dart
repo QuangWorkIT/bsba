@@ -79,7 +79,7 @@ class CheckoutOrderSummary extends StatelessWidget {
                 ),
               ),
               Text(
-                '\$${total.toStringAsFixed(2)}',
+                '${total.toStringAsFixed(2)} VND',
                 style: TextStyle(
                   color: scheme.primary,
                   fontSize: 24,
@@ -184,7 +184,7 @@ class _OrderLineItem extends StatelessWidget {
           ),
         ),
         Text(
-          '\$${amount.toStringAsFixed(2)}',
+          '${amount.toStringAsFixed(2)} VND',
           style: const TextStyle(
             color: CheckoutOrderSummary._titleColor,
             fontSize: 14,
@@ -216,7 +216,7 @@ class _AmountRow extends StatelessWidget {
           ),
         ),
         Text(
-          '\$${amount.toStringAsFixed(2)}',
+          '${amount.toStringAsFixed(2)} VND',
           style: const TextStyle(
             color: CheckoutOrderSummary._titleColor,
             fontSize: 14,

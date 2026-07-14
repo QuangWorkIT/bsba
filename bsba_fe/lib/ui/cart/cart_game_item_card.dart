@@ -127,7 +127,7 @@ class CartGameItemCard extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        '\$${item.pricePerHour.toStringAsFixed(2)} / hr',
+                        '${item.pricePerHour.toStringAsFixed(2)} VND / hr',
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: scheme.primary,

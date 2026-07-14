@@ -439,8 +439,8 @@ class _SpaceInfoSection extends StatelessWidget {
                 label: '${space.areaSqFt} sq ft',
               ),
               _MetaChip(
-                icon: Icons.attach_money_rounded,
-                label: '\$${space.pricePerHour.toStringAsFixed(0)} / hour',
+                icon: Icons.payments_outlined,
+                label: '${space.pricePerHour.toStringAsFixed(0)} VND / hour',
                 color: cs.primary,
               ),
             ],
@@ -672,7 +672,7 @@ class _BookingBar extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: '\$${pricePerHour.toStringAsFixed(0)}',
+                  text: '${pricePerHour.toStringAsFixed(0)} VND',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,

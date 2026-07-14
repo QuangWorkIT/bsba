@@ -49,8 +49,6 @@ class _CartView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<CartViewModel>();
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -59,39 +57,75 @@ class _CartView extends StatelessWidget {
         ),
         title: const Text('Cart'),
       ),
-      body: vm.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : vm.error != null
-          ? Center(
+      body: Selector<CartViewModel, ({bool isLoading, String? error, bool isEmpty})>(
+        selector: (_, vm) => (
+          isLoading: vm.isLoading,
+          error: vm.error,
+          isEmpty: vm.items.isEmpty,
+        ),
+        builder: (context, state, _) {
+          if (state.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state.error != null) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(vm.error!, style: const TextStyle(color: Colors.red)),
+                  Text(state.error!, style: const TextStyle(color: Colors.red)),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: vm.fetchCart,
+                    onPressed: context.read<CartViewModel>().fetchCart,
                     child: const Text('Retry'),
                   ),
                 ],
               ),
-            )
-          : vm.items.isEmpty
-          ? const Center(child: Text('Your cart is empty'))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-              child: Column(
+            );
+          }
+          if (state.isEmpty) {
+            return const Center(child: Text('Your cart is empty'));
+          }
+          return _CartContent(showCheckout: showCheckout);
+        },
+      ),
+    );
+  }
+}
+
+/// The scrollable cart content. The [ReservationSummaryCard] is built once via
+/// [context.read] so it never rebuilds when items change. Only the items list
+/// and order summary are wrapped in a [Consumer] so they update in-place.
+class _CartContent extends StatelessWidget {
+  const _CartContent({required this.showCheckout});
+
+  final bool showCheckout;
+
+  @override
+  Widget build(BuildContext context) {
+    // Read once – reservation details don't change on quantity edits.
+    final vm = context.read<CartViewModel>();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ReservationSummaryCard(
+            storeName: vm.storeName,
+            storeImage: vm.storeImage,
+            slotDate: vm.slotDate,
+            startTime: vm.startTime,
+            endTime: vm.endTime,
+            participants: vm.participants,
+            chargeFee: vm.chargeFee,
+          ),
+          const SizedBox(height: 32),
+          // Only this Consumer rebuilds when items / prices change.
+          Consumer<CartViewModel>(
+            builder: (context, vm, _) {
+              return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ReservationSummaryCard(
-                    storeName: vm.storeName,
-                    storeImage: vm.storeImage,
-                    slotDate: vm.slotDate,
-                    startTime: vm.startTime,
-                    endTime: vm.endTime,
-                    participants: vm.participants,
-                    chargeFee: vm.chargeFee,
-                  ),
-                  const SizedBox(height: 32),
                   _SelectedGamesHeader(itemCount: vm.items.length),
                   const SizedBox(height: 16),
                   ...List.generate(vm.items.length, (index) {
@@ -150,8 +184,11 @@ class _CartView extends StatelessWidget {
                     },
                   ),
                 ],
-              ),
-            ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

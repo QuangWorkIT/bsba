@@ -27,6 +27,7 @@ import com.be.bsba.repository.UserRepository;
 import com.be.bsba.service.BookingService;
 import com.be.bsba.service.INotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
@@ -189,6 +191,7 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime slotEnd = LocalDateTime.of(slot.getSlotDate(), slot.getEndTime());
 
         if (now.isBefore(slotStart) || now.isAfter(slotEnd)) {
+            log.warn("Booking check-in attempt outside of slot time. Now: {}, Slot Start: {}, Slot End: {}", now, slotStart, slotEnd);
             throw new BadRequestException("The booking is overdue");
         }
     }

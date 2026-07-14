@@ -102,7 +102,7 @@ class OrderSummaryCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '\$${totalAmount.toStringAsFixed(2)}',
+                '${totalAmount.toStringAsFixed(2)} VND',
                 style: TextStyle(
                   color: scheme.primary,
                   fontSize: 32,
@@ -177,7 +177,7 @@ class _SummaryRow extends StatelessWidget {
           ),
         ),
         Text(
-          '\$${amount.toStringAsFixed(2)}',
+          '${amount.toStringAsFixed(2)} VND',
           style: TextStyle(
             color: OrderSummaryCard._bodyTextColor(context),
             fontSize: 14,

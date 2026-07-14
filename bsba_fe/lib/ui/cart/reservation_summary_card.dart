@@ -196,7 +196,7 @@ class _DetailGrid extends StatelessWidget {
             Expanded(
               child: _DetailRow(
                 icon: Icons.payments_outlined,
-                label: '\$${chargeFee.toStringAsFixed(2)} Base',
+                label: '${chargeFee.toStringAsFixed(2)} VND Base',
                 textStyle: textStyle,
               ),
             ),
