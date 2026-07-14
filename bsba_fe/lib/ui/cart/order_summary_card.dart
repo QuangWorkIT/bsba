@@ -101,13 +101,17 @@ class OrderSummaryCard extends StatelessWidget {
                   height: 1.5,
                 ),
               ),
-              Text(
-                '\$${totalAmount.toStringAsFixed(2)}',
-                style: TextStyle(
-                  color: scheme.primary,
-                  fontSize: 32,
-                  fontWeight: FontWeight.w600,
-                  height: 1.25,
+              const SizedBox(width: 16),
+              Flexible(
+                child: Text(
+                  '${totalAmount.toStringAsFixed(0)} VND',
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    color: scheme.primary,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w600,
+                    height: 1.25,
+                  ),
                 ),
               ),
             ],
@@ -168,20 +172,26 @@ class _SummaryRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: OrderSummaryCard._bodyTextColor(context),
-            fontSize: 14,
-            height: 1.43,
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: OrderSummaryCard._bodyTextColor(context),
+              fontSize: 14,
+              height: 1.43,
+            ),
           ),
         ),
-        Text(
-          '\$${amount.toStringAsFixed(2)}',
-          style: TextStyle(
-            color: OrderSummaryCard._bodyTextColor(context),
-            fontSize: 14,
-            height: 1.43,
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(
+            '${amount.toStringAsFixed(0)} VND',
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              color: OrderSummaryCard._bodyTextColor(context),
+              fontSize: 14,
+              height: 1.43,
+            ),
           ),
         ),
       ],

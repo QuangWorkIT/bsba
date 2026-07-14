@@ -71,10 +71,12 @@ class CartViewModel extends ChangeNotifier {
   String? get startTime => _startTime;
   String? get endTime => _endTime;
 
-  Future<void> fetchCart() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+  Future<void> fetchCart({bool silent = false}) async {
+    if (!silent) {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+    }
 
     try {
       final data = await _repository.fetchCart(bookingId: bookingId);
@@ -125,14 +127,43 @@ class CartViewModel extends ChangeNotifier {
       return;
     }
 
+    // Optimistic local update – reflect change immediately.
+    final oldItems = List<CartItem>.from(_items);
+    final oldRetail = _retailPrice;
+    final oldTotal = _totalPrice;
+
+    final idx = _items.indexWhere((i) => i.boardGameId == gameId);
+    if (idx != -1) {
+      final old = _items[idx];
+      final diff = quantity - old.quantity;
+      _items[idx] = CartItem(
+        id: old.id,
+        boardGameId: old.boardGameId,
+        name: old.name,
+        category: old.category,
+        imageUrl: old.imageUrl,
+        rentalPrice: old.rentalPrice,
+        quantity: quantity,
+      );
+      _retailPrice += diff * old.rentalPrice;
+      _totalPrice += diff * old.rentalPrice;
+      notifyListeners();
+    }
+
     try {
       await _repository.updateItemQuantity(
         cartId: cartId,
         boardGameId: gameId,
         quantity: quantity,
       );
-      await fetchCart();
+      // Silently sync with server to get authoritative totals.
+      await fetchCart(silent: true);
     } catch (e) {
+      // Rollback on failure.
+      _items = oldItems;
+      _retailPrice = oldRetail;
+      _totalPrice = oldTotal;
+      notifyListeners();
       debugPrint('Error updating quantity: $e');
     }
   }
@@ -144,10 +175,29 @@ class CartViewModel extends ChangeNotifier {
       return;
     }
 
+    // Optimistic local removal.
+    final oldItems = List<CartItem>.from(_items);
+    final oldRetail = _retailPrice;
+    final oldTotal = _totalPrice;
+
+    final idx = _items.indexWhere((i) => i.boardGameId == gameId);
+    if (idx != -1) {
+      final removed = _items.removeAt(idx);
+      final cost = removed.rentalPrice * removed.quantity;
+      _retailPrice -= cost;
+      _totalPrice -= cost;
+      notifyListeners();
+    }
+
     try {
       await _repository.removeItem(cartId: cartId, boardGameId: gameId);
-      await fetchCart();
+      await fetchCart(silent: true);
     } catch (e) {
+      // Rollback on failure.
+      _items = oldItems;
+      _retailPrice = oldRetail;
+      _totalPrice = oldTotal;
+      notifyListeners();
       debugPrint('Error removing item: $e');
     }
   }

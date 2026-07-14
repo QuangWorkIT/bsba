@@ -144,7 +144,7 @@ class GameCard extends StatelessWidget {
               ),
               if (game.rentalPrice > 0)
                 Text(
-                  '\$${game.rentalPrice.toStringAsFixed(0)}/h',
+                  '${game.rentalPrice.toStringAsFixed(0)} VND/h',
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,

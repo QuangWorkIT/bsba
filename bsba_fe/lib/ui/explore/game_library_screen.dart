@@ -295,7 +295,7 @@ class _GameLibraryCard extends StatelessWidget {
               ],
             ),
             trailing: Text(
-              '\$${game.rentalPrice}/hr',
+              '${game.rentalPrice} VND/hr',
               style: TextStyle(
                 color: colors.primary,
                 fontWeight: FontWeight.bold,

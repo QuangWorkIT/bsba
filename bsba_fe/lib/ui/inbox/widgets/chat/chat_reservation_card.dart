@@ -43,7 +43,7 @@ class ChatReservationCard extends StatelessWidget {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  '+ \$5.00 table fee',
+                  '+ 5.00 VND table fee',
                   style: TextStyle(fontSize: 13, color: Color(0xFF414753)),
                 ),
               ],
