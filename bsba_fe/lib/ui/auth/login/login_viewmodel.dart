@@ -5,6 +5,7 @@ import 'package:project/data/services/api_client.dart';
 import 'package:project/data/services/auth_service.dart';
 import 'package:project/data/services/current_user.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LoginViewModel extends ChangeNotifier {
   LoginViewModel({AuthRepository? authRepository})
@@ -14,6 +15,7 @@ class LoginViewModel extends ChangeNotifier {
   final AuthRepository _authRepository;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
+    serverClientId: dotenv.env['GOOGLE_CLIENT_ID'],
   );
 
   String _email = '';
